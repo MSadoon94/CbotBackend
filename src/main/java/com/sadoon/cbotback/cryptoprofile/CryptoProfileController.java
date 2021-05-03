@@ -9,6 +9,10 @@ public class CryptoProfileController {
 
     private CryptoProfileRepository repository;
 
+    public CryptoProfileController(CryptoProfileRepository repository){
+        this.repository = repository;
+    }
+
     @PostMapping
     @ResponseStatus(code = HttpStatus.CREATED)
     public CryptoProfile add(@RequestBody CryptoProfile cryptoProfile){

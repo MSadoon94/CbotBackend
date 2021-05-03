@@ -12,9 +12,9 @@ public class CryptoProfile {
 
     private final String pass;
 
-    public CryptoProfile(String aName, String aPass){
-        name = aName;
-        pass = aPass;
+    public CryptoProfile(String name, String pass){
+        this.name = name;
+        this.pass = pass;
     }
 
 }
