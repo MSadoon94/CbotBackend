@@ -15,7 +15,12 @@ public class CryptoProfileController {
 
     @PostMapping
     @ResponseStatus(code = HttpStatus.CREATED)
-    public CryptoProfile add(@RequestBody CryptoProfile cryptoProfile){
+    public CryptoProfile addProfile(@RequestBody CryptoProfile cryptoProfile){
         return repository.save(cryptoProfile);
+    }
+
+    @GetMapping("/name/{name}")
+    public CryptoProfile getProfile(@PathVariable String name){
+        return repository.findCryptoProfileByName(name);
     }
 }

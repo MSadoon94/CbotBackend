@@ -16,24 +16,32 @@ import static org.hamcrest.Matchers.*;
 @SpringBootTest
 public class CryptoProfileControllerTest {
 
+
     private static final List<CryptoProfile> TEST_PROFILES = List.of(
             new CryptoProfile("profile1", "pass1"),
             new CryptoProfile("profile2", "pass2")
     );
 
+
     @Autowired
     private CryptoProfileRepository repository;
+
+    private CryptoProfileController controller;
 
     @BeforeEach
     void setUp(){
         repository.deleteAll();
+        repository.saveAll(TEST_PROFILES);
+        controller = new CryptoProfileController(repository);
     }
 
     @Test
     void shouldCreateCryptoProfile(){
-        CryptoProfileController controller = new CryptoProfileController(repository);
-
-        assertThat(controller.add(TEST_PROFILES.get(0)), is(TEST_PROFILES.get(0)));
+        assertThat(controller.addProfile(TEST_PROFILES.get(0)).getId(), is(TEST_PROFILES.get(0).getId()));
     }
-    
+
+    @Test
+    void shouldGetSpecificCryptoProfile(){
+        assertThat(controller.getProfile("profile1").getId(), is(TEST_PROFILES.get(0).getId()));
+    }
 }
