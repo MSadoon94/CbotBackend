@@ -2,34 +2,72 @@ package com.sadoon.cbotback.cryptoprofile;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 @Document
-public class CryptoProfile {
+public class CryptoProfile implements UserDetails {
 
     @Id
     private String id = UUID.randomUUID().toString();
 
-    private final String name;
+    private final String username;
 
-    private final String pass;
+    private final String password;
 
-    public CryptoProfile(String name, String pass){
-        this.name = name;
-        this.pass = pass;
-    }
+    private final GrantedAuthority authority;
 
-    public String getName() {
-        return name;
-    }
+    private List<GrantedAuthority> authorities = new ArrayList<>();
 
-    public String getPass() {
-        return pass;
+    public CryptoProfile(String username, String password, GrantedAuthority authority){
+        this.username = username;
+        this.password = password;
+        this.authority = authority;
+        authorities.add(authority);
     }
 
     public String getId() {
         return id;
     }
 
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return authorities;
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
+    }
+
+    @Override
+    public String getUsername() {
+        return username;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
 }

@@ -16,11 +16,13 @@ public class CryptoProfileController {
     @PostMapping
     @ResponseStatus(code = HttpStatus.CREATED)
     public CryptoProfile addProfile(@RequestBody CryptoProfile cryptoProfile){
+        System.out.println(cryptoProfile.getId() + " " + cryptoProfile.getUsername() + " " + cryptoProfile.getPassword());
         return repository.save(cryptoProfile);
     }
 
-    @GetMapping("/name/{name}")
-    public CryptoProfile getProfile(@PathVariable String name){
-        return repository.findCryptoProfileByName(name);
+    @GetMapping("/name/{userName}")
+    public CryptoProfile getProfile(@PathVariable String userName){
+        return repository.findCryptoProfileByUsername(userName);
     }
+
 }

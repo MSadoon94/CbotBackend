@@ -4,6 +4,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 
@@ -14,12 +18,14 @@ import static org.hamcrest.Matchers.*;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
+@ActiveProfiles("test")
 public class CryptoProfileControllerTest {
 
+    private static PasswordEncoder encoder = new BCryptPasswordEncoder();
 
     private static final List<CryptoProfile> TEST_PROFILES = List.of(
-            new CryptoProfile("profile1", "pass1"),
-            new CryptoProfile("profile2", "pass2")
+            new CryptoProfile("profile1", encoder.encode("pass1"), new SimpleGrantedAuthority("USER")),
+            new CryptoProfile("profile2", encoder.encode("pass2"), new SimpleGrantedAuthority("USER"))
     );
 
 

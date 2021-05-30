@@ -1,16 +1,19 @@
 package com.sadoon.cbotback;
 
-import com.sadoon.cbotback.cryptoprofile.CryptoProfileRepository;
-import com.ulisesbocchio.jasyptspringboot.annotation.EnableEncryptableProperties;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
 @SpringBootApplication
-public class CbotbackApplication {
+public class CbotbackApplication implements ApplicationRunner {
 
     public static void main(String[] args) {
         SpringApplication.run(CbotbackApplication.class, args);
+
     }
 
+    @Override
+    public void run(ApplicationArguments args) throws Exception {
+    }
 }
