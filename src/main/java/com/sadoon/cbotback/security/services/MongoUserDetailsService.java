@@ -1,5 +1,6 @@
 package com.sadoon.cbotback.security.services;
 
+import com.sadoon.cbotback.cryptoprofile.CryptoProfile;
 import com.sadoon.cbotback.cryptoprofile.CryptoProfileRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -17,6 +18,12 @@ public class MongoUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String userName) throws UsernameNotFoundException {
-        return repo.getCryptoProfilesByUsername(userName);
+        CryptoProfile profile = repo.getCryptoProfilesByUsername(userName);
+
+        if(profile == null){
+            throw new UsernameNotFoundException("Bad credentials");
+        }
+
+        return profile;
     }
 }
