@@ -20,9 +20,9 @@ public class CryptoProfileController {
         return repository.save(cryptoProfile);
     }
 
-    @GetMapping("/name/{userName}")
-    public CryptoProfile getProfile(@PathVariable String userName){
-        return repository.findCryptoProfileByUsername(userName);
+    @GetMapping("/name/{username}")
+    public CryptoProfile getProfile(@PathVariable String username){
+        return repository.findCryptoProfileByUsername(username);
     }
 
 }

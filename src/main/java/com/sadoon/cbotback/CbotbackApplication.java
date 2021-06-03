@@ -10,7 +10,6 @@ public class CbotbackApplication implements ApplicationRunner {
 
     public static void main(String[] args) {
         SpringApplication.run(CbotbackApplication.class, args);
-
     }
 
     @Override
