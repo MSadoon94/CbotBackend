@@ -1,9 +1,9 @@
-package com.sadoon.cbotback.security.models;
+package com.sadoon.cbotback.user.models;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-public class RegistrationRequest {
+public class SignUpRequest {
 
     private final String username;
 
@@ -11,7 +11,7 @@ public class RegistrationRequest {
 
     private final GrantedAuthority authority;
 
-    public RegistrationRequest(String username, String password, String authority) {
+    public SignUpRequest(String username, String password, String authority) {
         this.username = username;
         this.password = password;
         this.authority = new SimpleGrantedAuthority(authority);

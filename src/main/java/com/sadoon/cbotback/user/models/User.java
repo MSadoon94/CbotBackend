@@ -1,9 +1,8 @@
-package com.sadoon.cbotback.cryptoprofile;
+package com.sadoon.cbotback.user.models;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.ArrayList;
@@ -12,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Document
-public class CryptoProfile implements UserDetails {
+public class User implements UserDetails {
 
     @Id
     private String id = UUID.randomUUID().toString();
@@ -25,7 +24,7 @@ public class CryptoProfile implements UserDetails {
 
     private List<GrantedAuthority> authorities = new ArrayList<>();
 
-    public CryptoProfile(String username, String password, GrantedAuthority authority){
+    public User(String username, String password, GrantedAuthority authority){
         this.username = username;
         this.password = password;
         this.authority = authority;
@@ -37,7 +36,7 @@ public class CryptoProfile implements UserDetails {
     }
 
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
+    public List<GrantedAuthority> getAuthorities() {
         return authorities;
     }
 
