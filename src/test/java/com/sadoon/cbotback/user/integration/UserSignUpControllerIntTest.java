@@ -4,7 +4,6 @@ import com.sadoon.cbotback.user.UserRepository;
 import com.sadoon.cbotback.user.UserSignUpController;
 import com.sadoon.cbotback.user.models.SignUpRequest;
 import com.sadoon.cbotback.user.models.User;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +19,7 @@ import static org.hamcrest.Matchers.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
-public class UserSignUpControllerTest {
+class UserSignUpControllerIntTest {
 
     private final PasswordEncoder encoder = new BCryptPasswordEncoder();
 
@@ -67,11 +66,6 @@ public class UserSignUpControllerTest {
     @Test
     void shouldPassRequestAuthorityToUser(){
         assertThat(user.getAuthorities().get(0), is(TEST_REQUEST.getAuthority()));
-    }
-
-    @AfterEach
-    void tearDown(){
-        repo.deleteAll();
     }
 
 }

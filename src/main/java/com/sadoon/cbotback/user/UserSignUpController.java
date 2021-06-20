@@ -20,7 +20,6 @@ public class UserSignUpController {
     }
 
     @PostMapping("/signup")
-    @ResponseStatus(code = HttpStatus.CREATED)
     public ResponseEntity<HttpStatus> addUser(@RequestBody SignUpRequest request){
         User user =
                 new User(

@@ -21,7 +21,7 @@ import static org.hamcrest.Matchers.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
-public class UserLoginControllerTest {
+class UserLoginControllerIntTest {
 
     private static final PasswordEncoder encoder = new BCryptPasswordEncoder();
 
@@ -34,7 +34,6 @@ public class UserLoginControllerTest {
 
     private static final LoginRequest TEST_REQUEST =
             new LoginRequest(TEST_USER.getUsername(), TEST_USER.getPassword());
-
 
     @Autowired
     private UserRepository repo;
@@ -60,13 +59,8 @@ public class UserLoginControllerTest {
     @Test
     void shouldCreateJwtForLoginWithCorrectCredentials(){
         String jwt = jwtUtil.generateToken(userDetailsService.loadUserByUsername(TEST_USER.getUsername()));
-        LoginResponse response = null;
 
-        try {
-            response = controller.login(TEST_REQUEST).getBody();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        LoginResponse response = controller.login(TEST_REQUEST).getBody();
 
         assert response != null;
         assertThat(response.getJwt(), is(equalTo(jwt)));
