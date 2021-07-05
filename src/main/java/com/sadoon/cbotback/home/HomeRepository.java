@@ -1,9 +1,9 @@
 package com.sadoon.cbotback.home;
 
-import com.sadoon.cbotback.home.models.BrokerageCard;
+import com.sadoon.cbotback.home.models.KrakenCard;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
-public interface HomeRepository extends MongoRepository<BrokerageCard, String> {
+public interface HomeRepository extends MongoRepository<KrakenCard, String> {
 
-    BrokerageCard getBrokerageCardByAccount(String account);
+    KrakenCard getBrokerageCardByAccount(String account);
 }

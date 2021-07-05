@@ -1,6 +1,7 @@
 package com.sadoon.cbotback.security.jwt;
 
 import com.sadoon.cbotback.security.services.MongoUserDetailsService;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -32,7 +33,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain chain) throws ServletException, IOException {
 
-        final  String authorizationHeader = request.getHeader("Authorization");
+        final  String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
         String username = getUsername(authorizationHeader);
 

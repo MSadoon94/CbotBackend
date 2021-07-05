@@ -1,5 +1,6 @@
 package com.sadoon.cbotback.security.jwt;
 
+import com.sadoon.cbotback.AppProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -15,8 +16,13 @@ import java.util.function.Function;
 @Service
 public class JwtUtil {
 
-    @Value("${jwtSecret}")
     private String secret;
+    private String jwtExpirationMs;
+
+    public JwtUtil(AppProperties props) {
+        this.secret = props.getJwtSecret();
+        this.jwtExpirationMs = props.getJwtExpirationMs();
+    }
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -45,7 +51,7 @@ public class JwtUtil {
 
     private String createToken(Map<String, Object> claims, String subject){
         return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
                 .signWith(SignatureAlgorithm.HS256, secret).compact();
     }
 

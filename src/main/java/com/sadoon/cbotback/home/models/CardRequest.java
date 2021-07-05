@@ -1,12 +1,14 @@
 package com.sadoon.cbotback.home.models;
 
 public class CardRequest {
-    private final String account;
-    private final String password;
+    private String account;
+    private String password;
+    private String balance;
 
-    public CardRequest(String account, String password) {
+    public CardRequest(String account, String password, String balance) {
         this.account = account;
         this.password = password;
+        this.balance = balance;
     }
 
     public String getAccount() {
@@ -16,4 +18,9 @@ public class CardRequest {
     public String getPassword() {
         return password;
     }
+
+    public String getBalance() {
+        return balance;
+    }
+
 }
