@@ -1,4 +1,4 @@
-package com.sadoon.cbotback.user.integration;
+package com.sadoon.cbotback.integration_tests;
 
 import com.sadoon.cbotback.user.UserRepository;
 import com.sadoon.cbotback.user.UserSignUpController;

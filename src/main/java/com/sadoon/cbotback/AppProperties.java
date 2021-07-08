@@ -5,7 +5,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "app")
 public class AppProperties {
     private String jwtSecret;
-    private String jwtExpirationMs;
+    private Long jwtExpirationMs = 900000L;
+    private Long refreshTokenDurationMs = 1800000L;
 
     private String krakenApiKey;
     private String krakenSecretKey;
@@ -18,11 +19,11 @@ public class AppProperties {
         this.jwtSecret = jwtSecret;
     }
 
-    public String getJwtExpirationMs() {
+    public Long getJwtExpirationMs() {
         return jwtExpirationMs;
     }
 
-    public void setJwtExpirationMs(String jwtExpirationMs) {
+    public void setJwtExpirationMs(Long jwtExpirationMs) {
         this.jwtExpirationMs = jwtExpirationMs;
     }
 
@@ -40,5 +41,13 @@ public class AppProperties {
 
     public void setKrakenSecretKey(String krakenSecretKey) {
         this.krakenSecretKey = krakenSecretKey;
+    }
+
+    public Long getRefreshTokenDurationMs() {
+        return refreshTokenDurationMs;
+    }
+
+    public void setRefreshTokenDurationMs(Long refreshTokenDurationMs) {
+        this.refreshTokenDurationMs = refreshTokenDurationMs;
     }
 }

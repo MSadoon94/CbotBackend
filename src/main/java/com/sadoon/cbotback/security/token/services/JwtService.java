@@ -1,10 +1,9 @@
-package com.sadoon.cbotback.security.jwt;
+package com.sadoon.cbotback.security.token.services;
 
 import com.sadoon.cbotback.AppProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -14,12 +13,12 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Service
-public class JwtUtil {
+public class JwtService {
 
     private String secret;
-    private String jwtExpirationMs;
+    private Long jwtExpirationMs;
 
-    public JwtUtil(AppProperties props) {
+    public JwtService(AppProperties props) {
         this.secret = props.getJwtSecret();
         this.jwtExpirationMs = props.getJwtExpirationMs();
     }
@@ -44,12 +43,12 @@ public class JwtUtil {
         return extractExpiration(token).before(new Date());
     }
 
-    public String generateToken(UserDetails userDetails){
+    public String generateToken(String username){
         Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, userDetails.getUsername());
+        return createToken(claims, username);
     }
 
-    private String createToken(Map<String, Object> claims, String subject){
+    public String createToken(Map<String, Object> claims, String subject){
         return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
                 .signWith(SignatureAlgorithm.HS256, secret).compact();

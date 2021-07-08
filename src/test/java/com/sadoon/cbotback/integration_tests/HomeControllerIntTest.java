@@ -1,4 +1,4 @@
-package com.sadoon.cbotback.home.integration;
+package com.sadoon.cbotback.integration_tests;
 
 import com.sadoon.cbotback.AppProperties;
 import com.sadoon.cbotback.brokerage.kraken.KrakenAccount;

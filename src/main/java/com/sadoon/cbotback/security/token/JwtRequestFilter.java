@@ -1,5 +1,6 @@
-package com.sadoon.cbotback.security.jwt;
+package com.sadoon.cbotback.security.token;
 
+import com.sadoon.cbotback.security.token.services.JwtService;
 import com.sadoon.cbotback.security.services.MongoUserDetailsService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,11 +21,11 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     private MongoUserDetailsService userDetailsService;
 
-    private JwtUtil jwtUtil;
+    private JwtService jwtService;
 
-    public JwtRequestFilter(MongoUserDetailsService userDetailsService, JwtUtil jwtUtil) {
+    public JwtRequestFilter(MongoUserDetailsService userDetailsService, JwtService jwtService) {
         this.userDetailsService = userDetailsService;
-        this.jwtUtil = jwtUtil;
+        this.jwtService = jwtService;
     }
 
     @Override
@@ -48,7 +49,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     private String getUsername(String header){
         String username = null;
         if(header != null && header.startsWith("Bearer ")){
-            username = jwtUtil.extractUsername(getJwt(header));
+            username = jwtService.extractUsername(getJwt(header));
         }
         return username;
     }
@@ -58,7 +59,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     }
 
     private void validateToken(UserDetails userDetails, String header, HttpServletRequest request){
-        if(jwtUtil.validateToken(getJwt(header), userDetails)){
+        if(jwtService.validateToken(getJwt(header), userDetails)){
             UsernamePasswordAuthenticationToken token =
                     new UsernamePasswordAuthenticationToken(
                             userDetails, null, userDetails.getAuthorities());

@@ -1,6 +1,6 @@
 package com.sadoon.cbotback.security.config;
 
-import com.sadoon.cbotback.security.jwt.JwtRequestFilter;
+import com.sadoon.cbotback.security.token.JwtRequestFilter;
 import com.sadoon.cbotback.security.services.MongoUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
