@@ -1,16 +1,16 @@
 package com.sadoon.cbotback.security.token.models;
 
 public class TokenRequest {
-    private final String refreshToken;
+    private final String jwt;
     private final String username;
 
-    public TokenRequest(String refreshToken, String username) {
-        this.refreshToken = refreshToken;
+    public TokenRequest(String jwt, String username) {
+        this.jwt = jwt;
         this.username = username;
     }
 
-    public String getRefreshToken() {
-        return refreshToken;
+    public String getJwt() {
+        return jwt;
     }
 
     public String getUsername() {

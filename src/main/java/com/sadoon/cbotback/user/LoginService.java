@@ -1,7 +1,8 @@
 package com.sadoon.cbotback.user;
 
-import com.sadoon.cbotback.security.token.services.TokenService;
+import com.sadoon.cbotback.security.token.models.RefreshToken;
 import com.sadoon.cbotback.security.token.services.JwtService;
+import com.sadoon.cbotback.security.token.services.TokenService;
 import com.sadoon.cbotback.user.models.LoginRequest;
 import com.sadoon.cbotback.user.models.LoginResponse;
 import org.slf4j.Logger;
@@ -26,7 +27,7 @@ public class LoginService {
         this.jwtService = jwtService;
     }
 
-    public LoginResponse handleLogin(LoginRequest request){
+    public LoginResponse handleLogin(LoginRequest request) {
         LoginResponse response = null;
         try {
             authenticator.authenticate(
@@ -35,11 +36,14 @@ public class LoginService {
 
             );
 
-            tokenService.createRefreshToken(request.getUserId());
+            RefreshToken refreshToken = tokenService.createRefreshToken(request.getUserId());
+            String jwt = jwtService.generateToken(request.getUsername());
 
             response = new LoginResponse(
-                    jwtService.generateToken(request.getUsername()),
-                    tokenService.createRefreshToken(request.getUserId()));
+                    jwt,
+                    jwtService.extractExpiration(jwt));
+
+            response.setHeader(tokenService.getRefreshCookieHeader(refreshToken));
 
         } catch (BadCredentialsException e) {
             logger.info("Incorrect username or password", e);

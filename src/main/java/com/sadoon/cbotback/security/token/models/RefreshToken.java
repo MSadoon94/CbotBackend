@@ -4,18 +4,18 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.UUID;
 
 @Document
 public class RefreshToken {
 
-    private String token = UUID.randomUUID().toString();
+    private String token;
     private final String id;
 
     private final Instant expiryDate;
 
-    public RefreshToken(String id, Instant expiryDate) {
+    public RefreshToken(String id, String token, Instant expiryDate) {
         this.id = id;
+        this.token = token;
         this.expiryDate = expiryDate;
     }
 

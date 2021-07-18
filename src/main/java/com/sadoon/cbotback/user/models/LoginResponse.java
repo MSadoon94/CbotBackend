@@ -1,22 +1,32 @@
 package com.sadoon.cbotback.user.models;
 
-import com.sadoon.cbotback.security.token.models.RefreshToken;
+import org.springframework.http.HttpHeaders;
+
+import java.util.Date;
 
 public class LoginResponse {
     private final String jwt;
-    private final RefreshToken refreshToken;
+    private final Date expiration;
+    private HttpHeaders header;
 
-    public LoginResponse(String jwt, RefreshToken refreshToken) {
+    public LoginResponse(String jwt, Date expiration) {
         this.jwt = jwt;
-        this.refreshToken = refreshToken;
+        this.expiration = expiration;
     }
-
 
     public String getJwt() {
         return jwt;
     }
 
-    public RefreshToken getRefreshToken() {
-        return refreshToken;
+    public Date getExpiration() {
+        return expiration;
+    }
+
+    public HttpHeaders getHeader() {
+        return header;
+    }
+
+    public void setHeader(HttpHeaders header) {
+        this.header = header;
     }
 }

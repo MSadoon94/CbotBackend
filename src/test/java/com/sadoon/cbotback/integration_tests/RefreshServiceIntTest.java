@@ -15,6 +15,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.Instant;
+import java.util.UUID;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -24,7 +25,7 @@ import static org.hamcrest.Matchers.*;
 public class RefreshServiceIntTest {
 
     private static final RefreshToken REFRESH_TOKEN =
-            new RefreshToken("userId", Instant.now().plusSeconds(1800L));
+            new RefreshToken("userId", UUID.randomUUID().toString(), Instant.now().plusSeconds(1800L));
 
     private static final TokenRequest TOKEN_REQUEST =
             new TokenRequest(REFRESH_TOKEN.getToken(), "username");
@@ -44,40 +45,40 @@ public class RefreshServiceIntTest {
     private RefreshService refresher;
 
     @BeforeEach
-    public void setUp(){
+    public void setUp() {
         setRepo();
         setMockHeader();
         setDependencies();
     }
 
     @Test
-    void shouldAddNewJwtToTokenResponse(){
-        String jwt = refresher.refresh(TOKEN_REQUEST).getJwt();
+    void shouldAddNewJwtToTokenResponse() {
+        String jwt = refresher.refresh(TOKEN_REQUEST, REFRESH_TOKEN.getToken()).getJwt();
 
         assertThat(jwtService.extractUsername(jwt),
                 is(equalTo(TOKEN_REQUEST.getUsername())));
     }
 
     @Test
-    void shouldAddHeaderWithSameValuesAsMockHeader(){
-        assertThat(refresher.refresh(TOKEN_REQUEST).getHeaders().entrySet(),
+    void shouldAddHeaderWithSameValuesAsMockHeader() {
+        assertThat(refresher.refresh(TOKEN_REQUEST, REFRESH_TOKEN.getToken()).getHeaders().entrySet(),
                 is(equalTo(mockHeader.entrySet())));
     }
 
-    private void setMockHeader(){
+    private void setMockHeader() {
         mockHeader.add("Set-Cookie",
                 "refresh_token=" + REFRESH_TOKEN.getToken() + "; " +
                         "Max-Age=" + REFRESH_TOKEN.getExpiryDate() + "; " +
-                        "Domain=localhost; Path=/home; HttpOnly"
+                        "Domain=localhost; Path=/refreshjwt; HttpOnly"
         );
     }
 
-    private void setRepo(){
+    private void setRepo() {
         tokenRepo.deleteAll();
         tokenRepo.save(REFRESH_TOKEN);
     }
 
-    private void setDependencies(){
+    private void setDependencies() {
         jwtService = new JwtService(appProperties);
         tokenService = new TokenService(appProperties, tokenRepo);
         refresher = new RefreshService(tokenService, jwtService);

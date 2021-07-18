@@ -28,7 +28,6 @@ public class HomeController {
 
     @PostMapping("/home/card")
     public ResponseEntity<HttpStatus> addBrokerageCard(@RequestBody CardRequest cardRequest) {
-
         KrakenRequest request = new KrakenRequest(cardRequest.getAccount(), cardRequest.getPassword());
 
         repo.save(createCard(request, createKrakenAccount(request)));

@@ -1,7 +1,7 @@
 package com.sadoon.cbotback.security.token;
 
-import com.sadoon.cbotback.security.token.services.JwtService;
 import com.sadoon.cbotback.security.services.MongoUserDetailsService;
+import com.sadoon.cbotback.security.token.services.JwtService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -34,37 +34,51 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain chain) throws ServletException, IOException {
 
-        final  String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        final String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
         String username = getUsername(authorizationHeader);
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null){
+        String isRefreshToken = request.getHeader("isRefreshToken");
+        String requestURL = request.getRequestURL().toString();
+
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
             validateToken(userDetails, authorizationHeader, request);
+        } else if (isRefreshToken != null && isRefreshToken.equals("true") && requestURL.contains("refreshjwt")) {
+            allowRefreshToken();
         }
         chain.doFilter(request, response);
 
     }
 
-    private String getUsername(String header){
+    private String getUsername(String header) {
         String username = null;
-        if(header != null && header.startsWith("Bearer ")){
+        if (header != null && header.startsWith("Bearer ")) {
             username = jwtService.extractUsername(getJwt(header));
         }
         return username;
     }
 
-    private String getJwt(String header){
+    private String getJwt(String header) {
         return header.substring(7);
     }
 
-    private void validateToken(UserDetails userDetails, String header, HttpServletRequest request){
-        if(jwtService.validateToken(getJwt(header), userDetails)){
+    private void validateToken(UserDetails userDetails, String header, HttpServletRequest request) {
+        if (jwtService.isValidToken(getJwt(header), userDetails)) {
             UsernamePasswordAuthenticationToken token =
                     new UsernamePasswordAuthenticationToken(
                             userDetails, null, userDetails.getAuthorities());
             token.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(token);
         }
+    }
+
+    private void allowRefreshToken() {
+
+        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken
+                = new UsernamePasswordAuthenticationToken(null, null, null);
+
+        SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+
     }
 }
