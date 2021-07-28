@@ -2,7 +2,7 @@ package com.sadoon.cbotback.user;
 
 import com.sadoon.cbotback.security.token.models.RefreshToken;
 import com.sadoon.cbotback.security.token.services.JwtService;
-import com.sadoon.cbotback.security.token.services.TokenService;
+import com.sadoon.cbotback.security.token.services.RefreshService;
 import com.sadoon.cbotback.user.models.LoginRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,13 +30,13 @@ public class LoginServiceTest {
     private static final RefreshToken REFRESH_TOKEN =
             new RefreshToken("userId", UUID.randomUUID().toString(), Instant.ofEpochSecond(1));
 
-    private HttpHeaders mockHeader = new HttpHeaders();
+    private final HttpHeaders mockHeader = new HttpHeaders();
 
     @MockBean
     private AuthenticationManager authenticator;
 
     @MockBean
-    private TokenService tokenService;
+    private RefreshService refreshService;
 
     @MockBean
     private JwtService jwtService;
@@ -46,14 +46,14 @@ public class LoginServiceTest {
 
     @BeforeEach
     public void setUp() {
-        loginService = new LoginService(authenticator, tokenService, jwtService);
+        loginService = new LoginService(authenticator, refreshService, jwtService);
     }
 
     @Test
     void shouldAddRefreshTokenToLoginResponseHeader() {
         setMockHeader();
-        when(tokenService.createRefreshToken(LOGIN_REQUEST.getUserId())).thenReturn(REFRESH_TOKEN);
-        when(tokenService.getRefreshCookieHeader(REFRESH_TOKEN)).thenReturn(mockHeader);
+        when(refreshService.createRefreshToken(LOGIN_REQUEST.getUserId())).thenReturn(REFRESH_TOKEN);
+        when(refreshService.getRefreshCookieHeader(REFRESH_TOKEN)).thenReturn(mockHeader);
 
         HttpHeaders header = loginService.handleLogin(LOGIN_REQUEST).getHeader();
 

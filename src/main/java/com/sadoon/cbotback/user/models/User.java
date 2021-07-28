@@ -23,7 +23,7 @@ public class User implements UserDetails {
 
     private List<GrantedAuthority> authorities = new ArrayList<>();
 
-    public User(String username, String password, GrantedAuthority authority){
+    public User(String username, String password, GrantedAuthority authority) {
         this.username = username;
         this.password = password;
         this.authority = authority;

@@ -1,12 +1,12 @@
 package com.sadoon.cbotback.integration_tests;
 
 import com.sadoon.cbotback.AppProperties;
-import com.sadoon.cbotback.security.token.services.TokenService;
-import com.sadoon.cbotback.security.token.services.JwtService;
-import com.sadoon.cbotback.security.token.services.RefreshService;
 import com.sadoon.cbotback.security.token.RefreshTokenRepository;
+import com.sadoon.cbotback.security.token.TokenRefreshException;
 import com.sadoon.cbotback.security.token.models.RefreshToken;
 import com.sadoon.cbotback.security.token.models.TokenRequest;
+import com.sadoon.cbotback.security.token.services.JwtService;
+import com.sadoon.cbotback.security.token.services.RefreshService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,15 +30,13 @@ public class RefreshServiceIntTest {
     private static final TokenRequest TOKEN_REQUEST =
             new TokenRequest(REFRESH_TOKEN.getToken(), "username");
 
-    private HttpHeaders mockHeader = new HttpHeaders();
+    private final HttpHeaders mockHeader = new HttpHeaders();
 
     @Autowired
     private AppProperties appProperties;
 
     @Autowired
     private RefreshTokenRepository tokenRepo;
-
-    private TokenService tokenService;
 
     private JwtService jwtService;
 
@@ -65,12 +63,41 @@ public class RefreshServiceIntTest {
                 is(equalTo(mockHeader.entrySet())));
     }
 
+    @Test
+    void shouldDeleteTokensFromRepo() {
+        refresher.deleteRefreshToken(REFRESH_TOKEN);
+        try {
+            refresher.getRefreshToken(REFRESH_TOKEN.getToken());
+        } catch (Exception exception) {
+            assertThat(exception, isA(TokenRefreshException.class));
+        }
+    }
+
+    @Test
+    void shouldAddRefreshTokenToRepo() {
+        RefreshToken token = refresher.createRefreshToken("token");
+
+        assertThat(tokenRepo.findById("token").orElse(null), samePropertyValuesAs(token));
+    }
+
+    @Test
+    void shouldReturnHeaderForTokenRequestsWithSameValuesAsMockHeader() {
+        setMockHeader();
+
+        assertThat(refresher.getRefreshCookieHeader(REFRESH_TOKEN).entrySet(),
+                samePropertyValuesAs(mockHeader.entrySet()));
+    }
+
     private void setMockHeader() {
         mockHeader.add("Set-Cookie",
                 "refresh_token=" + REFRESH_TOKEN.getToken() + "; " +
                         "Max-Age=" + REFRESH_TOKEN.getExpiryDate() + "; " +
                         "Domain=localhost; Path=/refreshjwt; HttpOnly"
         );
+        mockHeader.add("Set-Cookie",
+                "refresh_token=" + REFRESH_TOKEN.getToken() + "; " +
+                        "Max-Age=" + REFRESH_TOKEN.getExpiryDate() + "; " +
+                        "Domain=localhost; Path=/logout; HttpOnly");
     }
 
     private void setRepo() {
@@ -80,7 +107,6 @@ public class RefreshServiceIntTest {
 
     private void setDependencies() {
         jwtService = new JwtService(appProperties);
-        tokenService = new TokenService(appProperties, tokenRepo);
-        refresher = new RefreshService(tokenService, jwtService);
+        refresher = new RefreshService(appProperties, tokenRepo, jwtService);
     }
 }

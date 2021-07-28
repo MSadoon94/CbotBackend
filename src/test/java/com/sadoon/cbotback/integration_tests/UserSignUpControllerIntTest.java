@@ -14,14 +14,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 @SpringBootTest
 @ActiveProfiles("test")
 class UserSignUpControllerIntTest {
-
-    private final PasswordEncoder encoder = new BCryptPasswordEncoder();
 
     private static final SignUpRequest TEST_REQUEST =
             new SignUpRequest(
@@ -29,7 +27,7 @@ class UserSignUpControllerIntTest {
                     "password",
                     "USER"
             );
-
+    private final PasswordEncoder encoder = new BCryptPasswordEncoder();
     @Autowired
     private UserRepository repo;
 
@@ -40,7 +38,7 @@ class UserSignUpControllerIntTest {
     private User user;
 
     @BeforeEach
-    void setUp(){
+    void setUp() {
         repo.deleteAll();
         controller = new UserSignUpController(repo);
         response = controller.addUser(TEST_REQUEST);
@@ -49,22 +47,22 @@ class UserSignUpControllerIntTest {
     }
 
     @Test
-    void shouldCreateNewUser(){
+    void shouldCreateNewUser() {
         assertThat(response.getStatusCode(), is(HttpStatus.CREATED));
     }
 
     @Test
-    void shouldPassRequestUsernameToUser(){
+    void shouldPassRequestUsernameToUser() {
         assertThat(user.getUsername(), is(TEST_REQUEST.getUsername()));
     }
 
     @Test
-    void shouldPassRequestPasswordToUser(){
+    void shouldPassRequestPasswordToUser() {
         assertThat(encoder.matches(TEST_REQUEST.getPassword(), user.getPassword()), is(true));
     }
 
     @Test
-    void shouldPassRequestAuthorityToUser(){
+    void shouldPassRequestAuthorityToUser() {
         assertThat(user.getAuthorities().get(0), is(TEST_REQUEST.getAuthority()));
     }
 

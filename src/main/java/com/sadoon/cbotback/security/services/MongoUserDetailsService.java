@@ -20,7 +20,7 @@ public class MongoUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String userName) throws UsernameNotFoundException {
         User user = repo.getUserByUsername(userName);
 
-        if(user == null){
+        if (user == null) {
             throw new UsernameNotFoundException("Bad credentials");
         }
 

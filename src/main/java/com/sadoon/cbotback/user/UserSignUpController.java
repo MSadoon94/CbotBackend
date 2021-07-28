@@ -20,7 +20,7 @@ public class UserSignUpController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<HttpStatus> addUser(@RequestBody SignUpRequest request){
+    public ResponseEntity<HttpStatus> addUser(@RequestBody SignUpRequest request) {
         User user =
                 new User(
                         request.getUsername(),
