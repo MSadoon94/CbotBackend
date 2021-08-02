@@ -1,7 +1,8 @@
-package com.sadoon.cbotback.security.token;
+package com.sadoon.cbotback.security;
 
-import com.sadoon.cbotback.security.services.MongoUserDetailsService;
-import com.sadoon.cbotback.security.token.services.JwtService;
+import com.sadoon.cbotback.exceptions.ExpiredJwtException;
+import com.sadoon.cbotback.exceptions.InvalidJwtException;
+import com.sadoon.cbotback.user.MongoUserDetailsService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,13 +18,13 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Component
-public class JwtRequestFilter extends OncePerRequestFilter {
+public class RequestFilter extends OncePerRequestFilter {
 
     private MongoUserDetailsService userDetailsService;
 
     private JwtService jwtService;
 
-    public JwtRequestFilter(MongoUserDetailsService userDetailsService, JwtService jwtService) {
+    public RequestFilter(MongoUserDetailsService userDetailsService, JwtService jwtService) {
         this.userDetailsService = userDetailsService;
         this.jwtService = jwtService;
     }
@@ -32,21 +33,18 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
-            FilterChain chain) throws ServletException, IOException {
+            FilterChain chain) throws ServletException, IOException, InvalidJwtException {
 
         final String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
         String username = getUsername(authorizationHeader);
 
-        String isRefreshToken = request.getHeader("isRefreshToken");
-        String requestURL = request.getRequestURL().toString();
-
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
             validateToken(userDetails, authorizationHeader, request);
-        } else if (isRefreshToken != null && isRefreshToken.equals("true") && requestURL.contains("refreshjwt")) {
-            allowRefreshToken();
-        }
+        } else throw new InvalidJwtException(authorizationHeader, "Invalid jwt or authorization header.");
+
+
         chain.doFilter(request, response);
 
     }
@@ -63,14 +61,30 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         return header.substring(7);
     }
 
-    private void validateToken(UserDetails userDetails, String header, HttpServletRequest request) {
-        if (jwtService.isValidToken(getJwt(header), userDetails)) {
-            UsernamePasswordAuthenticationToken token =
-                    new UsernamePasswordAuthenticationToken(
-                            userDetails, null, userDetails.getAuthorities());
-            token.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(token);
+    private void validateToken(UserDetails userDetails, String header, HttpServletRequest request) throws InvalidJwtException {
+        String refreshToken = request.getHeader("isRefreshToken");
+        String requestUrl = request.getRequestURL().toString();
+        try {
+
+            if (jwtService.isValidToken(getJwt(header), userDetails)) {
+                setSecurityContext(userDetails, request);
+            } else throw new InvalidJwtException(getJwt(header), "Jwt cannot be authenticated.");
+
+        } catch (ExpiredJwtException exception) {
+            if (refreshToken != null && refreshToken.equals("true")
+                    && requestUrl.contains("refreshjwt")) {
+                allowRefreshToken();
+            } else throw exception;
         }
+    }
+
+    private void setSecurityContext(UserDetails userDetails, HttpServletRequest request) {
+        UsernamePasswordAuthenticationToken token =
+                new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
+
+        token.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(token);
     }
 
     private void allowRefreshToken() {

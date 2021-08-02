@@ -1,4 +1,4 @@
-package com.sadoon.cbotback.security.token.models;
+package com.sadoon.cbotback.refresh.models;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 

@@ -1,18 +1,17 @@
 package com.sadoon.cbotback.integration_tests;
 
 import com.sadoon.cbotback.AppProperties;
-import com.sadoon.cbotback.security.token.RefreshTokenRepository;
-import com.sadoon.cbotback.security.token.TokenRefreshException;
-import com.sadoon.cbotback.security.token.models.RefreshToken;
-import com.sadoon.cbotback.security.token.models.TokenRequest;
-import com.sadoon.cbotback.security.token.services.JwtService;
-import com.sadoon.cbotback.security.token.services.RefreshService;
+import com.sadoon.cbotback.exceptions.RefreshException;
+import com.sadoon.cbotback.refresh.RefreshService;
+import com.sadoon.cbotback.refresh.RefreshTokenRepository;
+import com.sadoon.cbotback.refresh.models.RefreshRequest;
+import com.sadoon.cbotback.refresh.models.RefreshToken;
+import com.sadoon.cbotback.security.JwtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -21,14 +20,13 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 @SpringBootTest
-@ActiveProfiles("test")
 public class RefreshServiceIntTest {
 
     private static final RefreshToken REFRESH_TOKEN =
             new RefreshToken("userId", UUID.randomUUID().toString(), Instant.now().plusSeconds(1800L));
 
-    private static final TokenRequest TOKEN_REQUEST =
-            new TokenRequest(REFRESH_TOKEN.getToken(), "username");
+    private static final RefreshRequest TOKEN_REQUEST =
+            new RefreshRequest("jwt", "username");
 
     private final HttpHeaders mockHeader = new HttpHeaders();
 
@@ -69,7 +67,7 @@ public class RefreshServiceIntTest {
         try {
             refresher.getRefreshToken(REFRESH_TOKEN.getToken());
         } catch (Exception exception) {
-            assertThat(exception, isA(TokenRefreshException.class));
+            assertThat(exception, isA(RefreshException.class));
         }
     }
 

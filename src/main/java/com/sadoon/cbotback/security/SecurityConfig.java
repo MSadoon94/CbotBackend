@@ -1,7 +1,6 @@
-package com.sadoon.cbotback.security.config;
+package com.sadoon.cbotback.security;
 
-import com.sadoon.cbotback.security.services.MongoUserDetailsService;
-import com.sadoon.cbotback.security.token.JwtRequestFilter;
+import com.sadoon.cbotback.user.MongoUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,9 +25,9 @@ import java.util.Arrays;
 public class SecurityConfig extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
 
     private MongoUserDetailsService userDetailsService;
-    private JwtRequestFilter filter;
+    private RequestFilter filter;
 
-    public SecurityConfig(MongoUserDetailsService userDetailsService, JwtRequestFilter filter) {
+    public SecurityConfig(MongoUserDetailsService userDetailsService, RequestFilter filter) {
         super();
         this.userDetailsService = userDetailsService;
         this.filter = filter;

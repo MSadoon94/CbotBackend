@@ -1,8 +1,8 @@
 package com.sadoon.cbotback.user;
 
-import com.sadoon.cbotback.security.token.models.RefreshToken;
-import com.sadoon.cbotback.security.token.services.JwtService;
-import com.sadoon.cbotback.security.token.services.RefreshService;
+import com.sadoon.cbotback.refresh.RefreshService;
+import com.sadoon.cbotback.refresh.models.RefreshToken;
+import com.sadoon.cbotback.security.JwtService;
 import com.sadoon.cbotback.user.models.LoginRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,7 +10,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -21,7 +20,6 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
-@ActiveProfiles("test")
 public class LoginServiceTest {
 
     private static final LoginRequest LOGIN_REQUEST =

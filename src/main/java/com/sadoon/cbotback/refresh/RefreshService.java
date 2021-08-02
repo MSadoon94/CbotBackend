@@ -1,11 +1,11 @@
-package com.sadoon.cbotback.security.token.services;
+package com.sadoon.cbotback.refresh;
 
 import com.sadoon.cbotback.AppProperties;
-import com.sadoon.cbotback.security.token.RefreshTokenRepository;
-import com.sadoon.cbotback.security.token.TokenRefreshException;
-import com.sadoon.cbotback.security.token.models.RefreshToken;
-import com.sadoon.cbotback.security.token.models.TokenRequest;
-import com.sadoon.cbotback.security.token.models.TokenResponse;
+import com.sadoon.cbotback.exceptions.RefreshException;
+import com.sadoon.cbotback.refresh.models.RefreshRequest;
+import com.sadoon.cbotback.refresh.models.RefreshResponse;
+import com.sadoon.cbotback.refresh.models.RefreshToken;
+import com.sadoon.cbotback.security.JwtService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +25,7 @@ public class RefreshService {
         this.jwtService = jwtService;
     }
 
-    public TokenResponse refresh(TokenRequest request, String refreshToken) {
+    public RefreshResponse refresh(RefreshRequest request, String refreshToken) {
 
         return getResponse(
                 request.getUsername(),
@@ -45,48 +45,48 @@ public class RefreshService {
         repo.delete(refreshToken);
     }
 
-    public RefreshToken verifyExpiration(RefreshToken token) throws TokenRefreshException {
+    public RefreshToken verifyExpiration(RefreshToken token) throws RefreshException {
 
         if (isExpired(token)) {
             repo.delete(token);
-            throw new TokenRefreshException(token.getToken(),
+            throw new RefreshException(token.getToken(),
                     "Refresh token was expired. Please make a new signin request");
         }
         return token;
     }
 
-    public RefreshToken getRefreshToken(String token) throws TokenRefreshException {
+    public RefreshToken getRefreshToken(String token) throws RefreshException {
         return repo.findByToken(token)
-                .orElseThrow(() -> new TokenRefreshException(token, "Refresh token is not in database!"));
+                .orElseThrow(() -> new RefreshException(token, "Refresh token is not in database!"));
     }
 
-    private TokenResponse getResponse(String username, RefreshToken refreshToken) throws TokenRefreshException {
+    private RefreshResponse getResponse(String username, RefreshToken refreshToken) throws RefreshException {
         String jwt = jwtService.generateToken(username);
 
         if (isExpired(refreshToken)) {
             repo.delete(refreshToken);
-            throw new TokenRefreshException(refreshToken.getToken(),
+            throw new RefreshException(refreshToken.getToken(),
                     "Refresh token was expired. Please make a new signin request");
         }
 
-        TokenResponse response =
-                new TokenResponse(jwt, jwtService.extractExpiration(jwt));
+        RefreshResponse response =
+                new RefreshResponse(jwt, jwtService.extractExpiration(jwt));
         response.setHeaders(getRefreshCookieHeader(refreshToken));
 
         return response;
     }
 
 
-    private boolean isExpired(RefreshToken token) {
-        boolean expired = token.getExpiryDate().compareTo(Instant.now()) <= 0;
-        return expired;
-    }
-
     public HttpHeaders getRefreshCookieHeader(RefreshToken refreshToken) {
         HttpHeaders headers = new HttpHeaders();
         headers.add("Set-Cookie", getRefreshCookieHeaderValue(refreshToken, "/refreshjwt"));
         headers.add("Set-Cookie", getRefreshCookieHeaderValue(refreshToken, "/logout"));
         return headers;
+    }
+
+    private boolean isExpired(RefreshToken token) {
+        boolean expired = token.getExpiryDate().compareTo(Instant.now()) <= 0;
+        return expired;
     }
 
     private String getRefreshCookieHeaderValue(RefreshToken refreshToken, String path) {

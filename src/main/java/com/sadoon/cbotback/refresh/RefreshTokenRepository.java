@@ -1,6 +1,6 @@
-package com.sadoon.cbotback.security.token;
+package com.sadoon.cbotback.refresh;
 
-import com.sadoon.cbotback.security.token.models.RefreshToken;
+import com.sadoon.cbotback.refresh.models.RefreshToken;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.Optional;

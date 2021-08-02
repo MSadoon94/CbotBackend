@@ -1,10 +1,9 @@
-package com.sadoon.cbotback.security.refresh_token;
+package com.sadoon.cbotback.refresh;
 
-import com.sadoon.cbotback.security.token.TokenRefreshException;
-import com.sadoon.cbotback.security.token.models.RefreshToken;
-import com.sadoon.cbotback.security.token.models.TokenRequest;
-import com.sadoon.cbotback.security.token.models.TokenResponse;
-import com.sadoon.cbotback.security.token.services.RefreshService;
+import com.sadoon.cbotback.exceptions.RefreshException;
+import com.sadoon.cbotback.refresh.models.RefreshRequest;
+import com.sadoon.cbotback.refresh.models.RefreshResponse;
+import com.sadoon.cbotback.refresh.models.RefreshToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -23,11 +22,11 @@ public class RefreshController {
     }
 
     @PostMapping("/refreshjwt")
-    public ResponseEntity<TokenResponse> refreshJwt(
+    public ResponseEntity<RefreshResponse> refreshJwt(
             @CookieValue(name = "refresh_token") String tokenString,
-            @RequestBody TokenRequest request) {
+            @RequestBody RefreshRequest request) {
 
-        ResponseEntity<TokenResponse> response;
+        ResponseEntity<RefreshResponse> response;
 
         try {
 
@@ -35,12 +34,12 @@ public class RefreshController {
                 response = getTokenResponse(request, tokenString);
             } else response = ResponseEntity.notFound().build();
 
-        } catch (TokenRefreshException e) {
+        } catch (RefreshException e) {
 
             logger.error(e.getMessage(), e);
-            TokenResponse tokenResponse = new TokenResponse(null, null);
-            tokenResponse.setMessage(e.getMessage());
-            response = ResponseEntity.status(HttpStatus.NOT_FOUND).body(tokenResponse);
+            RefreshResponse refreshResponse = new RefreshResponse(null, null);
+            refreshResponse.setMessage(e.getMessage());
+            response = ResponseEntity.status(HttpStatus.NOT_FOUND).body(refreshResponse);
 
         }
 
@@ -55,7 +54,7 @@ public class RefreshController {
                 refreshService.deleteRefreshToken(getToken(tokenString));
                 response = ResponseEntity.noContent().build();
             } else response = ResponseEntity.notFound().build();
-        } catch (TokenRefreshException e) {
+        } catch (RefreshException e) {
             logger.error(e.getMessage(), e);
             response = ResponseEntity.notFound().build();
         }
@@ -63,14 +62,14 @@ public class RefreshController {
         return response;
     }
 
-    private ResponseEntity<TokenResponse> getTokenResponse(TokenRequest request, String refreshToken) {
-        TokenResponse tokenResponse = refreshService.refresh(request, refreshToken);
+    private ResponseEntity<RefreshResponse> getTokenResponse(RefreshRequest request, String refreshToken) {
+        RefreshResponse refreshResponse = refreshService.refresh(request, refreshToken);
         return ResponseEntity.ok()
-                .headers(tokenResponse.getHeaders())
-                .body(tokenResponse);
+                .headers(refreshResponse.getHeaders())
+                .body(refreshResponse);
     }
 
-    private RefreshToken getToken(String tokenString) throws TokenRefreshException {
+    private RefreshToken getToken(String tokenString) throws RefreshException {
         return refreshService.verifyExpiration(refreshService.getRefreshToken(tokenString));
     }
 

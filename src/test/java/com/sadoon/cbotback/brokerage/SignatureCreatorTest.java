@@ -4,13 +4,11 @@ import com.sadoon.cbotback.brokerage.kraken.KrakenRequest;
 import com.sadoon.cbotback.brokerage.util.SignatureCreator;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 @SpringBootTest()
-@ActiveProfiles("test")
 public class SignatureCreatorTest {
 
     private final String API_SIGN = "4/dpxb3iT4tp/ZCVEwSnEsLxx0bqyhLpdfOpc6fn7OR8+UClSV5n9E6aSS8MPtnRfp32bAb0nmbRn6H8ndwLUQ==";

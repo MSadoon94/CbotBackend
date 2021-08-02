@@ -1,17 +1,17 @@
-package com.sadoon.cbotback.security.token.models;
+package com.sadoon.cbotback.refresh.models;
 
 import org.springframework.http.HttpHeaders;
 
 import java.util.Date;
 
-public class TokenResponse {
+public class RefreshResponse {
     private String jwt;
     private Date jwtExpiration;
     private String tokenType = "Bearer";
     private HttpHeaders headers;
     private String message;
 
-    public TokenResponse(String jwt, Date jwtExpiration) {
+    public RefreshResponse(String jwt, Date jwtExpiration) {
         this.jwt = jwt;
         this.jwtExpiration = jwtExpiration;
     }

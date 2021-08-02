@@ -1,6 +1,5 @@
-package com.sadoon.cbotback.security.services;
+package com.sadoon.cbotback.user;
 
-import com.sadoon.cbotback.user.UserRepository;
 import com.sadoon.cbotback.user.models.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
