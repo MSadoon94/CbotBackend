@@ -1,7 +1,6 @@
 package com.sadoon.cbotback.security;
 
 import com.sadoon.cbotback.AppProperties;
-import com.sadoon.cbotback.exceptions.ExpiredJwtException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -16,8 +15,8 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-    private String secret;
-    private Long jwtExpirationMs;
+    private final String secret;
+    private final Long jwtExpirationMs;
 
     public JwtService(AppProperties props) {
         this.secret = props.getJwtSecret();
@@ -56,12 +55,8 @@ public class JwtService {
                 .signWith(SignatureAlgorithm.HS256, secret).compact();
     }
 
-    public Boolean isValidToken(String jwt, UserDetails userDetails) throws ExpiredJwtException {
+    public Boolean isValidToken(String jwt, UserDetails userDetails) {
         final String username = extractUsername(jwt);
-        if (!username.equals(userDetails.getUsername())) {
-            return false;
-        } else if (isTokenExpired(jwt)) {
-            throw new ExpiredJwtException(jwt, "Jwt is expired.");
-        } else return true;
+        return username.equals(userDetails.getUsername()) && !isTokenExpired(jwt);
     }
 }

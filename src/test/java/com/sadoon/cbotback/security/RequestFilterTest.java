@@ -1,9 +1,10 @@
 package com.sadoon.cbotback.security;
 
-import com.sadoon.cbotback.exceptions.ExpiredJwtException;
-import com.sadoon.cbotback.exceptions.InvalidJwtException;
 import com.sadoon.cbotback.user.MongoUserDetailsService;
 import com.sadoon.cbotback.user.models.User;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.impl.DefaultClaims;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -37,6 +38,8 @@ public class RequestFilterTest {
     @MockBean
     private JwtService mockJwtService;
     @MockBean
+    private ExpiredJwtException mockExpiredException;
+
     private RequestFilter filter;
 
     private MockHttpServletRequest request;
@@ -50,20 +53,15 @@ public class RequestFilterTest {
         when(mockUserDetailsService.loadUserByUsername(MOCK_USER.getUsername())).thenReturn(MOCK_USER);
 
         filter = new RequestFilter(mockUserDetailsService, mockJwtService);
-        request = new MockHttpServletRequest();
-        response = new MockHttpServletResponse();
-        filterChain = new MockFilterChain();
+        setMocks();
+
     }
 
     @Test
-    void shouldSetSecurityContextForValidatedUsers() {
+    void shouldSetSecurityContextForValidatedUsers() throws ServletException, IOException {
         request.addHeader(HttpHeaders.AUTHORIZATION, MOCK_JWT);
 
-        try {
-            filter.doFilterInternal(request, response, filterChain);
-        } catch (ServletException | IOException e) {
-            e.printStackTrace();
-        }
+        filter.doFilterInternal(request, response, filterChain);
 
         assertThat(SecurityContextHolder.getContext().getAuthentication().getPrincipal(), is(MOCK_USER));
     }
@@ -72,35 +70,60 @@ public class RequestFilterTest {
     void shouldThrowInvalidJwtExceptionForInvalidJwt() {
         request.addHeader(HttpHeaders.AUTHORIZATION, "invalidJwt");
 
-        assertThrows(InvalidJwtException.class, () -> filter.doFilterInternal(request, response, filterChain));
+        assertThrows(JwtException.class, () -> filter.doFilterInternal(request, response, filterChain));
     }
 
     @Test
     void shouldThrowExpiredJwtExceptionForNonRefreshTokenRequestsWithExpiredJwt() {
         String jwt = "expiredJwt";
         when(mockJwtService.extractUsername(jwt)).thenReturn(MOCK_USER.getUsername());
-        when(mockJwtService.isValidToken(jwt, MOCK_USER)).thenThrow(new ExpiredJwtException(jwt, "Jwt is expired."));
+        when(mockJwtService.isValidToken(jwt, MOCK_USER)).thenThrow(mockExpiredException);
 
         request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + jwt);
 
-        assertThrows(ExpiredJwtException.class, () -> filter.doFilter(request, response, filterChain));
+        assertThrows(ExpiredJwtException.class, () -> filter.doFilterInternal(request, response, filterChain));
     }
 
     @Test
-    void shouldAllowRefreshTokenRequestsForValidJwt() {
+    void shouldAllowRefreshTokenRequestsForValidJwt() throws ServletException, IOException {
         String jwt = "expiredJwt";
-        when(mockJwtService.extractUsername(jwt)).thenReturn(MOCK_USER.getUsername());
-        when(mockJwtService.isValidToken(jwt, MOCK_USER)).thenThrow(new ExpiredJwtException(jwt, "Jwt is expired."));
+
+        when(mockJwtService.extractUsername(jwt)).thenThrow(mockExpiredException);
 
         setRefreshTokenRequest(jwt);
+        filter.doFilterInternal(request, response, filterChain);
 
-        assertDoesNotThrow(() -> filter.doFilter(request, response, filterChain));
+        assertThat(SecurityContextHolder.getContext().getAuthentication().getPrincipal(), is(MOCK_USER));
+    }
+
+    @Test
+    void shouldAllowSignupRequests() {
+        request.setRequestURI(":8080/signup");
+        assertDoesNotThrow(() -> filter.doFilterInternal(request, response, filterChain));
+    }
+
+    @Test
+    void shouldAllowLoginRequests() {
+        request.setRequestURI(":8080/login");
+        assertDoesNotThrow(() -> filter.doFilterInternal(request, response, filterChain));
     }
 
     private void setRefreshTokenRequest(String jwt) {
         request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + jwt);
         request.addHeader("isRefreshToken", true);
-        request.setRequestURI("/refreshjwt");
+        request.setRequestURI(":8080/refreshjwt");
+    }
+
+    private void setMocks() {
+        mockExpiredException = new ExpiredJwtException
+                (
+                        null,
+                        new DefaultClaims().setSubject(MOCK_USER.getUsername()),
+                        null
+                );
+        request = new MockHttpServletRequest();
+        response = new MockHttpServletResponse();
+        filterChain = new MockFilterChain();
     }
 
 

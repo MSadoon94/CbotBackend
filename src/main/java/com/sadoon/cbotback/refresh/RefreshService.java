@@ -15,9 +15,9 @@ import java.util.UUID;
 @Service
 public class RefreshService {
 
-    private JwtService jwtService;
-    private Long refreshTokenDurationMs;
-    private RefreshTokenRepository repo;
+    private final JwtService jwtService;
+    private final Long refreshTokenDurationMs;
+    private final RefreshTokenRepository repo;
 
     public RefreshService(AppProperties props, RefreshTokenRepository repo, JwtService jwtService) {
         this.refreshTokenDurationMs = props.getRefreshTokenDurationMs();
@@ -85,8 +85,7 @@ public class RefreshService {
     }
 
     private boolean isExpired(RefreshToken token) {
-        boolean expired = token.getExpiryDate().compareTo(Instant.now()) <= 0;
-        return expired;
+        return token.getExpiryDate().compareTo(Instant.now()) <= 0;
     }
 
     private String getRefreshCookieHeaderValue(RefreshToken refreshToken, String path) {

@@ -50,7 +50,7 @@ public class RefreshControllerIntTest {
     void setUp() {
         setRepo();
         jwtService = new JwtService(props);
-        refreshRequest = new RefreshRequest(jwtService.generateToken("username"), "username");
+        refreshRequest = new RefreshRequest("username");
         refreshService = new RefreshService(props, repo, jwtService);
         controller = new RefreshController(refreshService);
     }

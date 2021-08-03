@@ -24,8 +24,8 @@ import java.util.Arrays;
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
 
-    private MongoUserDetailsService userDetailsService;
-    private RequestFilter filter;
+    private final MongoUserDetailsService userDetailsService;
+    private final RequestFilter filter;
 
     public SecurityConfig(MongoUserDetailsService userDetailsService, RequestFilter filter) {
         super();
@@ -65,12 +65,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements WebM
         http.csrf().disable().cors().and()
                 .exceptionHandling()
                 .authenticationEntryPoint(
-                        (request, response, ex) -> {
-                            response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
-                                    ex.getMessage());
-                        })
+                        (request, response, ex) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
+                                ex.getMessage()))
                 .and().authorizeRequests()
-                .antMatchers("/login", "/signup", "/refreshjwt").permitAll()
+                .antMatchers("/login", "/signup").permitAll()
                 .anyRequest().authenticated()
                 .and().sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);

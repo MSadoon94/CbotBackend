@@ -1,5 +1,6 @@
 package com.sadoon.cbotback.user;
 
+import com.mongodb.lang.NonNull;
 import com.sadoon.cbotback.user.models.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -16,7 +17,7 @@ public class MongoUserDetailsService implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String userName) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(@NonNull String userName) throws UsernameNotFoundException {
         User user = repo.getUserByUsername(userName);
 
         if (user == null) {

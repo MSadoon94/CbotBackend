@@ -26,7 +26,7 @@ public class RefreshServiceIntTest {
             new RefreshToken("userId", UUID.randomUUID().toString(), Instant.now().plusSeconds(1800L));
 
     private static final RefreshRequest TOKEN_REQUEST =
-            new RefreshRequest("jwt", "username");
+            new RefreshRequest("username");
 
     private final HttpHeaders mockHeader = new HttpHeaders();
 
