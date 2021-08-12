@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class LoginController {
 
-    private LoginService loginService;
+    private final LoginService loginService;
 
 
     public LoginController(LoginService loginService) {
@@ -33,6 +33,10 @@ public class LoginController {
     }
 
 
+    /*
+    The header field in the login response is cleared
+    after it transports the header data to the ResponseEntity header.
+    */
     private LoginResponse getResponseWithHeaderFieldCleared(LoginResponse response) {
         response.setHeader(null);
         return response;

@@ -1,8 +1,8 @@
 package com.sadoon.cbotback.user;
 
-import com.sadoon.cbotback.security.token.models.RefreshToken;
-import com.sadoon.cbotback.security.token.services.JwtService;
-import com.sadoon.cbotback.security.token.services.RefreshService;
+import com.sadoon.cbotback.refresh.RefreshService;
+import com.sadoon.cbotback.refresh.models.RefreshToken;
+import com.sadoon.cbotback.security.JwtService;
 import com.sadoon.cbotback.user.models.LoginRequest;
 import com.sadoon.cbotback.user.models.LoginResponse;
 import org.slf4j.Logger;
