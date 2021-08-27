@@ -1,5 +1,6 @@
 package com.sadoon.cbotback.security;
 
+import com.sadoon.cbotback.AppProperties;
 import com.sadoon.cbotback.user.MongoUserDetailsService;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
@@ -24,15 +25,19 @@ public class RequestFilter extends OncePerRequestFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(RequestFilter.class);
 
-    private static final String URL = "http://localhost:8080";
+    private AppProperties props;
+
+    private String url;
 
     private final MongoUserDetailsService userDetailsService;
 
     private final JwtService jwtService;
 
-    public RequestFilter(MongoUserDetailsService userDetailsService, JwtService jwtService) {
+    public RequestFilter(AppProperties props, MongoUserDetailsService userDetailsService, JwtService jwtService) {
+        this.props = props;
         this.userDetailsService = userDetailsService;
         this.jwtService = jwtService;
+        this.url = props.getCorsExclusion();
     }
 
 
@@ -63,8 +68,8 @@ public class RequestFilter extends OncePerRequestFilter {
     }
 
     private boolean isPublicEndpoint(HttpServletRequest request) {
-        return request.getRequestURL().toString().equals(URL + "/signup")
-                || request.getRequestURL().toString().equals(URL + "/login");
+        return request.getRequestURL().toString().equals(url + "/signup")
+                || request.getRequestURL().toString().equals(url + "/login");
     }
 
     private void handleRequestsWithExpiredJwt(HttpServletRequest request, ExpiredJwtException exception) {
@@ -72,7 +77,7 @@ public class RequestFilter extends OncePerRequestFilter {
         String requestUrl = request.getRequestURL().toString();
 
         if (refreshToken != null && refreshToken.equals("true")
-                && requestUrl.equals(URL + "/refreshjwt")) {
+                && requestUrl.equals(url + "/refreshjwt")) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(exception.getClaims().getSubject());
             setSecurityContext(userDetails, request);
         } else throw exception;

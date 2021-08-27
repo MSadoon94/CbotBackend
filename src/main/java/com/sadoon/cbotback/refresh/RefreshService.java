@@ -91,7 +91,7 @@ public class RefreshService {
     private String getRefreshCookieHeaderValue(RefreshToken refreshToken, String path) {
         return "refresh_token=" + refreshToken.getToken() + "; " +
                 "Max-Age=" + refreshToken.getExpiryDate() + "; " +
-                "Domain=localhost; Path=" + path + "; HttpOnly";
+                "Domain=localhost; Path=/api" + path + "; HttpOnly";
     }
 
 

@@ -1,5 +1,6 @@
 package com.sadoon.cbotback.security;
 
+import com.sadoon.cbotback.AppProperties;
 import com.sadoon.cbotback.user.MongoUserDetailsService;
 import com.sadoon.cbotback.user.models.User;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -7,6 +8,7 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.impl.DefaultClaims;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
@@ -27,11 +29,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
-public class RequestFilterTest {
+class RequestFilterTest {
 
     private static final User MOCK_USER =
             new User("username", "password", new SimpleGrantedAuthority("USER"));
     private static final String MOCK_JWT = "Bearer jwt";
+    private static final String MOCK_URI = ":3000/api";
+
+    @Autowired
+    private AppProperties props;
 
     @MockBean
     private MongoUserDetailsService mockUserDetailsService;
@@ -52,7 +58,7 @@ public class RequestFilterTest {
         when(mockJwtService.isValidToken(MOCK_JWT.substring(7), MOCK_USER)).thenReturn(true);
         when(mockUserDetailsService.loadUserByUsername(MOCK_USER.getUsername())).thenReturn(MOCK_USER);
 
-        filter = new RequestFilter(mockUserDetailsService, mockJwtService);
+        filter = new RequestFilter(props, mockUserDetailsService, mockJwtService);
         setMocks();
 
     }
@@ -98,20 +104,20 @@ public class RequestFilterTest {
 
     @Test
     void shouldAllowSignupRequests() {
-        request.setRequestURI(":8080/signup");
+        request.setRequestURI(MOCK_URI + "/signup");
         assertDoesNotThrow(() -> filter.doFilterInternal(request, response, filterChain));
     }
 
     @Test
     void shouldAllowLoginRequests() {
-        request.setRequestURI(":8080/login");
+        request.setRequestURI(MOCK_URI + "/login");
         assertDoesNotThrow(() -> filter.doFilterInternal(request, response, filterChain));
     }
 
     private void setRefreshTokenRequest(String jwt) {
         request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + jwt);
         request.addHeader("isRefreshToken", true);
-        request.setRequestURI(":8080/refreshjwt");
+        request.setRequestURI(MOCK_URI + "/refreshjwt");
     }
 
     private void setMocks() {

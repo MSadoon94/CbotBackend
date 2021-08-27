@@ -90,12 +90,12 @@ public class RefreshServiceIntTest {
         mockHeader.add("Set-Cookie",
                 "refresh_token=" + REFRESH_TOKEN.getToken() + "; " +
                         "Max-Age=" + REFRESH_TOKEN.getExpiryDate() + "; " +
-                        "Domain=localhost; Path=/refreshjwt; HttpOnly"
+                        "Domain=localhost; Path=/api/refreshjwt; HttpOnly"
         );
         mockHeader.add("Set-Cookie",
                 "refresh_token=" + REFRESH_TOKEN.getToken() + "; " +
                         "Max-Age=" + REFRESH_TOKEN.getExpiryDate() + "; " +
-                        "Domain=localhost; Path=/logout; HttpOnly");
+                        "Domain=localhost; Path=/api/logout; HttpOnly");
     }
 
     private void setRepo() {

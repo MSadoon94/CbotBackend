@@ -4,12 +4,22 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "app")
 public class AppProperties {
+    private String corsExclusion;
+
     private String jwtSecret;
     private Long jwtExpirationMs = 900000L;
     private Long refreshTokenDurationMs = 1800000L;
 
     private String krakenApiKey;
     private String krakenSecretKey;
+
+    public String getCorsExclusion() {
+        return corsExclusion;
+    }
+
+    public void setCorsExclusion(String corsExclusion) {
+        this.corsExclusion = corsExclusion;
+    }
 
     public String getJwtSecret() {
         return jwtSecret;

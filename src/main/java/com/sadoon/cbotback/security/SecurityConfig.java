@@ -1,10 +1,9 @@
 package com.sadoon.cbotback.security;
 
-import com.sadoon.cbotback.user.MongoUserDetailsService;
+import com.sadoon.cbotback.AppProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -19,24 +18,25 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
 
-    private final MongoUserDetailsService userDetailsService;
+    private AppProperties props;
     private final RequestFilter filter;
 
-    public SecurityConfig(MongoUserDetailsService userDetailsService, RequestFilter filter) {
+    public SecurityConfig(AppProperties props, RequestFilter filter) {
         super();
-        this.userDetailsService = userDetailsService;
         this.filter = filter;
+        this.props = props;
     }
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:8080", "http://localhost:3000"));
+        configuration.setAllowedOrigins(List.of(props.getCorsExclusion()));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "OPTIONS", "DELETE"));
         configuration.addAllowedHeader("authorization");
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -54,12 +54,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements WebM
     public AuthenticationManager authenticationManagerBean() throws Exception {
         return super.authenticationManagerBean();
     }
-
-    @Override
-    public void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userDetailsService);
-    }
-
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable().cors().and()
@@ -68,7 +62,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements WebM
                         (request, response, ex) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
                                 ex.getMessage()))
                 .and().authorizeRequests()
-                .antMatchers("/login", "/signup").permitAll()
+                .antMatchers("api/login", "api/signup").permitAll()
                 .anyRequest().authenticated()
                 .and().sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
