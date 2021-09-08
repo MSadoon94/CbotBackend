@@ -2,13 +2,12 @@ package com.sadoon.cbotback.brokerage;
 
 import com.sadoon.cbotback.brokerage.kraken.KrakenRequest;
 import com.sadoon.cbotback.brokerage.util.NonceCreator;
-import org.springframework.stereotype.Service;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-@Service
 public class BrokerageRestService {
 
     private final WebClient client;
@@ -30,6 +29,16 @@ public class BrokerageRestService {
                 .attribute("request", request)
                 .retrieve()
                 .bodyToMono(LinkedHashMap.class)
+                .block();
+    }
+
+    public LinkedHashMap<String, Object> getAssetPair(KrakenRequest request) {
+        return client.get()
+                .uri(request.getEndpoint())
+                .attribute("request", request)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<LinkedHashMap<String, Object>>() {
+                })
                 .block();
     }
 

@@ -1,5 +1,6 @@
 package com.sadoon.cbotback.home;
 
+import com.sadoon.cbotback.brokerage.BrokerageRequestConfig;
 import com.sadoon.cbotback.brokerage.BrokerageRestService;
 import com.sadoon.cbotback.brokerage.kraken.KrakenAccount;
 import com.sadoon.cbotback.brokerage.kraken.KrakenRequest;
@@ -10,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.reactive.function.client.WebClient;
 
 @RestController
 public class HomeController {
@@ -19,11 +19,8 @@ public class HomeController {
 
     private HomeRepository repo;
 
-    private WebClient client;
-
-    public HomeController(HomeRepository repo, WebClient webClient) {
+    public HomeController(HomeRepository repo) {
         this.repo = repo;
-        this.client = webClient;
     }
 
     @PostMapping("/home/card")
@@ -41,7 +38,8 @@ public class HomeController {
     }
 
     private KrakenAccount createKrakenAccount(KrakenRequest request) {
-        BrokerageRestService service = new BrokerageRestService(client);
+        BrokerageRestService service =
+                new BrokerageRestService(new BrokerageRequestConfig().webClient("https://api.kraken.com"));
         KrakenAccount account = new KrakenAccount();
         account.setAccountBalance(service.getBalance(request));
         return account;
