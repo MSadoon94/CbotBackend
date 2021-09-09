@@ -50,7 +50,7 @@ public class RefreshService {
         if (isExpired(token)) {
             repo.delete(token);
             throw new RefreshException(token.getToken(),
-                    "Refresh token was expired. Please make a new signin request");
+                    "Refresh token was expired. Please make a new sign in request");
         }
         return token;
     }
@@ -66,7 +66,7 @@ public class RefreshService {
         if (isExpired(refreshToken)) {
             repo.delete(refreshToken);
             throw new RefreshException(refreshToken.getToken(),
-                    "Refresh token was expired. Please make a new signin request");
+                    "Refresh token was expired. Please make a new sign in request");
         }
 
         RefreshResponse response =

@@ -10,6 +10,10 @@ public class KrakenRequest {
     private String nonce;
     private MultiValueMap<String, String> bodyValues;
 
+    public KrakenRequest() {
+        bodyValues = new LinkedMultiValueMap<>();
+    }
+
     public KrakenRequest(String account, String password) {
         bodyValues = new LinkedMultiValueMap<>();
         this.account = account;
