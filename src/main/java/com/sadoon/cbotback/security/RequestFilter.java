@@ -47,6 +47,7 @@ public class RequestFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain chain) throws ServletException, IOException, JwtException {
 
+
         final String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
         try {
@@ -56,7 +57,15 @@ public class RequestFilter extends OncePerRequestFilter {
             } else if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
                 validateToken(userDetails, authorizationHeader, request);
-            } else throw new JwtException("Invalid jwt or authorization header.");
+            } else {
+                logger.error(
+                        "User attempted to access non-public endpoint({}) " +
+                                "with {} username, authorization header of {} and current authentication of {} .",
+                        request.getRequestURI(), username, authorizationHeader,
+                        SecurityContextHolder.getContext().getAuthentication()
+                );
+                throw new JwtException("Invalid jwt or authorization header.");
+            }
 
         } catch (ExpiredJwtException e) {
             logger.info("JWT from User: " + e.getClaims().getSubject() + " is expired.", e);
