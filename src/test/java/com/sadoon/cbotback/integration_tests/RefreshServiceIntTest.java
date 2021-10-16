@@ -95,7 +95,7 @@ public class RefreshServiceIntTest {
         mockHeader.add("Set-Cookie",
                 "refresh_token=" + REFRESH_TOKEN.getToken() + "; " +
                         "Max-Age=" + REFRESH_TOKEN.getExpiryDate() + "; " +
-                        "Domain=localhost; Path=/api/logout; HttpOnly");
+                        "Domain=localhost; Path=/api/log-out; HttpOnly");
     }
 
     private void setRepo() {

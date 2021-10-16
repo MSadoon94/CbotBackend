@@ -1,35 +1,40 @@
 package com.sadoon.cbotback.asset;
 
-import com.sadoon.cbotback.brokerage.BrokerageRequestConfig;
-import com.sadoon.cbotback.brokerage.BrokerageRestService;
-import com.sadoon.cbotback.brokerage.BrokerageUrlMapper;
-import com.sadoon.cbotback.brokerage.kraken.KrakenRequest;
+import com.sadoon.cbotback.brokerage.BrokerageService;
+import com.sadoon.cbotback.brokerage.WebClientService;
+import com.sadoon.cbotback.brokerage.util.BrokerageApiModule;
+import com.sadoon.cbotback.common.PublicRequestDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 
 @RestController
 public class AssetController {
 
-    private BrokerageRestService service;
+    private WebClientService webClientService;
 
-    @GetMapping("/asset-pair/{assets}/{brokerage}")
-    public ResponseEntity<LinkedHashMap<String, Object>> getAssetPair(@PathVariable String assets, @PathVariable String brokerage) {
-        service = new BrokerageRestService(
-                new BrokerageRequestConfig().webClient(getBrokerageUrl(brokerage)));
+    private BrokerageService brokerageService;
 
-        KrakenRequest request = new KrakenRequest();
-        request.setEndpoint("0/public/AssetPairs?pair=" + assets);
-
-        return getResponse(request);
+    public AssetController(BrokerageApiModule brokerageApiModule) {
+        this.webClientService = brokerageApiModule.getWebClientService();
+        this.brokerageService = brokerageApiModule.getBrokerageService();
     }
 
-    private ResponseEntity<LinkedHashMap<String, Object>> getResponse(KrakenRequest request) {
-        LinkedHashMap<String, Object> assetPairData = service.getAssetPair(request);
+    @GetMapping("/asset-pair/{assets}/{brokerage}")
+    public ResponseEntity<LinkedHashMap<String, List<String>>> getAssetPair(AssetPairRequest request) {
+        PublicRequestDto<AssetPairRequest> dto = brokerageService.createPublicDto(request, "asset-pair");
+        dto.appendEndpoint(request.getAssets());
+
+        return getResponse(dto);
+    }
+
+
+    private ResponseEntity<LinkedHashMap<String, List<String>>> getResponse(PublicRequestDto<AssetPairRequest> dto) {
+        LinkedHashMap<String, List<String>> assetPairData = webClientService.onResponse(dto);
         ResponseEntity.BodyBuilder response;
         if (!assetPairData.containsKey("result")) {
             response = ResponseEntity.status(HttpStatus.NOT_FOUND);
@@ -38,9 +43,5 @@ public class AssetController {
         }
 
         return response.body(assetPairData);
-    }
-
-    private String getBrokerageUrl(String brokerage) {
-        return new BrokerageUrlMapper().getBrokerageUrl(brokerage);
     }
 }

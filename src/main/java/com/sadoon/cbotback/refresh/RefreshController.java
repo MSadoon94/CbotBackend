@@ -46,7 +46,7 @@ public class RefreshController {
         return response;
     }
 
-    @DeleteMapping("/logout")
+    @DeleteMapping("/log-out")
     public ResponseEntity<Void> logout(@CookieValue(name = "refresh_token") String tokenString) {
         ResponseEntity<Void> response;
         try {

@@ -1,6 +1,7 @@
 package com.sadoon.cbotback.brokerage.util;
 
-import com.sadoon.cbotback.brokerage.kraken.KrakenRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -13,30 +14,29 @@ import java.util.Base64;
 
 public class SignatureCreator {
 
-    public String getSignature(KrakenRequest request) {
+    private static final Logger logger = LoggerFactory.getLogger(SignatureCreator.class);
+
+    public String getSignature(BrokerageDto request) {
         String signature = "";
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
 
             md.update((request.getNonce() + formattedBody(request)).getBytes());
-
             signature = new String(Base64.getEncoder().encode(
                     getPrimedHmac(request).doFinal(md.digest())));
-
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            e.printStackTrace();
+            logger.error("Error while creating signature: ", e);
         }
-
         return signature;
     }
 
-    private String formattedBody(KrakenRequest request) {
+    private String formattedBody(BrokerageDto request) {
         String bodyValues = request.getBodyValues().toString();
         bodyValues = bodyValues.replaceAll("[{}\\[\\],]", "").trim();
         return bodyValues.replaceAll("[\\s]", "&");
     }
 
-    private Mac getPrimedHmac(KrakenRequest request) throws NoSuchAlgorithmException, InvalidKeyException {
+    private Mac getPrimedHmac(BrokerageDto request) throws NoSuchAlgorithmException, InvalidKeyException {
         Mac hmac = Mac.getInstance("HmacSHA512");
         hmac.init(new SecretKeySpec(
                 Base64.getDecoder()

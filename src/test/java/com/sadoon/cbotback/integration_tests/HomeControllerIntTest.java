@@ -1,10 +1,13 @@
 package com.sadoon.cbotback.integration_tests;
 
 import com.sadoon.cbotback.AppProperties;
+import com.sadoon.cbotback.brokerage.BrokerageRepository;
 import com.sadoon.cbotback.brokerage.kraken.KrakenAccount;
+import com.sadoon.cbotback.brokerage.util.BrokerageApiModule;
+import com.sadoon.cbotback.common.Mocks;
 import com.sadoon.cbotback.home.HomeController;
 import com.sadoon.cbotback.home.HomeRepository;
-import com.sadoon.cbotback.home.models.CardRequest;
+import com.sadoon.cbotback.home.models.CardApiRequest;
 import com.sadoon.cbotback.home.models.KrakenCard;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,7 +36,10 @@ class HomeControllerIntTest {
     @Autowired
     private HomeRepository repo;
 
-    private CardRequest TEST_REQUEST;
+    @Autowired
+    private BrokerageRepository brokerageRepo;
+
+    private CardApiRequest request;
 
     private HomeController controller;
 
@@ -43,11 +49,11 @@ class HomeControllerIntTest {
 
     @BeforeEach
     void setUp() {
-        TEST_REQUEST = new CardRequest(props.getKrakenApiKey(), props.getKrakenSecretKey(), "balance");
+        request = Mocks.cardRequest("kraken");
         repo.deleteAll();
-        controller = new HomeController(repo);
-        response = controller.addBrokerageCard(TEST_REQUEST);
-        card = repo.getBrokerageCardByAccount(TEST_REQUEST.getAccount());
+        controller = new HomeController(repo, new BrokerageApiModule(brokerageRepo));
+        response = controller.addBrokerageCard(request);
+        card = repo.getBrokerageCardByAccount(request.getAccount());
         card.setKrakenAccount(testAccount());
     }
 
@@ -58,22 +64,22 @@ class HomeControllerIntTest {
 
     @Test
     void shouldPassRequestAccountToCard() {
-        assertThat(card.getAccount(), is(TEST_REQUEST.getAccount()));
+        assertThat(card.getAccount(), is(request.getAccount()));
     }
 
     @Test
     void shouldPassRequestPasswordToCard() {
-        assertThat(encoder.matches(TEST_REQUEST.getPassword(), card.getPassword()), is(true));
+        assertThat(encoder.matches(request.getPassword(), card.getPassword()), is(true));
     }
 
     @Test
     void shouldAddAccountBalanceToCard() {
-        assertThat(controller.getCard(TEST_REQUEST.getAccount()).getKrakenAccount(), is(samePropertyValuesAs(testAccount())));
+        assertThat(controller.getCard(request.getAccount()).getKrakenAccount(), is(samePropertyValuesAs(testAccount())));
     }
 
     @Test
     void shouldGetCard() {
-        assertThat(controller.getCard(TEST_REQUEST.getAccount()), is(samePropertyValuesAs(card, "krakenAccount")));
+        assertThat(controller.getCard(request.getAccount()), is(samePropertyValuesAs(card, "krakenAccount")));
     }
 
     private KrakenAccount testAccount() {

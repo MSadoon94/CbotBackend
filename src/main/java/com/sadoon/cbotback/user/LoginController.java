@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Date;
+
 @RestController
 public class LoginController {
 
@@ -24,22 +26,14 @@ public class LoginController {
         LoginResponse response = loginService.handleLogin(request);
 
         if (response == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            response = new LoginResponse("", "", new Date(System.currentTimeMillis()));
+            response.setIsLoggedIn(false);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
 
+        response.setIsLoggedIn(true);
         return ResponseEntity.ok()
-                .headers(response.getHeader())
-                .body(getResponseWithHeaderFieldCleared(response));
+                .headers(loginService.getHeader(request.getUserId()))
+                .body(response);
     }
-
-
-    /*
-    The header field in the login response is cleared
-    after it transports the header data to the ResponseEntity header.
-    */
-    private LoginResponse getResponseWithHeaderFieldCleared(LoginResponse response) {
-        response.setHeader(null);
-        return response;
-    }
-
 }

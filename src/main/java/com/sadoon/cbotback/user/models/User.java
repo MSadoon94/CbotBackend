@@ -1,5 +1,6 @@
 package com.sadoon.cbotback.user.models;
 
+import com.sadoon.cbotback.card.Card;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.core.GrantedAuthority;
@@ -22,6 +23,8 @@ public class User implements UserDetails {
     private final GrantedAuthority authority;
 
     private List<GrantedAuthority> authorities = new ArrayList<>();
+
+    private List<Card> cards = new ArrayList<>();
 
     public User(String username, String password, GrantedAuthority authority) {
         this.username = username;
@@ -67,5 +70,13 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public List<Card> getCards() {
+        return cards;
+    }
+
+    public void setCards(List<Card> cards) {
+        this.cards = cards;
     }
 }

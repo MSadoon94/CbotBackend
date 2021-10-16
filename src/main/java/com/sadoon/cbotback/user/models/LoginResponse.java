@@ -1,17 +1,21 @@
 package com.sadoon.cbotback.user.models;
 
-import org.springframework.http.HttpHeaders;
-
 import java.util.Date;
 
 public class LoginResponse {
+    private final String username;
     private final String jwt;
     private final Date expiration;
-    private HttpHeaders header;
+    private boolean isLoggedIn = false;
 
-    public LoginResponse(String jwt, Date expiration) {
+    public LoginResponse(String username, String jwt, Date expiration) {
+        this.username = username;
         this.jwt = jwt;
         this.expiration = expiration;
+    }
+
+    public String getUsername() {
+        return username;
     }
 
     public String getJwt() {
@@ -22,11 +26,12 @@ public class LoginResponse {
         return expiration;
     }
 
-    public HttpHeaders getHeader() {
-        return header;
+    public boolean getIsLoggedIn() {
+        return isLoggedIn;
     }
 
-    public void setHeader(HttpHeaders header) {
-        this.header = header;
+    public void setIsLoggedIn(boolean isLoggedIn) {
+        this.isLoggedIn = isLoggedIn;
     }
+
 }

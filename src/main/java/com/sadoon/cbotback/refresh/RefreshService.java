@@ -80,7 +80,7 @@ public class RefreshService {
     public HttpHeaders getRefreshCookieHeader(RefreshToken refreshToken) {
         HttpHeaders headers = new HttpHeaders();
         headers.add("Set-Cookie", getRefreshCookieHeaderValue(refreshToken, "/refreshjwt"));
-        headers.add("Set-Cookie", getRefreshCookieHeaderValue(refreshToken, "/logout"));
+        headers.add("Set-Cookie", getRefreshCookieHeaderValue(refreshToken, "/log-out"));
         return headers;
     }
 

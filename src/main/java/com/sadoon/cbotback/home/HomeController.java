@@ -1,10 +1,10 @@
 package com.sadoon.cbotback.home;
 
-import com.sadoon.cbotback.brokerage.BrokerageRequestConfig;
-import com.sadoon.cbotback.brokerage.BrokerageRestService;
+import com.sadoon.cbotback.brokerage.BrokerageService;
+import com.sadoon.cbotback.brokerage.WebClientService;
 import com.sadoon.cbotback.brokerage.kraken.KrakenAccount;
-import com.sadoon.cbotback.brokerage.kraken.KrakenRequest;
-import com.sadoon.cbotback.home.models.CardRequest;
+import com.sadoon.cbotback.brokerage.util.BrokerageApiModule;
+import com.sadoon.cbotback.home.models.CardApiRequest;
 import com.sadoon.cbotback.home.models.KrakenCard;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,13 +19,17 @@ public class HomeController {
 
     private HomeRepository repo;
 
-    public HomeController(HomeRepository repo) {
+    private WebClientService client;
+    private BrokerageService brokerageService;
+
+    public HomeController(HomeRepository repo, BrokerageApiModule brokerageApiModule) {
         this.repo = repo;
+        this.client = brokerageApiModule.getWebClientService();
+        this.brokerageService = brokerageApiModule.getBrokerageService();
     }
 
     @PostMapping("/home/card")
-    public ResponseEntity<HttpStatus> addBrokerageCard(@RequestBody CardRequest cardRequest) {
-        KrakenRequest request = new KrakenRequest(cardRequest.getAccount(), cardRequest.getPassword());
+    public ResponseEntity<HttpStatus> addBrokerageCard(@RequestBody CardApiRequest request) {
 
         repo.save(createCard(request, createKrakenAccount(request)));
 
@@ -37,15 +41,13 @@ public class HomeController {
         return repo.getBrokerageCardByAccount(account);
     }
 
-    private KrakenAccount createKrakenAccount(KrakenRequest request) {
-        BrokerageRestService service =
-                new BrokerageRestService(new BrokerageRequestConfig().webClient("https://api.kraken.com"));
+    private KrakenAccount createKrakenAccount(CardApiRequest request) {
         KrakenAccount account = new KrakenAccount();
-        account.setAccountBalance(service.getBalance(request));
+        account.setAccountBalance(client.onResponse(brokerageService.createBrokerageDto(request, "balance")));
         return account;
     }
 
-    private KrakenCard createCard(KrakenRequest request, KrakenAccount account) {
+    private KrakenCard createCard(CardApiRequest request, KrakenAccount account) {
         KrakenCard card
                 = new KrakenCard(request.getAccount(), encoder.encode(request.getPassword()));
         card.setKrakenAccount(account);

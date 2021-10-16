@@ -53,7 +53,7 @@ public class LoginServiceTest {
         when(refreshService.createRefreshToken(LOGIN_REQUEST.getUserId())).thenReturn(REFRESH_TOKEN);
         when(refreshService.getRefreshCookieHeader(REFRESH_TOKEN)).thenReturn(mockHeader);
 
-        HttpHeaders header = loginService.handleLogin(LOGIN_REQUEST).getHeader();
+        HttpHeaders header = loginService.getHeader(LOGIN_REQUEST.getUserId());
 
         assertThat(header.get("Set-Cookie").get(0),
                 containsString("refresh_token=" + REFRESH_TOKEN.getToken()));
@@ -64,6 +64,11 @@ public class LoginServiceTest {
         when(jwtService.generateToken(LOGIN_REQUEST.getUsername())).thenReturn("jwt");
 
         assertThat(loginService.handleLogin(LOGIN_REQUEST).getJwt(), is("jwt"));
+    }
+
+    @Test
+    void shouldAddUsernameToLoginResponse() {
+        assertThat(loginService.handleLogin(LOGIN_REQUEST).getUsername(), is(LOGIN_REQUEST.getUsername()));
     }
 
     private void setMockHeader() {
