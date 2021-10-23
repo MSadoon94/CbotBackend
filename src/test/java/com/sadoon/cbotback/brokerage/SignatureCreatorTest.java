@@ -3,7 +3,7 @@ package com.sadoon.cbotback.brokerage;
 import com.sadoon.cbotback.brokerage.model.Brokerage;
 import com.sadoon.cbotback.brokerage.util.BrokerageDto;
 import com.sadoon.cbotback.brokerage.util.SignatureCreator;
-import com.sadoon.cbotback.home.models.CardApiRequest;
+import com.sadoon.cbotback.card.models.CardApiRequest;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;

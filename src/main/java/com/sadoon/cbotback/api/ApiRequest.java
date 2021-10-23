@@ -1,4 +1,4 @@
-package com.sadoon.cbotback.common;
+package com.sadoon.cbotback.api;
 
 public interface ApiRequest {
     String getBrokerage();

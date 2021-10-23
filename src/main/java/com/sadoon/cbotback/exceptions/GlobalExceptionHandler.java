@@ -9,6 +9,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.util.List;
@@ -36,8 +37,29 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(UserNotFoundException.class)
-    protected ResponseEntity<Object> handleEntityNotFound(UserNotFoundException ex) {
+    protected ResponseEntity<Object> handleEntityNotFoundException(UserNotFoundException ex) {
         ApiError apiError = new ApiError(HttpStatus.NOT_FOUND);
+        apiError.setMessage(ex.getMessage());
+        return buildResponseEntity(addSubErrors(apiError, ex));
+    }
+
+    @ExceptionHandler(CardPasswordEncryptionException.class)
+    protected ResponseEntity<Object> handleCardPasswordEncryptionException(CardPasswordEncryptionException ex) {
+        ApiError apiError = new ApiError(HttpStatus.PRECONDITION_FAILED);
+        apiError.setMessage(ex.getMessage());
+        return buildResponseEntity(addSubErrors(apiError, ex));
+    }
+
+    @ExceptionHandler(WebClientResponseException.class)
+    protected ResponseEntity<Object> handleWebClientResponseException(WebClientResponseException ex) {
+        ApiError apiError = new ApiError(ex.getStatusCode());
+        apiError.setMessage(ex.getMessage());
+        return buildResponseEntity(apiError);
+    }
+
+    @ExceptionHandler(KrakenRequestException.class)
+    protected ResponseEntity<Object> handleKrakenRequestException(KrakenRequestException ex) {
+        ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST);
         apiError.setMessage(ex.getMessage());
         return buildResponseEntity(addSubErrors(apiError, ex));
     }

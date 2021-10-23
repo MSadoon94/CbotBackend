@@ -3,11 +3,13 @@ package com.sadoon.cbotback.card;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sadoon.cbotback.brokerage.BrokerageService;
 import com.sadoon.cbotback.brokerage.WebClientService;
+import com.sadoon.cbotback.brokerage.model.Balances;
 import com.sadoon.cbotback.brokerage.util.BrokerageApiModule;
+import com.sadoon.cbotback.card.models.Card;
+import com.sadoon.cbotback.card.models.CardApiRequest;
 import com.sadoon.cbotback.common.Mocks;
 import com.sadoon.cbotback.exceptions.GlobalExceptionHandler;
 import com.sadoon.cbotback.exceptions.UserNotFoundException;
-import com.sadoon.cbotback.home.models.CardApiRequest;
 import com.sadoon.cbotback.user.UserService;
 import com.sadoon.cbotback.user.models.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,16 +23,18 @@ import org.springframework.boot.test.autoconfigure.json.JsonTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.security.InvalidKeyException;
 import java.util.List;
-import java.util.Map;
 
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(MockitoExtension.class)
 @JsonTest
@@ -46,6 +50,8 @@ class CardControllerTest {
     @Mock
     private UserService userService;
     @Mock
+    private CardService cardService;
+    @Mock
     private WebClientService webClientService;
 
     @Mock
@@ -55,6 +61,7 @@ class CardControllerTest {
     private CardController cardController;
 
     private User mockUser = Mocks.user();
+    private Balances balances = Mocks.balances("USD", "100");
 
     private final Authentication auth = Mocks.auth(mockUser);
 
@@ -78,31 +85,22 @@ class CardControllerTest {
         given(userService.getUser(auth.getName()))
                 .willReturn(mockUser);
 
-        mvc.perform(MockMvcRequestBuilders
-                        .get("/load-cards")
-                        .principal(auth))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.[1].cardName", is(cards.get(1).getCardName())));
+        loadCards()
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.[1].cardName", is(cards.get(1).getCardName())));
     }
 
     @Test
     void shouldReturnCreatedStatusOnSaveCardSuccess() throws Exception {
-        given(userService.getUser(auth.getName()))
-                .willReturn(mockUser);
-
-        given(webClientService.onResponse(any()))
-                .willReturn(Map.of("USD", "100"));
+        given(userService.getUser(auth.getName())).willReturn(mockUser);
+        given(webClientService.onResponse(any(), any())).willReturn(balances);
+        given(cardService.newCard(any())).willReturn(Mocks.card());
 
         cardRequest.setCardName("mockCard3");
         cardRequest.setBrokerage("kraken");
 
-        mvc.perform(MockMvcRequestBuilders
-                        .post("/save-card")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(cardRequest))
-                        .principal(auth))
-                .andExpect(MockMvcResultMatchers.status().isCreated());
+        saveCard()
+                .andExpect(status().isCreated());
     }
 
 
@@ -112,11 +110,9 @@ class CardControllerTest {
         given(userService.getUser(auth.getName()))
                 .willThrow(exception);
 
-        mvc.perform(MockMvcRequestBuilders
-                        .get("/load-cards")
-                        .principal(auth))
-                .andExpect(MockMvcResultMatchers.status().isNotFound())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message", is(exception.getMessage())));
+        loadCards()
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message", is(exception.getMessage())));
 
     }
 
@@ -126,15 +122,38 @@ class CardControllerTest {
         given(userService.getUser(auth.getName()))
                 .willThrow(exception);
 
-        mvc.perform(MockMvcRequestBuilders
-                        .post("/save-card")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(cardRequest))
-                        .principal(auth))
-                .andExpect(MockMvcResultMatchers.status().isNotFound())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message", is(exception.getMessage())));
+        saveCard()
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message", is(exception.getMessage())));
+    }
 
+    @Test
+    void shouldReturnApiErrorWhenSaveCardFailsDueToEncryptionError() throws Exception {
+        InvalidKeyException exception = new InvalidKeyException("InvalidKeyException");
+        given(userService.getUser(auth.getName())).willReturn(mockUser);
+        given(cardService.newCard(any())).willReturn(Mocks.card());
+        given(webClientService.onResponse(any(), any())).willReturn(balances);
+        given(cardService.encryptCard(any())).willThrow(exception);
+
+        saveCard()
+                .andExpect(status().isPreconditionFailed())
+                .andExpect(jsonPath("$.message",
+                        is(String.format("Error while encrypting password: %s", exception.getMessage()))));
+    }
+
+    private ResultActions loadCards() throws Exception {
+        return mvc.perform(MockMvcRequestBuilders
+                .get("/load-cards")
+                .principal(auth));
+    }
+
+    private ResultActions saveCard() throws Exception {
+        return mvc.perform(MockMvcRequestBuilders
+                .post("/save-card")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(cardRequest))
+                .principal(auth));
     }
 }
 

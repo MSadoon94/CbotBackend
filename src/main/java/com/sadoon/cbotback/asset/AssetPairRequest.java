@@ -1,6 +1,6 @@
 package com.sadoon.cbotback.asset;
 
-import com.sadoon.cbotback.common.ApiRequest;
+import com.sadoon.cbotback.api.ApiRequest;
 
 public class AssetPairRequest implements ApiRequest {
     private String assets;

@@ -2,8 +2,10 @@ package com.sadoon.cbotback.brokerage;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sadoon.cbotback.brokerage.model.Balances;
 import com.sadoon.cbotback.brokerage.util.BrokerageDto;
 import com.sadoon.cbotback.common.Mocks;
+import com.sadoon.cbotback.exceptions.KrakenRequestException;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterAll;
@@ -14,11 +16,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.json.JsonTest;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.io.IOException;
-import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -35,7 +37,12 @@ class WebClientServiceTest {
 
     private WebClientService webClientService;
 
+    private Balances mockBalances = Mocks.balances("USD", "100");
+
     private BrokerageDto mockDto = Mocks.brokerageDTO("balance", mockServer.url("/").toString());
+
+    private final ParameterizedTypeReference<Balances> balancesRef = new ParameterizedTypeReference<>() {
+    };
 
     @BeforeAll
     static void setUpServer() throws IOException {
@@ -54,30 +61,30 @@ class WebClientServiceTest {
     }
 
     @Test
-    void shouldReturnResponseOfSpecifiedTypeOnSuccess() throws JsonProcessingException {
+    void shouldReturnResponseOfSpecifiedTypeOnSuccess() throws JsonProcessingException, KrakenRequestException {
         MockResponse mockResponse = new MockResponse()
                 .setResponseCode(HttpStatus.OK.value())
-                .setBody(objectMapper.writeValueAsString(Mocks.clientResponse()))
+                .setBody(objectMapper.writeValueAsString(mockBalances))
                 .addHeader("Content-Type", "application/json");
 
         mockServer.enqueue(mockResponse);
 
-        assertThat(webClientService.<Map<String, String>, BrokerageDto>onResponse(mockDto).entrySet(),
-                is(Mocks.clientResponse().entrySet()));
+        assertThat(webClientService.onResponse(balancesRef, mockDto).getBalances(),
+                is(mockBalances.getBalances()));
 
     }
 
     @Test
     void shouldReturnWebClientExceptionOnFail() throws JsonProcessingException {
+        mockBalances.unpackErrors(new String[]{"mockError"});
         MockResponse mockResponse = new MockResponse()
                 .setResponseCode(HttpStatus.BAD_REQUEST.value())
-                .setBody(objectMapper.writeValueAsString(Mocks.clientResponse()))
+                .setBody(objectMapper.writeValueAsString(mockBalances))
                 .addHeader("Content-Type", "application/json");
 
         mockServer.enqueue(mockResponse);
 
         assertThrows(WebClientResponseException.class,
-                () -> webClientService.<Map<String, String>, BrokerageDto>onResponse(mockDto));
-
+                () -> webClientService.onResponse(balancesRef, mockDto));
     }
 }

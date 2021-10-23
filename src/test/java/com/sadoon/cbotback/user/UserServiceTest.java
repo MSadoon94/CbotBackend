@@ -33,7 +33,8 @@ class UserServiceTest {
     @Test
     void shouldAddCardsToUser() {
         userService.addCard(mockUser, Mocks.card());
-        assertThat(repo.getUserByUsername("mockUser").getCards().get(2), samePropertyValuesAs(Mocks.card()));
+        assertThat(repo.getUserByUsername("mockUser").getCards().get(2),
+                samePropertyValuesAs(Mocks.card(), "balances"));
     }
 
     @Test

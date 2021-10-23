@@ -1,6 +1,6 @@
 package com.sadoon.cbotback.user;
 
-import com.sadoon.cbotback.card.Card;
+import com.sadoon.cbotback.card.models.Card;
 import com.sadoon.cbotback.exceptions.UserNotFoundException;
 import com.sadoon.cbotback.user.models.User;
 import org.springframework.stereotype.Service;

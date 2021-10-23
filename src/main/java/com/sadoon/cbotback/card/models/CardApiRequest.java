@@ -1,4 +1,4 @@
-package com.sadoon.cbotback.home.models;
+package com.sadoon.cbotback.card.models;
 
 import com.sadoon.cbotback.brokerage.model.BrokerageApiRequest;
 
@@ -8,7 +8,6 @@ public class CardApiRequest implements BrokerageApiRequest {
     private String password;
     private String brokerage;
 
-    //Default constructor needed by jackson for request serialization/deserialization.
     public CardApiRequest() {
     }
 

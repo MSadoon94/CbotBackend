@@ -1,4 +1,4 @@
-package com.sadoon.cbotback.common;
+package com.sadoon.cbotback.api;
 
 import com.sadoon.cbotback.brokerage.model.Brokerage;
 import org.springframework.http.HttpMethod;

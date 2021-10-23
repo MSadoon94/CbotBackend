@@ -1,6 +1,6 @@
 package com.sadoon.cbotback.user.models;
 
-import com.sadoon.cbotback.card.Card;
+import com.sadoon.cbotback.card.models.Card;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.core.GrantedAuthority;

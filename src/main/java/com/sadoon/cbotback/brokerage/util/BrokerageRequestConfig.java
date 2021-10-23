@@ -1,6 +1,6 @@
 package com.sadoon.cbotback.brokerage.util;
 
-import com.sadoon.cbotback.common.PublicRequestDto;
+import com.sadoon.cbotback.api.PublicRequestDto;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.BodyInserters;

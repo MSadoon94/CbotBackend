@@ -1,11 +1,11 @@
 package com.sadoon.cbotback.brokerage;
 
+import com.sadoon.cbotback.api.PublicRequestDto;
 import com.sadoon.cbotback.brokerage.model.Brokerage;
 import com.sadoon.cbotback.brokerage.util.BrokerageDto;
 import com.sadoon.cbotback.brokerage.util.NonceCreator;
+import com.sadoon.cbotback.card.models.CardApiRequest;
 import com.sadoon.cbotback.common.Mocks;
-import com.sadoon.cbotback.common.PublicRequestDto;
-import com.sadoon.cbotback.home.models.CardApiRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

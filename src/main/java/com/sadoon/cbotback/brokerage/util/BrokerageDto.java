@@ -1,8 +1,8 @@
 package com.sadoon.cbotback.brokerage.util;
 
+import com.sadoon.cbotback.api.PublicRequestDto;
 import com.sadoon.cbotback.brokerage.model.Brokerage;
 import com.sadoon.cbotback.brokerage.model.BrokerageApiRequest;
-import com.sadoon.cbotback.common.PublicRequestDto;
 import org.springframework.http.HttpMethod;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -64,5 +64,9 @@ public class BrokerageDto extends PublicRequestDto<BrokerageApiRequest> {
 
     public String getUrl() {
         return brokerage.getUrl();
+    }
+
+    public String getSuccessKey() {
+        return brokerage.getSuccessKey();
     }
 }
