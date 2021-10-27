@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.fasterxml.jackson.annotation.JsonProperty.Access;
 import static java.util.Map.Entry;
 
 public class Balances implements KrakenResponse {
@@ -37,7 +38,7 @@ public class Balances implements KrakenResponse {
         return Optional.ofNullable(errors).orElse(Collections.emptyList());
     }
 
-    @JsonProperty("error")
+    @JsonProperty(value = "error", access = Access.WRITE_ONLY)
     public void unpackErrors(String[] error) {
         this.errors = Arrays.stream(error).toList();
     }

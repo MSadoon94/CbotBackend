@@ -31,7 +31,7 @@ class SignatureCreatorTest {
         addBodyValues(brokerageDTO);
 
         assertThat(new SignatureCreator()
-                        .getSignature(brokerageDTO),
+                        .requestWrapper(brokerageDTO),
                 is(API_SIGN));
     }
 

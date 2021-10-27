@@ -52,7 +52,7 @@ public class BrokerageRequestConfig {
 
 
     private String getSignature(BrokerageDto request) {
-        return new SignatureCreator().getSignature(request);
+        return new SignatureCreator().requestWrapper(request);
     }
 
     private BrokerageDto getApiRequest(ClientRequest clientRequest) {

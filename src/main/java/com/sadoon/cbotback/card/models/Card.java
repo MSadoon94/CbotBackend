@@ -1,9 +1,19 @@
 package com.sadoon.cbotback.card.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.sadoon.cbotback.brokerage.model.Balances;
 
+import java.math.BigDecimal;
+import java.util.Map;
+
+import static com.fasterxml.jackson.annotation.JsonProperty.Access;
+
 public class Card {
-    private String cardName, password;
+    private String cardName;
+    @JsonProperty(access = Access.WRITE_ONLY)
+    private String password;
+    @JsonUnwrapped
     private Balances balances;
 
     public Card() {
@@ -31,8 +41,8 @@ public class Card {
         this.password = password;
     }
 
-    public Balances getBalances() {
-        return balances;
+    public Map<String, BigDecimal> getBalances() {
+        return balances.getBalances();
     }
 
     public void setBalances(Balances balances) {

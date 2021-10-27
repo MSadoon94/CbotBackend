@@ -5,7 +5,7 @@ import com.sadoon.cbotback.exceptions.UserNotFoundException;
 import com.sadoon.cbotback.user.models.User;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.Map;
 
 @Service
 public class UserService {
@@ -34,8 +34,8 @@ public class UserService {
     }
 
     public void addCard(User user, Card card) {
-        List<Card> cards = user.getCards();
-        cards.add(card);
+        Map<String, Card> cards = user.getCards();
+        cards.put(card.getCardName(), card);
         user.setCards(cards);
         repo.delete(user);
         repo.save(user);

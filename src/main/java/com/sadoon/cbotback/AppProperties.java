@@ -13,6 +13,9 @@ public class AppProperties {
     private String krakenApiKey;
     private String krakenSecretKey;
 
+    private String keystoreName;
+    private String keystorePassword;
+
     public String getCorsExclusion() {
         return corsExclusion;
     }
@@ -59,5 +62,21 @@ public class AppProperties {
 
     public void setRefreshTokenDurationMs(Long refreshTokenDurationMs) {
         this.refreshTokenDurationMs = refreshTokenDurationMs;
+    }
+
+    public String getKeystoreName() {
+        return keystoreName;
+    }
+
+    public void setKeystoreName(String keystoreName) {
+        this.keystoreName = keystoreName;
+    }
+
+    public String getKeystorePassword() {
+        return keystorePassword;
+    }
+
+    public void setKeystorePassword(String keystorePassword) {
+        this.keystorePassword = keystorePassword;
     }
 }

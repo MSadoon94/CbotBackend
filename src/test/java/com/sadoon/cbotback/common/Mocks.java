@@ -15,7 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -31,16 +31,22 @@ public class Mocks {
         return balances;
     }
 
-    public static List<Card> cardList() {
-        List<Card> cards = new ArrayList<>();
-        cards.add(new Card("mockCard1", "mockPassword", balances("USD", "100")));
-        cards.add(new Card("mockCard2", "mockPassword", balances("USD", "50")));
+    public static Map<String, Card> cards() {
+        Map<String, Card> cards = new LinkedHashMap<>();
+        cards.put(
+                "mockCard1",
+                new Card("mockCard1", "mockPassword", balances("USD", "100"))
+        );
+        cards.put(
+                "mockCard2",
+                new Card("mockCard2", "mockPassword", balances("USD", "50"))
+        );
         return cards;
     }
 
     public static Card card() {
         return new Card(
-                "mockCard3",
+                "mockName",
                 "mockPassword",
                 balances("USD", "150")
         );

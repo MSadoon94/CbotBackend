@@ -36,18 +36,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(apiError, apiError.getStatus());
     }
 
-    @ExceptionHandler(UserNotFoundException.class)
-    protected ResponseEntity<Object> handleEntityNotFoundException(UserNotFoundException ex) {
-        ApiError apiError = new ApiError(HttpStatus.NOT_FOUND);
-        apiError.setMessage(ex.getMessage());
-        return buildResponseEntity(addSubErrors(apiError, ex));
+    @ExceptionHandler({UserNotFoundException.class, CardNotFoundException.class})
+    protected ResponseEntity<Object> handleEntityNotFoundException(CustomException ex) {
+        return buildResponseEntity(addSubErrors(buildApiError(HttpStatus.NOT_FOUND, ex), ex));
     }
 
     @ExceptionHandler(CardPasswordEncryptionException.class)
     protected ResponseEntity<Object> handleCardPasswordEncryptionException(CardPasswordEncryptionException ex) {
-        ApiError apiError = new ApiError(HttpStatus.PRECONDITION_FAILED);
-        apiError.setMessage(ex.getMessage());
-        return buildResponseEntity(addSubErrors(apiError, ex));
+        return buildResponseEntity(addSubErrors(buildApiError(HttpStatus.PRECONDITION_FAILED, ex), ex));
     }
 
     @ExceptionHandler(WebClientResponseException.class)
@@ -59,11 +55,19 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(KrakenRequestException.class)
     protected ResponseEntity<Object> handleKrakenRequestException(KrakenRequestException ex) {
-        ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST);
-        apiError.setMessage(ex.getMessage());
-        return buildResponseEntity(addSubErrors(apiError, ex));
+        return buildResponseEntity(addSubErrors(buildApiError(HttpStatus.BAD_REQUEST, ex), ex));
     }
 
+    @ExceptionHandler(PasswordException.class)
+    protected ResponseEntity<Object> handlePasswordException(PasswordException ex) {
+        return buildResponseEntity(addSubErrors(buildApiError(HttpStatus.FORBIDDEN, ex), ex));
+    }
+
+    private ApiError buildApiError(HttpStatus status, CustomException ex) {
+        ApiError apiError = new ApiError(status);
+        apiError.setMessage(ex.getMessage());
+        return apiError;
+    }
 
     private void logException(ApiError error) {
         logger.error(error.getMessage(), error);

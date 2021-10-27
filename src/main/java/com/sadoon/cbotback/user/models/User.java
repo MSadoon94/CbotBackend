@@ -6,9 +6,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Document
 public class User implements UserDetails {
@@ -24,7 +22,7 @@ public class User implements UserDetails {
 
     private List<GrantedAuthority> authorities = new ArrayList<>();
 
-    private List<Card> cards = new ArrayList<>();
+    private Map<String, Card> cards = new LinkedHashMap<>();
 
     public User(String username, String password, GrantedAuthority authority) {
         this.username = username;
@@ -72,11 +70,11 @@ public class User implements UserDetails {
         return true;
     }
 
-    public List<Card> getCards() {
+    public Map<String, Card> getCards() {
         return cards;
     }
 
-    public void setCards(List<Card> cards) {
+    public void setCards(Map<String, Card> cards) {
         this.cards = cards;
     }
 }

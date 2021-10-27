@@ -7,8 +7,11 @@ import com.sadoon.cbotback.brokerage.model.Balances;
 import com.sadoon.cbotback.brokerage.util.BrokerageApiModule;
 import com.sadoon.cbotback.card.models.Card;
 import com.sadoon.cbotback.card.models.CardApiRequest;
+import com.sadoon.cbotback.card.models.CardPasswordVerificationRequest;
 import com.sadoon.cbotback.common.Mocks;
+import com.sadoon.cbotback.exceptions.CardNotFoundException;
 import com.sadoon.cbotback.exceptions.GlobalExceptionHandler;
+import com.sadoon.cbotback.exceptions.PasswordException;
 import com.sadoon.cbotback.exceptions.UserNotFoundException;
 import com.sadoon.cbotback.user.UserService;
 import com.sadoon.cbotback.user.models.User;
@@ -28,11 +31,13 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.security.InvalidKeyException;
-import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -65,9 +70,12 @@ class CardControllerTest {
 
     private final Authentication auth = Mocks.auth(mockUser);
 
-    private final List<Card> cards = Mocks.cardList();
+    private final Map<String, Card> cards = Mocks.cards();
+    private final String mockCardName = "mockCard1";
 
     private CardApiRequest cardRequest = Mocks.cardRequest("kraken");
+    private CardPasswordVerificationRequest passwordVerification =
+            new CardPasswordVerificationRequest("mockName", "mockPassword");
 
     @BeforeEach
     public void setup() {
@@ -87,7 +95,8 @@ class CardControllerTest {
 
         loadCards()
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.[1].cardName", is(cards.get(1).getCardName())));
+                .andExpect(jsonPath("$.mockCard1", is(notNullValue())))
+                .andExpect(jsonPath("$.mockCard2", is(notNullValue())));
     }
 
     @Test
@@ -133,7 +142,7 @@ class CardControllerTest {
         given(userService.getUser(auth.getName())).willReturn(mockUser);
         given(cardService.newCard(any())).willReturn(Mocks.card());
         given(webClientService.onResponse(any(), any())).willReturn(balances);
-        given(cardService.encryptCard(any())).willThrow(exception);
+        given(cardService.encryptCard(any(), any())).willThrow(exception);
 
         saveCard()
                 .andExpect(status().isPreconditionFailed())
@@ -141,9 +150,48 @@ class CardControllerTest {
                         is(String.format("Error while encrypting password: %s", exception.getMessage()))));
     }
 
+    @Test
+    void shouldReturnOkStatusWhenPasswordMatchesStoredPassword() throws Exception {
+
+        cardPasswordPost()
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldReturnForbiddenWhenPasswordDoesNotMatchStoredPassword() throws Exception {
+        doThrow(new PasswordException("card password")).when(cardService).verifyPassword(any(), any(), any());
+        cardPasswordPost()
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void shouldReturnCardOnSuccessfulLoadSingleCardRequest() throws Exception {
+        given(cardService.getCard(any(), any())).willReturn(cards.get(mockCardName));
+        loadSingleCard()
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.cardName", is(mockCardName)));
+    }
+
+    @Test
+    void shouldThrowNotFoundOnLoadSingleCardRequestWithUnknownCard() throws Exception {
+        CardNotFoundException exception = new CardNotFoundException(mockCardName);
+        given(cardService.getCard(any(), any())).willThrow(exception);
+
+        loadSingleCard()
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message", is(exception.getMessage())));
+    }
+
+
     private ResultActions loadCards() throws Exception {
         return mvc.perform(MockMvcRequestBuilders
                 .get("/load-cards")
+                .principal(auth));
+    }
+
+    private ResultActions loadSingleCard() throws Exception {
+        return mvc.perform(MockMvcRequestBuilders
+                .get(String.format("/load-a-card/%s", mockCardName))
                 .principal(auth));
     }
 
@@ -154,6 +202,16 @@ class CardControllerTest {
                 .accept(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(cardRequest))
                 .principal(auth));
+    }
+
+    private ResultActions cardPasswordPost() throws Exception {
+        return mvc.perform(MockMvcRequestBuilders
+                .post("/card-password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(passwordVerification))
+                .principal(auth)
+        );
     }
 }
 

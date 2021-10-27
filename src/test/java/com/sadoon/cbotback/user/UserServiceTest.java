@@ -25,7 +25,7 @@ class UserServiceTest {
     @BeforeEach
     public void setup() {
         repo.deleteAll();
-        mockUser.setCards(Mocks.cardList());
+        mockUser.setCards(Mocks.cards());
         repo.save(mockUser);
         userService = new UserService(repo);
     }
@@ -33,7 +33,7 @@ class UserServiceTest {
     @Test
     void shouldAddCardsToUser() {
         userService.addCard(mockUser, Mocks.card());
-        assertThat(repo.getUserByUsername("mockUser").getCards().get(2),
+        assertThat(repo.getUserByUsername("mockUser").getCards().get(Mocks.card().getCardName()),
                 samePropertyValuesAs(Mocks.card(), "balances"));
     }
 
