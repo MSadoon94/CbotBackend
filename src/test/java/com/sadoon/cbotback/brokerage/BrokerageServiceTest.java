@@ -6,6 +6,7 @@ import com.sadoon.cbotback.brokerage.util.BrokerageDto;
 import com.sadoon.cbotback.brokerage.util.NonceCreator;
 import com.sadoon.cbotback.card.models.CardApiRequest;
 import com.sadoon.cbotback.common.Mocks;
+import com.sadoon.cbotback.exceptions.BrokerageNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,6 +18,7 @@ import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.samePropertyValuesAs;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
@@ -56,7 +58,7 @@ class BrokerageServiceTest {
     }
 
     @Test
-    void shouldSetFieldsForBrokerageDto() {
+    void shouldSetFieldsForBrokerageDto() throws BrokerageNotFoundException {
         given(nonceCreator.createNonce()).willReturn("mockNonce");
         BrokerageDto brokerageDTO = brokerageService.createBrokerageDto(request, requestType);
         assertThat(brokerageDTO,
@@ -66,5 +68,13 @@ class BrokerageServiceTest {
         assertThat(brokerageDTO, hasProperty("brokerage", samePropertyValuesAs(brokerage)));
         assertThat(brokerageDTO, hasProperty("request", samePropertyValuesAs(request)));
 
+    }
+
+    @Test
+    void shouldThrowBrokerageNotFoundException() {
+        request.setBrokerage("InvalidBrokerage");
+        assertThrows(BrokerageNotFoundException.class, () -> {
+            brokerageService.createBrokerageDto(request, requestType);
+        });
     }
 }

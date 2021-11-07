@@ -36,7 +36,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(apiError, apiError.getStatus());
     }
 
-    @ExceptionHandler({UserNotFoundException.class, CardNotFoundException.class})
+    @ExceptionHandler(EntityNotFoundException.class)
     protected ResponseEntity<Object> handleEntityNotFoundException(CustomException ex) {
         return buildResponseEntity(addSubErrors(buildApiError(HttpStatus.NOT_FOUND, ex), ex));
     }

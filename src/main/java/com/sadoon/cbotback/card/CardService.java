@@ -4,15 +4,19 @@ import com.sadoon.cbotback.brokerage.model.Balances;
 import com.sadoon.cbotback.brokerage.util.SignatureCreator;
 import com.sadoon.cbotback.card.models.Card;
 import com.sadoon.cbotback.card.models.CardApiRequest;
+import com.sadoon.cbotback.exceptions.ApiError;
 import com.sadoon.cbotback.exceptions.CardNotFoundException;
 import com.sadoon.cbotback.exceptions.PasswordException;
 import com.sadoon.cbotback.security.AESKeyUtil;
 import com.sadoon.cbotback.security.KeyStoreUtil;
 import com.sadoon.cbotback.user.models.User;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.security.Principal;
 import java.util.Optional;
 
@@ -38,7 +42,8 @@ public class CardService {
                 .orElseThrow(() -> new CardNotFoundException(name));
     }
 
-    public Card encryptCard(Card card, Principal principal) throws Exception {
+    public Card encryptCard(Card card, Principal principal) throws GeneralSecurityException, IOException {
+
         SecretKey key = aesKeyUtil.generateKey(256);
         SecretKey iv = new SecretKeySpec(aesKeyUtil.getIv(), "AES");
         String signature = signatureCreator.signature(card.getCardName(), card.getPassword(), principal.getName());
@@ -57,19 +62,26 @@ public class CardService {
     }
 
 
-    public void verifyPassword(Card card, String password, Principal principal) throws Exception {
+    public void verifyPassword(Card card, String password, Principal principal)
+            throws GeneralSecurityException, PasswordException {
+
         String signature = signatureCreator.signature(card.getCardName(), password, principal.getName());
         keyStoreUtil.getKey(signature);
+        String decrypted;
+        try {
+            SecretKey key = (SecretKey) keyStoreUtil.getKey(String.format("%skey", signature));
+            SecretKey iv = (SecretKey) keyStoreUtil.getKey(String.format("%siv", signature));
 
-        SecretKey key = (SecretKey) keyStoreUtil.getKey(String.format("%skey", signature));
-        SecretKey iv = (SecretKey) keyStoreUtil.getKey(String.format("%siv", signature));
 
-        String decrypted = aesKeyUtil.decrypt(
-                "AES/GCM/NoPadding",
-                card.getPassword(),
-                key,
-                iv.getEncoded()
-        );
+            decrypted = aesKeyUtil.decrypt(
+                    "AES/GCM/NoPadding",
+                    card.getPassword(),
+                    key,
+                    iv.getEncoded()
+            );
+        } catch (Exception e) {
+            throw new PasswordException("card password", new ApiError(HttpStatus.BAD_REQUEST, e.getMessage(), e));
+        }
 
         if (!decrypted.equals(password)) {
             throw new PasswordException("card password");

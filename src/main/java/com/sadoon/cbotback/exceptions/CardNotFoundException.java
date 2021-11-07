@@ -1,11 +1,11 @@
 package com.sadoon.cbotback.exceptions;
 
-public class CardNotFoundException extends CustomException {
+public class CardNotFoundException extends EntityNotFoundException {
     public CardNotFoundException(String cardName) {
-        super(String.format("Card with name '%s' could not be found.", cardName));
+        super(String.format("Card with name '%s'", cardName));
     }
 
     public CardNotFoundException(String cardName, ApiError subError) {
-        super(String.format("Card with name '%s' could not be found.", cardName), subError);
+        super(String.format("Card with name '%s'", cardName), subError);
     }
 }

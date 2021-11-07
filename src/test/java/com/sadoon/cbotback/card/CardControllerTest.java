@@ -9,10 +9,7 @@ import com.sadoon.cbotback.card.models.Card;
 import com.sadoon.cbotback.card.models.CardApiRequest;
 import com.sadoon.cbotback.card.models.CardPasswordVerificationRequest;
 import com.sadoon.cbotback.common.Mocks;
-import com.sadoon.cbotback.exceptions.CardNotFoundException;
-import com.sadoon.cbotback.exceptions.GlobalExceptionHandler;
-import com.sadoon.cbotback.exceptions.PasswordException;
-import com.sadoon.cbotback.exceptions.UserNotFoundException;
+import com.sadoon.cbotback.exceptions.*;
 import com.sadoon.cbotback.user.UserService;
 import com.sadoon.cbotback.user.models.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -151,6 +148,18 @@ class CardControllerTest {
     }
 
     @Test
+    void shouldThrowNotFoundOnSaveCardRequestWithUnknownBrokerage() throws Exception {
+        BrokerageNotFoundException exception = new BrokerageNotFoundException(mockCardName);
+        given(brokerageService.createBrokerageDto(any(), any())).willThrow(exception);
+        given(userService.getUser(auth.getName())).willReturn(mockUser);
+        given(cardService.newCard(any())).willReturn(Mocks.card());
+
+        saveCard()
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message", is(exception.getMessage())));
+    }
+
+    @Test
     void shouldReturnOkStatusWhenPasswordMatchesStoredPassword() throws Exception {
 
         cardPasswordPost()
@@ -167,6 +176,7 @@ class CardControllerTest {
     @Test
     void shouldReturnCardOnSuccessfulLoadSingleCardRequest() throws Exception {
         given(cardService.getCard(any(), any())).willReturn(cards.get(mockCardName));
+
         loadSingleCard()
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.cardName", is(mockCardName)));

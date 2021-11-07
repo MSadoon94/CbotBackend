@@ -6,7 +6,10 @@ import com.sadoon.cbotback.brokerage.model.Brokerage;
 import com.sadoon.cbotback.brokerage.model.BrokerageApiRequest;
 import com.sadoon.cbotback.brokerage.util.BrokerageDto;
 import com.sadoon.cbotback.brokerage.util.NonceCreator;
+import com.sadoon.cbotback.exceptions.BrokerageNotFoundException;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class BrokerageService {
@@ -29,8 +32,12 @@ public class BrokerageService {
         return publicDto;
     }
 
-    public BrokerageDto createBrokerageDto(BrokerageApiRequest request, String type) {
-        Brokerage brokerage = repo.getBrokerageByName(request.getBrokerage());
+    public BrokerageDto createBrokerageDto(BrokerageApiRequest request, String type)
+            throws BrokerageNotFoundException {
+
+        Brokerage brokerage =
+                Optional.ofNullable(repo.getBrokerageByName(request.getBrokerage()))
+                        .orElseThrow(() -> new BrokerageNotFoundException(request.getBrokerage()));
 
         BrokerageDto brokerageDTO = new BrokerageDto(request, type);
         brokerageDTO.setBrokerage(brokerage);
