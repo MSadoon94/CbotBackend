@@ -2,13 +2,17 @@ package com.sadoon.cbotback.refresh;
 
 import com.sadoon.cbotback.AppProperties;
 import com.sadoon.cbotback.exceptions.RefreshException;
-import com.sadoon.cbotback.refresh.models.RefreshRequest;
+import com.sadoon.cbotback.exceptions.RefreshExpiredException;
+import com.sadoon.cbotback.exceptions.RefreshTokenNotFoundException;
 import com.sadoon.cbotback.refresh.models.RefreshResponse;
 import com.sadoon.cbotback.refresh.models.RefreshToken;
 import com.sadoon.cbotback.security.JwtService;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 
+import java.security.Principal;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -25,11 +29,11 @@ public class RefreshService {
         this.jwtService = jwtService;
     }
 
-    public RefreshResponse refresh(RefreshRequest request, String refreshToken) {
+    public RefreshResponse refresh(Principal principal, String refreshToken) throws RefreshTokenNotFoundException, RefreshExpiredException {
 
         return getResponse(
-                request.getUsername(),
-                getRefreshToken(refreshToken));
+                principal.getName(),
+                verifyExpiration(getRefreshToken(refreshToken)));
     }
 
     public RefreshToken createRefreshToken(String userId) {
@@ -45,19 +49,18 @@ public class RefreshService {
         repo.delete(refreshToken);
     }
 
-    public RefreshToken verifyExpiration(RefreshToken token) throws RefreshException {
+    public RefreshToken verifyExpiration(RefreshToken token) throws RefreshExpiredException {
 
         if (isExpired(token)) {
             repo.delete(token);
-            throw new RefreshException(token.getToken(),
-                    "Refresh token was expired. Please make a new sign in request");
+            throw new RefreshExpiredException();
         }
         return token;
     }
 
-    public RefreshToken getRefreshToken(String token) throws RefreshException {
+    public RefreshToken getRefreshToken(String token) throws RefreshTokenNotFoundException {
         return repo.findByToken(token)
-                .orElseThrow(() -> new RefreshException(token, "Refresh token is not in database!"));
+                .orElseThrow(() -> new RefreshTokenNotFoundException(token));
     }
 
     private RefreshResponse getResponse(String username, RefreshToken refreshToken) throws RefreshException {
@@ -76,10 +79,20 @@ public class RefreshService {
         return response;
     }
 
+    public ResponseCookie getResponseCookie(RefreshToken refreshToken, String path){
+       return ResponseCookie
+               .from("refresh_token", refreshToken.getToken())
+               .httpOnly(true)
+               .domain("localhost")
+               .path(String.format("/api%s", path))
+               .maxAge(Duration.between(Instant.now(), refreshToken.getExpiryDate()))
+               .build();
+
+    }
 
     public HttpHeaders getRefreshCookieHeader(RefreshToken refreshToken) {
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Set-Cookie", getRefreshCookieHeaderValue(refreshToken, "/refreshjwt"));
+        headers.add("Set-Cookie", getRefreshCookieHeaderValue(refreshToken, "/refresh-jwt"));
         headers.add("Set-Cookie", getRefreshCookieHeaderValue(refreshToken, "/log-out"));
         return headers;
     }

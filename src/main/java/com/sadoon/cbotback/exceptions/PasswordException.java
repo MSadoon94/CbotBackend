@@ -1,6 +1,6 @@
 package com.sadoon.cbotback.exceptions;
 
-public class PasswordException extends CustomException {
+public class PasswordException extends UnauthorizedUserException {
     public PasswordException(String passwordType) {
         super(String.format("Password for '%s' was incorrect.", passwordType));
     }

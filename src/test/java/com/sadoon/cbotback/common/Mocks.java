@@ -9,12 +9,17 @@ import com.sadoon.cbotback.brokerage.model.Brokerage;
 import com.sadoon.cbotback.brokerage.util.BrokerageDto;
 import com.sadoon.cbotback.card.models.Card;
 import com.sadoon.cbotback.card.models.CardApiRequest;
+import com.sadoon.cbotback.refresh.models.RefreshResponse;
 import com.sadoon.cbotback.user.models.User;
+import org.springframework.http.HttpHeaders;
+import org.springframework.mock.web.MockCookie;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
+import javax.servlet.http.Cookie;
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -98,6 +103,22 @@ public class Mocks {
         assetPairs.setPairNames(Map.of("BTCUSD", new AssetPair()));
         assetPairs.unpackErrors(List.of("").toArray(String[]::new));
         return assetPairs;
+    }
+
+    public static Cookie cookie(String path, int maxAge){
+        MockCookie cookie = new MockCookie("refresh_token", "mockToken");
+        cookie.setHttpOnly(true);
+        cookie.setMaxAge(maxAge);
+        cookie.setDomain("localhost");
+        cookie.setPath(String.format("/api%s", path));
+        return cookie;
+    }
+
+    public static RefreshResponse refreshResponse(String message){
+        RefreshResponse response = new RefreshResponse("mockJwt", new Date());
+        response.setHeaders(HttpHeaders.EMPTY);
+        response.setMessage(message);
+        return response;
     }
 
 }

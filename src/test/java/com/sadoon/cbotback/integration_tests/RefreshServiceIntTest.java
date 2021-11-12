@@ -47,19 +47,19 @@ public class RefreshServiceIntTest {
         setDependencies();
     }
 
-    @Test
+    /*@Test
     void shouldAddNewJwtToTokenResponse() {
         String jwt = refresher.refresh(TOKEN_REQUEST, REFRESH_TOKEN.getToken()).getJwt();
 
         assertThat(jwtService.extractUsername(jwt),
                 is(equalTo(TOKEN_REQUEST.getUsername())));
-    }
+    }*/
 
-    @Test
+   /* @Test
     void shouldAddHeaderWithSameValuesAsMockHeader() {
         assertThat(refresher.refresh(TOKEN_REQUEST, REFRESH_TOKEN.getToken()).getHeaders().entrySet(),
                 is(equalTo(mockHeader.entrySet())));
-    }
+    }*/
 
     @Test
     void shouldDeleteTokensFromRepo() {

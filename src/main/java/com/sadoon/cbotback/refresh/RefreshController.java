@@ -1,14 +1,19 @@
 package com.sadoon.cbotback.refresh;
 
 import com.sadoon.cbotback.exceptions.RefreshException;
-import com.sadoon.cbotback.refresh.models.RefreshRequest;
+import com.sadoon.cbotback.exceptions.RefreshExpiredException;
+import com.sadoon.cbotback.exceptions.RefreshTokenNotFoundException;
 import com.sadoon.cbotback.refresh.models.RefreshResponse;
 import com.sadoon.cbotback.refresh.models.RefreshToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.security.Principal;
 
 @RestController
 public class RefreshController {
@@ -21,33 +26,19 @@ public class RefreshController {
         this.refreshService = refreshService;
     }
 
-    @PostMapping("/refreshjwt")
+    @PostMapping("/refresh-jwt")
     public ResponseEntity<RefreshResponse> refreshJwt(
             @CookieValue(name = "refresh_token") String tokenString,
-            @RequestBody RefreshRequest request) {
+            Principal principal) throws RefreshTokenNotFoundException, RefreshExpiredException {
 
-        ResponseEntity<RefreshResponse> response;
-
-        try {
-
-            if (getToken(tokenString) != null) {
-                response = getTokenResponse(request, tokenString);
-            } else response = ResponseEntity.notFound().build();
-
-        } catch (RefreshException e) {
-
-            logger.error(e.getMessage(), e);
-            RefreshResponse refreshResponse = new RefreshResponse(null, null);
-            refreshResponse.setMessage(e.getMessage());
-            response = ResponseEntity.status(HttpStatus.NOT_FOUND).body(refreshResponse);
-
-        }
-
-        return response;
+        RefreshResponse refreshResponse = refreshService.refresh(principal, tokenString);
+        return ResponseEntity.ok()
+                .headers(refreshResponse.getHeaders())
+                .body(refreshResponse);
     }
 
     @DeleteMapping("/log-out")
-    public ResponseEntity<Void> logout(@CookieValue(name = "refresh_token") String tokenString) {
+    public ResponseEntity<Void> logout(@CookieValue(name = "refresh_token") String tokenString) throws RefreshTokenNotFoundException, RefreshExpiredException {
         ResponseEntity<Void> response;
         try {
             if (getToken(tokenString) != null) {
@@ -62,14 +53,7 @@ public class RefreshController {
         return response;
     }
 
-    private ResponseEntity<RefreshResponse> getTokenResponse(RefreshRequest request, String refreshToken) {
-        RefreshResponse refreshResponse = refreshService.refresh(request, refreshToken);
-        return ResponseEntity.ok()
-                .headers(refreshResponse.getHeaders())
-                .body(refreshResponse);
-    }
-
-    private RefreshToken getToken(String tokenString) throws RefreshException {
+    private RefreshToken getToken(String tokenString) throws RefreshTokenNotFoundException, RefreshExpiredException {
         return refreshService.verifyExpiration(refreshService.getRefreshToken(tokenString));
     }
 
