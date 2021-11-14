@@ -2,6 +2,7 @@ package com.sadoon.cbotback.user;
 
 import com.sadoon.cbotback.common.Mocks;
 import com.sadoon.cbotback.exceptions.UserNotFoundException;
+import com.sadoon.cbotback.refresh.models.RefreshToken;
 import com.sadoon.cbotback.user.models.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,6 +23,8 @@ class UserServiceTest {
 
     private User mockUser = Mocks.user();
 
+    private RefreshToken mockToken = Mocks.refreshToken(10000);
+
     @BeforeEach
     public void setup() {
         repo.deleteAll();
@@ -39,6 +42,16 @@ class UserServiceTest {
 
     @Test
     void shouldThrowUserNotFound() {
-        assertThrows(UserNotFoundException.class, () -> userService.getUser("mockUser4"));
+        assertThrows(UserNotFoundException.class, () -> userService.getUserWithUsername("mockUser4"));
     }
+
+    @Test
+    void shouldReplaceUsers(){
+        mockUser.setRefreshToken(mockToken);
+
+        userService.replace(mockUser);
+
+        assertThat(repo.getUserByUsername(mockUser.getUsername()).getRefreshToken(), samePropertyValuesAs(mockToken));
+    }
+
 }

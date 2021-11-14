@@ -1,6 +1,7 @@
 package com.sadoon.cbotback.user.models;
 
 import com.sadoon.cbotback.card.models.Card;
+import com.sadoon.cbotback.refresh.models.RefreshToken;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.core.GrantedAuthority;
@@ -20,6 +21,8 @@ public class User implements UserDetails {
 
     private final GrantedAuthority authority;
 
+    private RefreshToken refreshToken;
+
     private List<GrantedAuthority> authorities = new ArrayList<>();
 
     private Map<String, Card> cards = new LinkedHashMap<>();
@@ -33,6 +36,14 @@ public class User implements UserDetails {
 
     public String getId() {
         return id;
+    }
+
+    public RefreshToken getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(RefreshToken refreshToken) {
+        this.refreshToken = refreshToken;
     }
 
     @Override

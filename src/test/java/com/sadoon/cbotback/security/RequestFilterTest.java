@@ -1,6 +1,7 @@
 package com.sadoon.cbotback.security;
 
 import com.sadoon.cbotback.AppProperties;
+import com.sadoon.cbotback.common.Mocks;
 import com.sadoon.cbotback.user.MongoUserDetailsService;
 import com.sadoon.cbotback.user.models.User;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -117,7 +118,8 @@ class RequestFilterTest {
     private void setRefreshTokenRequest(String jwt) {
         request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + jwt);
         request.addHeader("isRefreshToken", true);
-        request.setRequestURI(MOCK_URI + "/refreshjwt");
+        request.setRequestURI(MOCK_URI + "/refresh-jwt");
+        request.setCookies(Mocks.refreshCookie("/refresh-jwt", 10000));
     }
 
     private void setMocks() {

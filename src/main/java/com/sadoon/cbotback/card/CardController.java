@@ -37,7 +37,7 @@ public class CardController {
 
     @GetMapping("/load-cards")
     public ResponseEntity<Map<String, Card>> loadCards(Principal principal) throws UserNotFoundException {
-        Map<String, Card> cards = userService.getUser(principal.getName()).getCards();
+        Map<String, Card> cards = userService.getUserWithUsername(principal.getName()).getCards();
         return ResponseEntity.ok().body(cards);
     }
 
@@ -45,7 +45,7 @@ public class CardController {
     public ResponseEntity<String> saveCard(@RequestBody CardApiRequest request, Principal principal)
             throws EntityNotFoundException, CardPasswordEncryptionException, KrakenRequestException {
 
-        userService.addCard(userService.getUser(principal.getName()), createCard(request, principal));
+        userService.addCard(userService.getUserWithUsername(principal.getName()), createCard(request, principal));
 
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
@@ -55,7 +55,7 @@ public class CardController {
             @RequestBody CardPasswordVerificationRequest request, Principal principal)
             throws EntityNotFoundException, PasswordException, GeneralSecurityException {
 
-        Card card = cardService.getCard(userService.getUser(principal.getName()), request.getCardName());
+        Card card = cardService.getCard(userService.getUserWithUsername(principal.getName()), request.getCardName());
         cardService.verifyPassword(card, request.getPassword(), principal);
         return ResponseEntity.ok().build();
     }
@@ -64,7 +64,7 @@ public class CardController {
     public ResponseEntity<Card> loadSingleCard(@PathVariable("cardName") String cardName, Principal principal) throws EntityNotFoundException {
 
         return ResponseEntity.ok(
-                cardService.getCard(userService.getUser(principal.getName()), cardName)
+                cardService.getCard(userService.getUserWithUsername(principal.getName()), cardName)
         );
     }
 

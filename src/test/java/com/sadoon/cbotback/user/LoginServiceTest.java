@@ -1,5 +1,6 @@
 package com.sadoon.cbotback.user;
 
+import com.sadoon.cbotback.exceptions.UserNotFoundException;
 import com.sadoon.cbotback.refresh.RefreshService;
 import com.sadoon.cbotback.refresh.models.RefreshToken;
 import com.sadoon.cbotback.security.JwtService;
@@ -20,13 +21,13 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
-public class LoginServiceTest {
+class LoginServiceTest {
 
     private static final LoginRequest LOGIN_REQUEST =
             new LoginRequest("user", "password", "userId");
 
     private static final RefreshToken REFRESH_TOKEN =
-            new RefreshToken("userId", UUID.randomUUID().toString(), Instant.ofEpochSecond(1));
+            new RefreshToken(UUID.randomUUID().toString(), Instant.ofEpochSecond(1));
 
     private final HttpHeaders mockHeader = new HttpHeaders();
 
@@ -48,7 +49,7 @@ public class LoginServiceTest {
     }
 
     @Test
-    void shouldAddRefreshTokenToLoginResponseHeader() {
+    void shouldAddRefreshTokenToLoginResponseHeader() throws UserNotFoundException {
         setMockHeader();
         when(refreshService.createRefreshToken(LOGIN_REQUEST.getUserId())).thenReturn(REFRESH_TOKEN);
         when(refreshService.getRefreshCookieHeader(REFRESH_TOKEN)).thenReturn(mockHeader);

@@ -1,5 +1,6 @@
 package com.sadoon.cbotback.user;
 
+import com.sadoon.cbotback.exceptions.UserNotFoundException;
 import com.sadoon.cbotback.refresh.RefreshService;
 import com.sadoon.cbotback.security.JwtService;
 import com.sadoon.cbotback.user.models.LoginRequest;
@@ -49,7 +50,8 @@ public class LoginService {
         return response;
     }
 
-    public HttpHeaders getHeader(String userId) {
+    public HttpHeaders getHeader(String userId) throws UserNotFoundException {
+
         return refreshService.getRefreshCookieHeader(refreshService.createRefreshToken(userId));
     }
 

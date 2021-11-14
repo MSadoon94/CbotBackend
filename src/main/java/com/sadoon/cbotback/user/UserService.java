@@ -16,8 +16,15 @@ public class UserService {
         this.repo = repo;
     }
 
-    public User getUser(String username) throws UserNotFoundException {
-        User user = repo.getUserByUsername(username);
+    public User getUserWithUsername(String username) throws UserNotFoundException {
+        return checkForNullUser(repo.getUserByUsername(username), username);
+    }
+
+    public User getUserWithId(String id) throws UserNotFoundException {
+        return checkForNullUser(repo.getUserById(id), id);
+    }
+
+    private User checkForNullUser(User user, String username) throws UserNotFoundException {
         if (user == null) {
             throw new UserNotFoundException(username);
         } else {
@@ -33,11 +40,16 @@ public class UserService {
         return repo.save(user);
     }
 
+    public User replace(User user){
+        repo.deleteById(user.getId());
+        return repo.save(user);
+    }
+
     public void addCard(User user, Card card) {
         Map<String, Card> cards = user.getCards();
         cards.put(card.getCardName(), card);
         user.setCards(cards);
-        repo.delete(user);
+        repo.deleteById(user.getId());
         repo.save(user);
     }
 }

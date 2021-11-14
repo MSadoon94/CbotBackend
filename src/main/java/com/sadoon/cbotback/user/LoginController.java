@@ -1,5 +1,6 @@
 package com.sadoon.cbotback.user;
 
+import com.sadoon.cbotback.exceptions.UserNotFoundException;
 import com.sadoon.cbotback.user.models.LoginRequest;
 import com.sadoon.cbotback.user.models.LoginResponse;
 import org.springframework.http.HttpStatus;
@@ -22,7 +23,7 @@ public class LoginController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login
-            (@RequestBody LoginRequest request) {
+            (@RequestBody LoginRequest request) throws UserNotFoundException {
         LoginResponse response = loginService.handleLogin(request);
 
         if (response == null) {

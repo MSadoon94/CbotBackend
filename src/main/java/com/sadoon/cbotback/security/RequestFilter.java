@@ -86,7 +86,7 @@ public class RequestFilter extends OncePerRequestFilter {
         String requestUrl = request.getRequestURL().toString();
 
         if (refreshToken != null && refreshToken.equals("true")
-                && requestUrl.equals(url + "/refreshjwt")) {
+                && requestUrl.equals(url + "/refresh-jwt")) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(exception.getClaims().getSubject());
             setSecurityContext(userDetails, request);
         } else throw exception;

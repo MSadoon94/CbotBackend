@@ -10,8 +10,9 @@ import com.sadoon.cbotback.brokerage.util.BrokerageDto;
 import com.sadoon.cbotback.card.models.Card;
 import com.sadoon.cbotback.card.models.CardApiRequest;
 import com.sadoon.cbotback.refresh.models.RefreshResponse;
+import com.sadoon.cbotback.refresh.models.RefreshToken;
 import com.sadoon.cbotback.user.models.User;
-import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.mock.web.MockCookie;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -19,10 +20,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import javax.servlet.http.Cookie;
 import java.math.BigDecimal;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.*;
 
 public class Mocks {
 
@@ -105,7 +105,7 @@ public class Mocks {
         return assetPairs;
     }
 
-    public static Cookie cookie(String path, int maxAge){
+    public static Cookie refreshCookie(String path, int maxAge){
         MockCookie cookie = new MockCookie("refresh_token", "mockToken");
         cookie.setHttpOnly(true);
         cookie.setMaxAge(maxAge);
@@ -114,11 +114,25 @@ public class Mocks {
         return cookie;
     }
 
-    public static RefreshResponse refreshResponse(String message){
-        RefreshResponse response = new RefreshResponse("mockJwt", new Date());
-        response.setHeaders(HttpHeaders.EMPTY);
-        response.setMessage(message);
+    public static RefreshResponse refreshResponse(Date date){
+        RefreshResponse response = new RefreshResponse("mockJwt", date);
         return response;
+    }
+
+    public static RefreshToken refreshToken(int expirationMs){
+        return new RefreshToken(
+                UUID.randomUUID().toString(),
+                Instant.now().plusMillis(expirationMs));
+    }
+
+    public static ResponseCookie responseCookie(RefreshToken refreshToken, String path){
+        return ResponseCookie
+                .from("refresh_token", refreshToken.getToken())
+                .httpOnly(true)
+                .domain("localhost")
+                .path(String.format("/api%s", path))
+                .maxAge(Duration.between(Instant.now(), refreshToken.getExpiryDate()))
+                .build();
     }
 
 }

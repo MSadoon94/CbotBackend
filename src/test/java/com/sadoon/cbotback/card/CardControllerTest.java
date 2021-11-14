@@ -87,7 +87,7 @@ class CardControllerTest {
 
     @Test
     void shouldReturnCardNamesConnectedToAccountOnLoadCardsSuccess() throws Exception {
-        given(userService.getUser(auth.getName()))
+        given(userService.getUserWithUsername(auth.getName()))
                 .willReturn(mockUser);
 
         loadCards()
@@ -98,7 +98,7 @@ class CardControllerTest {
 
     @Test
     void shouldReturnCreatedStatusOnSaveCardSuccess() throws Exception {
-        given(userService.getUser(auth.getName())).willReturn(mockUser);
+        given(userService.getUserWithUsername(auth.getName())).willReturn(mockUser);
         given(webClientService.onResponse(any(), any())).willReturn(balances);
         given(cardService.newCard(any())).willReturn(Mocks.card());
 
@@ -113,7 +113,7 @@ class CardControllerTest {
     @Test
     void shouldReturnNotFoundWhenLoadCardsFailToFindUser() throws Exception {
         UserNotFoundException exception = new UserNotFoundException(auth.getName());
-        given(userService.getUser(auth.getName()))
+        given(userService.getUserWithUsername(auth.getName()))
                 .willThrow(exception);
 
         loadCards()
@@ -125,7 +125,7 @@ class CardControllerTest {
     @Test
     void shouldReturnApiErrorWhenSaveCardFailsToFindUser() throws Exception {
         UserNotFoundException exception = new UserNotFoundException(auth.getName());
-        given(userService.getUser(auth.getName()))
+        given(userService.getUserWithUsername(auth.getName()))
                 .willThrow(exception);
 
         saveCard()
@@ -136,7 +136,7 @@ class CardControllerTest {
     @Test
     void shouldReturnApiErrorWhenSaveCardFailsDueToEncryptionError() throws Exception {
         InvalidKeyException exception = new InvalidKeyException("InvalidKeyException");
-        given(userService.getUser(auth.getName())).willReturn(mockUser);
+        given(userService.getUserWithUsername(auth.getName())).willReturn(mockUser);
         given(cardService.newCard(any())).willReturn(Mocks.card());
         given(webClientService.onResponse(any(), any())).willReturn(balances);
         given(cardService.encryptCard(any(), any())).willThrow(exception);
@@ -151,7 +151,7 @@ class CardControllerTest {
     void shouldThrowNotFoundOnSaveCardRequestWithUnknownBrokerage() throws Exception {
         BrokerageNotFoundException exception = new BrokerageNotFoundException(mockCardName);
         given(brokerageService.createBrokerageDto(any(), any())).willThrow(exception);
-        given(userService.getUser(auth.getName())).willReturn(mockUser);
+        given(userService.getUserWithUsername(auth.getName())).willReturn(mockUser);
         given(cardService.newCard(any())).willReturn(Mocks.card());
 
         saveCard()
@@ -167,10 +167,10 @@ class CardControllerTest {
     }
 
     @Test
-    void shouldReturnForbiddenWhenPasswordDoesNotMatchStoredPassword() throws Exception {
+    void shouldReturnUnauthorizedWhenPasswordDoesNotMatchStoredPassword() throws Exception {
         doThrow(new PasswordException("card password")).when(cardService).verifyPassword(any(), any(), any());
         cardPasswordPost()
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
