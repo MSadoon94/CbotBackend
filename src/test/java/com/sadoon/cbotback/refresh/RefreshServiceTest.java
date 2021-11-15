@@ -59,9 +59,9 @@ class RefreshServiceTest {
 
     @Test
     void shouldCreateRefreshToken() throws UserNotFoundException {
-        given(userService.getUserWithId(any())).willReturn(mockUser);
+        given(userService.getUserWithUsername(any())).willReturn(mockUser);
 
-        assertThat(refreshService.createRefreshToken(mockUser.getId()), is(equalTo(mockUser.getRefreshToken())));
+        assertThat(refreshService.createRefreshToken(auth), is(equalTo(mockUser.getRefreshToken())));
     }
 
     @Test

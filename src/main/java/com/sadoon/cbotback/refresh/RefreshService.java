@@ -9,7 +9,6 @@ import com.sadoon.cbotback.refresh.models.RefreshToken;
 import com.sadoon.cbotback.security.JwtService;
 import com.sadoon.cbotback.user.UserService;
 import com.sadoon.cbotback.user.models.User;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 
@@ -37,8 +36,8 @@ public class RefreshService {
                 getRefreshToken(principal, refreshToken));
     }
 
-    public RefreshToken createRefreshToken(String userId) throws UserNotFoundException {
-        User user = userService.getUserWithId(userId);
+    public RefreshToken createRefreshToken(Principal principal) throws UserNotFoundException {
+        User user = userService.getUserWithUsername(principal.getName());
         RefreshToken token = new RefreshToken(
                 UUID.randomUUID().toString(),
                 Instant.now().plusMillis(refreshTokenDurationMs)
@@ -94,22 +93,8 @@ public class RefreshService {
         }
     }
 
-    public HttpHeaders getRefreshCookieHeader(RefreshToken refreshToken) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Set-Cookie", getRefreshCookieHeaderValue(refreshToken, "/refresh-jwt"));
-        headers.add("Set-Cookie", getRefreshCookieHeaderValue(refreshToken, "/log-out"));
-        return headers;
-    }
-
     private boolean isExpired(RefreshToken token) {
         return token.getExpiryDate().compareTo(Instant.now()) <= 0;
     }
-
-    private String getRefreshCookieHeaderValue(RefreshToken refreshToken, String path) {
-        return "refresh_token=" + refreshToken.getToken() + "; " +
-                "Max-Age=" + refreshToken.getExpiryDate() + "; " +
-                "Domain=localhost; Path=/api" + path + "; HttpOnly";
-    }
-
 
 }

@@ -59,7 +59,9 @@ public class RefreshControllerTest {
 
         refreshJwt()
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.jwt", is(mockResponse.getJwt())));
+                .andExpect(jsonPath("$.jwt", is(mockResponse.getJwt())))
+                .andExpect(jsonPath("$.jwtExpiration", is(mockResponse.getJwtExpiration().getTime())))
+                .andExpect(jsonPath("$.tokenType", is(mockResponse.getTokenType())));
     }
 
     @Test

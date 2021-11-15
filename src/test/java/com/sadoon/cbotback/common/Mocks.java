@@ -11,6 +11,8 @@ import com.sadoon.cbotback.card.models.Card;
 import com.sadoon.cbotback.card.models.CardApiRequest;
 import com.sadoon.cbotback.refresh.models.RefreshResponse;
 import com.sadoon.cbotback.refresh.models.RefreshToken;
+import com.sadoon.cbotback.user.models.LoginRequest;
+import com.sadoon.cbotback.user.models.LoginResponse;
 import com.sadoon.cbotback.user.models.User;
 import org.springframework.http.ResponseCookie;
 import org.springframework.mock.web.MockCookie;
@@ -133,6 +135,14 @@ public class Mocks {
                 .path(String.format("/api%s", path))
                 .maxAge(Duration.between(Instant.now(), refreshToken.getExpiryDate()))
                 .build();
+    }
+
+    public static LoginResponse loginResponse(Date date){
+        return new LoginResponse("username", "mockJwt", date);
+    }
+
+    public static LoginRequest loginRequest(){
+        return new LoginRequest("mockUser", "password", "mockId");
     }
 
 }

@@ -58,8 +58,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return buildResponseEntity(addSubErrors(buildApiError(HttpStatus.BAD_REQUEST, ex), ex));
     }
 
-    @ExceptionHandler(UnauthorizedUserException.class)
-    protected ResponseEntity<Object> handleUnauthorizedUser(UnauthorizedUserException ex) {
+    @ExceptionHandler({UnauthorizedUserException.class, CredentialsException.class})
+    protected ResponseEntity<Object> handleUnauthorizedUser(CustomException ex) {
         return buildResponseEntity(addSubErrors(buildApiError(HttpStatus.UNAUTHORIZED, ex), ex));
     }
 

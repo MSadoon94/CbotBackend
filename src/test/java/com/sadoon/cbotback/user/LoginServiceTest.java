@@ -1,47 +1,54 @@
 package com.sadoon.cbotback.user;
 
+import com.sadoon.cbotback.common.Mocks;
+import com.sadoon.cbotback.exceptions.LoginCredentialsException;
+import com.sadoon.cbotback.exceptions.RefreshTokenNotFoundException;
 import com.sadoon.cbotback.exceptions.UserNotFoundException;
 import com.sadoon.cbotback.refresh.RefreshService;
 import com.sadoon.cbotback.refresh.models.RefreshToken;
 import com.sadoon.cbotback.security.JwtService;
 import com.sadoon.cbotback.user.models.LoginRequest;
+import com.sadoon.cbotback.user.models.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
-
-import java.time.Instant;
-import java.util.UUID;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 class LoginServiceTest {
 
-    private static final LoginRequest LOGIN_REQUEST =
-            new LoginRequest("user", "password", "userId");
-
-    private static final RefreshToken REFRESH_TOKEN =
-            new RefreshToken(UUID.randomUUID().toString(), Instant.ofEpochSecond(1));
-
-    private final HttpHeaders mockHeader = new HttpHeaders();
-
-    @MockBean
+    @Mock
     private AuthenticationManager authenticator;
 
-    @MockBean
+    @Mock
     private RefreshService refreshService;
 
-    @MockBean
+    @Mock
     private JwtService jwtService;
 
     private LoginService loginService;
 
+    private LoginRequest loginRequest = Mocks.loginRequest();
+
+    private User mockUser = Mocks.user();
+
+    private Authentication auth = Mocks.auth(mockUser);
+
+    private RefreshToken mockToken;
+
+    private HttpHeaders mockHeaders = new HttpHeaders();
 
     @BeforeEach
     public void setUp() {
@@ -49,35 +56,57 @@ class LoginServiceTest {
     }
 
     @Test
-    void shouldAddRefreshTokenToLoginResponseHeader() throws UserNotFoundException {
-        setMockHeader();
-        when(refreshService.createRefreshToken(LOGIN_REQUEST.getUserId())).thenReturn(REFRESH_TOKEN);
-        when(refreshService.getRefreshCookieHeader(REFRESH_TOKEN)).thenReturn(mockHeader);
+    void shouldAddRefreshTokenToLoginResponseHeader() throws UserNotFoundException, RefreshTokenNotFoundException {
+        setTokenToUser(10000);
+        ResponseCookie refreshJwtCookie = Mocks.responseCookie(mockToken, "/refresh-jwt");
+        ResponseCookie logoutCookie = Mocks.responseCookie(mockToken, "/log-out");
+        setMockHeaders(refreshJwtCookie, logoutCookie);
 
-        HttpHeaders header = loginService.getHeader(LOGIN_REQUEST.getUserId());
+        when(refreshService.createRefreshToken(any())).thenReturn(mockToken);
+        when(refreshService.getResponseCookie(auth, mockToken.getToken(), "/refresh-jwt"))
+                .thenReturn(refreshJwtCookie);
+        when(refreshService.getResponseCookie(auth, mockToken.getToken(), "/log-out"))
+                .thenReturn(logoutCookie);
 
-        assertThat(header.get("Set-Cookie").get(0),
-                containsString("refresh_token=" + REFRESH_TOKEN.getToken()));
+        HttpHeaders headers = loginService.getHeaders(auth);
+
+        assertThat(headers, is(mockHeaders));
     }
 
     @Test
     void shouldAddJwtToLoginResponse() {
-        when(jwtService.generateToken(LOGIN_REQUEST.getUsername())).thenReturn("jwt");
+        when(jwtService.generateToken(loginRequest.getUsername())).thenReturn("jwt");
 
-        assertThat(loginService.handleLogin(LOGIN_REQUEST).getJwt(), is("jwt"));
+        assertThat(loginService.handleLogin(loginRequest).getJwt(), is("jwt"));
     }
 
     @Test
     void shouldAddUsernameToLoginResponse() {
-        assertThat(loginService.handleLogin(LOGIN_REQUEST).getUsername(), is(LOGIN_REQUEST.getUsername()));
+        assertThat(loginService.handleLogin(loginRequest).getUsername(), is(loginRequest.getUsername()));
     }
 
-    private void setMockHeader() {
-        mockHeader.add("Set-Cookie",
-                "refresh_token=" + REFRESH_TOKEN.getToken() + "; " +
-                        "Max-Age=" + REFRESH_TOKEN.getExpiryDate() + "; " +
-                        "Domain=localhost; Path=/home; HttpOnly"
-        );
+    @Test
+    void shouldReturnAuthenticatedUserAsPrincipal() throws LoginCredentialsException {
+        when(authenticator.authenticate(any())).thenReturn(auth);
+        assertThat(loginService.getPrincipal(loginRequest).getName(), is(loginRequest.getUsername()));
+    }
+
+    @Test
+    void shouldThrowLoginCredentialsExceptionOnAuthenticateFail(){
+        when(authenticator.authenticate(any())).thenThrow(new BadCredentialsException("BadCredentials"));
+
+        assertThrows(LoginCredentialsException.class, () -> loginService.getPrincipal(loginRequest));
+    }
+
+    private void setTokenToUser(int tokenExpiration){
+        mockToken = Mocks.refreshToken( tokenExpiration );
+        mockUser.setRefreshToken(mockToken);
+    }
+
+    private void setMockHeaders(ResponseCookie... cookies){
+        for(ResponseCookie cookie : cookies){
+            mockHeaders.add("Set-Cookie", cookie.toString());
+        }
     }
 
 }

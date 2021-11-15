@@ -1,9 +1,6 @@
-package com.sadoon.cbotback.integration_tests;
+package com.sadoon.cbotback.asset;
 
 import com.sadoon.cbotback.api.PublicRequestDto;
-import com.sadoon.cbotback.asset.AssetController;
-import com.sadoon.cbotback.asset.AssetPairRequest;
-import com.sadoon.cbotback.asset.AssetPairs;
 import com.sadoon.cbotback.brokerage.BrokerageService;
 import com.sadoon.cbotback.brokerage.WebClientService;
 import com.sadoon.cbotback.brokerage.util.BrokerageApiModule;
