@@ -9,11 +9,9 @@ import com.sadoon.cbotback.refresh.models.RefreshToken;
 import com.sadoon.cbotback.security.JwtService;
 import com.sadoon.cbotback.user.UserService;
 import com.sadoon.cbotback.user.models.User;
-import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -53,19 +51,6 @@ public class RefreshService {
         userService.replace(user);
     }
 
-    public ResponseCookie getResponseCookie(Principal principal, String token, String path) throws UserNotFoundException, RefreshTokenNotFoundException {
-        RefreshToken refreshToken = getRefreshToken(principal, token);
-
-        return ResponseCookie
-                .from("refresh_token", refreshToken.getToken())
-                .httpOnly(true)
-                .domain("localhost")
-                .path(String.format("/api%s", path))
-                .maxAge(Duration.between(Instant.now(), refreshToken.getExpiryDate()))
-                .build();
-
-    }
-
     private RefreshResponse getResponse(Principal principal, RefreshToken refreshToken) throws UserNotFoundException, RefreshExpiredException {
         String jwt = jwtService.generateToken(principal.getName());
 
@@ -84,7 +69,7 @@ public class RefreshService {
         return token;
     }
 
-    private RefreshToken getRefreshToken(Principal principal, String token) throws RefreshTokenNotFoundException, UserNotFoundException {
+    public RefreshToken getRefreshToken(Principal principal, String token) throws RefreshTokenNotFoundException, UserNotFoundException {
         RefreshToken userToken = userService.getUserWithUsername(principal.getName()).getRefreshToken();
         if(!token.equals(userToken.getToken())){
             throw new RefreshTokenNotFoundException(token);

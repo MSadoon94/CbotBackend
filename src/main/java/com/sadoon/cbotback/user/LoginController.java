@@ -1,8 +1,8 @@
 package com.sadoon.cbotback.user;
 
+import com.sadoon.cbotback.api.CookieService;
 import com.sadoon.cbotback.exceptions.LoginCredentialsException;
 import com.sadoon.cbotback.exceptions.RefreshTokenNotFoundException;
-import com.sadoon.cbotback.exceptions.UnauthorizedUserException;
 import com.sadoon.cbotback.exceptions.UserNotFoundException;
 import com.sadoon.cbotback.user.models.LoginRequest;
 import com.sadoon.cbotback.user.models.LoginResponse;
@@ -18,15 +18,17 @@ import java.util.Optional;
 public class LoginController {
 
     private LoginService loginService;
+    private CookieService cookieService;
 
-    public LoginController(LoginService loginService) {
+    public LoginController(LoginService loginService, CookieService cookieService) {
         this.loginService = loginService;
+        this.cookieService = cookieService;
     }
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login
             (@RequestBody LoginRequest request) throws UserNotFoundException,
-            LoginCredentialsException, UnauthorizedUserException, RefreshTokenNotFoundException {
+            LoginCredentialsException, RefreshTokenNotFoundException {
 
         Principal principal = loginService.getPrincipal(request);
 
@@ -36,7 +38,7 @@ public class LoginController {
 
         response.setIsLoggedIn(true);
         return ResponseEntity.ok()
-                .headers(loginService.getHeaders(principal))
+                .headers(cookieService.getRefreshHeaders(principal))
                 .body(response);
     }
 }

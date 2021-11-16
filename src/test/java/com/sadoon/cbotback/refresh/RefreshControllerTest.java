@@ -1,5 +1,6 @@
 package com.sadoon.cbotback.refresh;
 
+import com.sadoon.cbotback.api.CookieService;
 import com.sadoon.cbotback.common.Mocks;
 import com.sadoon.cbotback.exceptions.GlobalExceptionHandler;
 import com.sadoon.cbotback.exceptions.RefreshExpiredException;
@@ -28,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(MockitoExtension.class)
-public class RefreshControllerTest {
+class RefreshControllerTest {
 
     private MockMvc mvc;
 
@@ -40,6 +41,9 @@ public class RefreshControllerTest {
 
     @Mock
     private RefreshService refreshService;
+
+    @Mock
+    private CookieService cookieService;
 
     @InjectMocks
     private RefreshController refreshController;
@@ -54,8 +58,8 @@ public class RefreshControllerTest {
     @Test
     void shouldReturnRefreshResponseOnRefreshJwtSuccess() throws Exception {
         given(refreshService.refresh(any(), any())).willReturn(mockResponse);
-        given(refreshService.getResponseCookie(any(), any(), any()))
-                .willReturn(Mocks.responseCookie(Mocks.refreshToken(10000), "/refresh-jwt"));
+        given(cookieService.getRefreshHeaders(any(), any()))
+                .willReturn(Mocks.refreshHeaders(Mocks.refreshToken(10000)));
 
         refreshJwt()
                 .andExpect(status().isOk())

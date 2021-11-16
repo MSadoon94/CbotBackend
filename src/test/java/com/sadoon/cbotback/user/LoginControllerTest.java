@@ -1,6 +1,7 @@
 package com.sadoon.cbotback.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sadoon.cbotback.api.CookieService;
 import com.sadoon.cbotback.common.Mocks;
 import com.sadoon.cbotback.exceptions.GlobalExceptionHandler;
 import com.sadoon.cbotback.exceptions.LoginCredentialsException;
@@ -39,6 +40,9 @@ class LoginControllerTest {
     @Mock
     private LoginService loginService;
 
+    @Mock
+    private CookieService cookieService;
+
     @InjectMocks
     private LoginController loginController;
 
@@ -54,6 +58,8 @@ class LoginControllerTest {
     @Test
     void shouldReturnLoginResponseOnSuccess() throws Exception {
         given(loginService.handleLogin(any())).willReturn(loginResponse);
+        given(cookieService.getRefreshHeaders(any()))
+                .willReturn(Mocks.refreshHeaders(Mocks.refreshToken(1000)));
 
         login().
                 andExpect(status().isOk())

@@ -2,14 +2,9 @@ package com.sadoon.cbotback.user;
 
 import com.sadoon.cbotback.exceptions.ApiError;
 import com.sadoon.cbotback.exceptions.LoginCredentialsException;
-import com.sadoon.cbotback.exceptions.RefreshTokenNotFoundException;
-import com.sadoon.cbotback.exceptions.UserNotFoundException;
-import com.sadoon.cbotback.refresh.RefreshService;
-import com.sadoon.cbotback.refresh.models.RefreshToken;
 import com.sadoon.cbotback.security.JwtService;
 import com.sadoon.cbotback.user.models.LoginRequest;
 import com.sadoon.cbotback.user.models.LoginResponse;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -22,12 +17,10 @@ import java.security.Principal;
 public class LoginService {
 
     private AuthenticationManager authenticator;
-    private RefreshService refreshService;
     private JwtService jwtService;
 
-    public LoginService(AuthenticationManager authenticator, RefreshService refreshService, JwtService jwtService) {
+    public LoginService(AuthenticationManager authenticator, JwtService jwtService) {
         this.authenticator = authenticator;
-        this.refreshService = refreshService;
         this.jwtService = jwtService;
     }
 
@@ -56,16 +49,6 @@ public class LoginService {
                     jwtService.extractExpiration(jwt));
 
         return response;
-    }
-
-    public HttpHeaders getHeaders(Principal principal) throws UserNotFoundException, RefreshTokenNotFoundException {
-        HttpHeaders headers = new HttpHeaders();
-        RefreshToken token = refreshService.createRefreshToken(principal);
-        headers.add(HttpHeaders.SET_COOKIE,
-                refreshService.getResponseCookie(principal, token.getToken(), "/refresh-jwt").toString());
-        headers.add(HttpHeaders.SET_COOKIE,
-                refreshService.getResponseCookie(principal, token.getToken(), "/log-out").toString());
-        return headers;
     }
 
 }

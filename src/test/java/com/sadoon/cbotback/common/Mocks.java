@@ -14,6 +14,7 @@ import com.sadoon.cbotback.refresh.models.RefreshToken;
 import com.sadoon.cbotback.user.models.LoginRequest;
 import com.sadoon.cbotback.user.models.LoginResponse;
 import com.sadoon.cbotback.user.models.User;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.mock.web.MockCookie;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -143,6 +144,13 @@ public class Mocks {
 
     public static LoginRequest loginRequest(){
         return new LoginRequest("mockUser", "password", "mockId");
+    }
+
+    public static HttpHeaders refreshHeaders(RefreshToken token){
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Set-Cookie", responseCookie(token, "/refresh-jwt").toString());
+        headers.add("Set-Cookie", responseCookie(token, "/log-out").toString());
+        return headers;
     }
 
 }

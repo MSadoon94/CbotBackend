@@ -93,15 +93,6 @@ class RefreshServiceTest {
                 samePropertyValuesAs(Mocks.refreshResponse( mockDate)));
     }
 
-    @Test
-    void shouldReturnResponseCookie() throws UserNotFoundException, RefreshTokenNotFoundException {
-        setTokenToUser(10000);
-        given(userService.getUserWithUsername(any())).willReturn(mockUser);
-
-        assertThat(refreshService.getResponseCookie(auth, mockToken.getToken(), "/refresh-jwt"),
-                samePropertyValuesAs(Mocks.responseCookie(mockToken, "/refresh-jwt"), "maxAge"));
-    }
-
     private void setTokenToUser(int tokenExpiration){
         mockToken = Mocks.refreshToken( tokenExpiration );
         mockUser.setRefreshToken(mockToken);

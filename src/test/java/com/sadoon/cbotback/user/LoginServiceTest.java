@@ -33,9 +33,6 @@ class LoginServiceTest {
     private AuthenticationManager authenticator;
 
     @Mock
-    private RefreshService refreshService;
-
-    @Mock
     private JwtService jwtService;
 
     private LoginService loginService;
@@ -46,32 +43,11 @@ class LoginServiceTest {
 
     private Authentication auth = Mocks.auth(mockUser);
 
-    private RefreshToken mockToken;
-
-    private HttpHeaders mockHeaders = new HttpHeaders();
-
     @BeforeEach
     public void setUp() {
-        loginService = new LoginService(authenticator, refreshService, jwtService);
+        loginService = new LoginService(authenticator, jwtService);
     }
 
-    @Test
-    void shouldAddRefreshTokenToLoginResponseHeader() throws UserNotFoundException, RefreshTokenNotFoundException {
-        setTokenToUser(10000);
-        ResponseCookie refreshJwtCookie = Mocks.responseCookie(mockToken, "/refresh-jwt");
-        ResponseCookie logoutCookie = Mocks.responseCookie(mockToken, "/log-out");
-        setMockHeaders(refreshJwtCookie, logoutCookie);
-
-        when(refreshService.createRefreshToken(any())).thenReturn(mockToken);
-        when(refreshService.getResponseCookie(auth, mockToken.getToken(), "/refresh-jwt"))
-                .thenReturn(refreshJwtCookie);
-        when(refreshService.getResponseCookie(auth, mockToken.getToken(), "/log-out"))
-                .thenReturn(logoutCookie);
-
-        HttpHeaders headers = loginService.getHeaders(auth);
-
-        assertThat(headers, is(mockHeaders));
-    }
 
     @Test
     void shouldAddJwtToLoginResponse() {
@@ -96,17 +72,6 @@ class LoginServiceTest {
         when(authenticator.authenticate(any())).thenThrow(new BadCredentialsException("BadCredentials"));
 
         assertThrows(LoginCredentialsException.class, () -> loginService.getPrincipal(loginRequest));
-    }
-
-    private void setTokenToUser(int tokenExpiration){
-        mockToken = Mocks.refreshToken( tokenExpiration );
-        mockUser.setRefreshToken(mockToken);
-    }
-
-    private void setMockHeaders(ResponseCookie... cookies){
-        for(ResponseCookie cookie : cookies){
-            mockHeaders.add("Set-Cookie", cookie.toString());
-        }
     }
 
 }
