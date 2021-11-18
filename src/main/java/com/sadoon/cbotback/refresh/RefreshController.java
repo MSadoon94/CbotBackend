@@ -32,7 +32,8 @@ public class RefreshController {
         RefreshResponse refreshResponse = refreshService.refresh(principal, tokenString);
 
         return ResponseEntity.ok()
-                .headers(cookieService.getRefreshHeaders(principal, tokenString))
+                .headers(cookieService.getJwtHeaders(principal,
+                        cookieService.getRefreshHeaders(principal, tokenString)))
                 .body(refreshResponse);
     }
 

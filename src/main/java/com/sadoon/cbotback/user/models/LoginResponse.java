@@ -4,22 +4,16 @@ import java.util.Date;
 
 public class LoginResponse {
     private final String username;
-    private final String jwt;
     private final Date expiration;
     private boolean isLoggedIn = false;
 
-    public LoginResponse(String username, String jwt, Date expiration) {
+    public LoginResponse(String username, Date expiration) {
         this.username = username;
-        this.jwt = jwt;
         this.expiration = expiration;
     }
 
     public String getUsername() {
         return username;
-    }
-
-    public String getJwt() {
-        return jwt;
     }
 
     public Date getExpiration() {

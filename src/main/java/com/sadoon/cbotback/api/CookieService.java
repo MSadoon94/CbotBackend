@@ -4,6 +4,7 @@ import com.sadoon.cbotback.exceptions.RefreshTokenNotFoundException;
 import com.sadoon.cbotback.exceptions.UserNotFoundException;
 import com.sadoon.cbotback.refresh.RefreshService;
 import com.sadoon.cbotback.refresh.models.RefreshToken;
+import com.sadoon.cbotback.security.JwtService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
@@ -16,9 +17,11 @@ import java.time.Instant;
 public class CookieService {
 
     private RefreshService refreshService;
+    private JwtService jwtService;
 
-    public CookieService(RefreshService refreshService) {
+    public CookieService(RefreshService refreshService, JwtService jwtService) {
         this.refreshService = refreshService;
+        this.jwtService = jwtService;
     }
 
     //Used when refresh token needs to be created.
@@ -33,6 +36,19 @@ public class CookieService {
         headers.add(HttpHeaders.SET_COOKIE, getRefreshCookie(principal, token, "/log-out").toString());
         return headers;
     }
+
+    public HttpHeaders getJwtHeaders(Principal principal){
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.SET_COOKIE, getJwtCookie(principal).toString());
+        return headers;
+    }
+
+    //Used when wanting to add to already created headers.
+    public HttpHeaders getJwtHeaders(Principal principal, HttpHeaders headers){
+        headers.add(HttpHeaders.SET_COOKIE, getJwtCookie(principal).toString());
+        return headers;
+    }
+
     private ResponseCookie getRefreshCookie(Principal principal, String token, String path) throws UserNotFoundException, RefreshTokenNotFoundException {
         RefreshToken refreshToken = refreshService.getRefreshToken(principal, token);
 
@@ -44,5 +60,17 @@ public class CookieService {
                 .maxAge(Duration.between(Instant.now(), refreshToken.getExpiryDate()))
                 .build();
 
+    }
+
+    private ResponseCookie getJwtCookie(Principal principal){
+        String jwt = jwtService.generateToken(principal.getName());
+
+        return ResponseCookie
+                .from("jwt", jwt)
+                .httpOnly(true)
+                .domain("localhost")
+                .path("/api/")
+                .maxAge(Duration.between(Instant.now(), jwtService.extractExpiration(jwt).toInstant()))
+                .build();
     }
 }

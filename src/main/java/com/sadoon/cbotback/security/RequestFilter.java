@@ -6,7 +6,6 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,13 +18,12 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Arrays;
 
 @Component
 public class RequestFilter extends OncePerRequestFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(RequestFilter.class);
-
-    private AppProperties props;
 
     private String url;
 
@@ -34,12 +32,10 @@ public class RequestFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
 
     public RequestFilter(AppProperties props, MongoUserDetailsService userDetailsService, JwtService jwtService) {
-        this.props = props;
         this.userDetailsService = userDetailsService;
         this.jwtService = jwtService;
         this.url = props.getCorsExclusion();
     }
-
 
     @Override
     protected void doFilterInternal(
@@ -47,33 +43,53 @@ public class RequestFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain chain) throws ServletException, IOException, JwtException {
 
+        if(isPublicEndpoint(request)){
+            allowPublicEndpoint();
+        } else {
+            authenticate(request);
+        }
 
-        final String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        chain.doFilter(request, response);
 
+    }
+
+    private void authenticate(HttpServletRequest request){
         try {
-            String username = getUsername(authorizationHeader);
-            if (isPublicEndpoint(request)) {
-                allowPublicEndpoint();
-            } else if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
-                validateToken(userDetails, authorizationHeader, request);
+            String authorization = getJwtCookieValue(request);
+            String username  = getUsername(authorization);
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                validateToken(userDetails, authorization, request);
             } else {
                 logger.error(
                         "User attempted to access non-public endpoint({}) " +
-                                "with {} username, authorization header of {} and current authentication of {} .",
-                        request.getRequestURI(), username, authorizationHeader,
+                                "with {} username, authorization value of {} and current authentication of {} .",
+                        request.getRequestURI(), username, authorization,
                         SecurityContextHolder.getContext().getAuthentication()
                 );
-                throw new JwtException("Invalid jwt or authorization header.");
+                throw new JwtException("Invalid jwt.");
             }
 
         } catch (ExpiredJwtException e) {
             logger.info("JWT from User: " + e.getClaims().getSubject() + " is expired.", e);
             handleRequestsWithExpiredJwt(request, e);
         }
+    }
 
-        chain.doFilter(request, response);
+    private String getJwtCookieValue(HttpServletRequest request){
+        String jwt;
 
+        try {
+            jwt =
+            Arrays.stream(request.getCookies())
+                    .filter(cookie -> cookie.getName().equals("jwt"))
+                    .findFirst()
+                    .orElseThrow(() -> new JwtException("JWT cookie not found."))
+                    .getValue();
+        } catch (NullPointerException ex){
+            throw new JwtException("No cookies found in request.");
+        }
+        return jwt;
     }
 
     private boolean isPublicEndpoint(HttpServletRequest request) {
@@ -92,22 +108,18 @@ public class RequestFilter extends OncePerRequestFilter {
         } else throw exception;
     }
 
-    private String getUsername(String header) {
+    private String getUsername(String auth) {
         String username = null;
 
-        if (header != null && header.startsWith("Bearer ")) {
-            username = jwtService.extractUsername(getJwt(header));
+        if (auth != null) {
+            username = jwtService.extractUsername(auth);
         }
 
         return username;
     }
 
-    private String getJwt(String header) {
-        return header.substring(7);
-    }
-
-    private void validateToken(UserDetails userDetails, String header, HttpServletRequest request) {
-        if (jwtService.isValidToken(getJwt(header), userDetails)) {
+    private void validateToken(UserDetails userDetails, String auth, HttpServletRequest request) {
+        if (jwtService.isValidToken(auth, userDetails)) {
             setSecurityContext(userDetails, request);
         } else throw new JwtException("Jwt cannot be authenticated.");
     }

@@ -9,45 +9,44 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.impl.DefaultClaims;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpHeaders;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import java.io.IOException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 class RequestFilterTest {
 
-    private static final User MOCK_USER =
-            new User("username", "password", new SimpleGrantedAuthority("USER"));
-    private static final String MOCK_JWT = "Bearer jwt";
     private static final String MOCK_URI = ":3000/api";
 
-    @Autowired
+    @Mock
     private AppProperties props;
 
-    @MockBean
+    @Mock
     private MongoUserDetailsService mockUserDetailsService;
-    @MockBean
+    @Mock
     private JwtService mockJwtService;
-    @MockBean
+    @Mock
     private ExpiredJwtException mockExpiredException;
 
     private RequestFilter filter;
+
+    private User mockUser = Mocks.user();
 
     private MockHttpServletRequest request;
     private MockHttpServletResponse response;
@@ -55,84 +54,129 @@ class RequestFilterTest {
 
     @BeforeEach
     public void setUp() {
-        when(mockJwtService.extractUsername(MOCK_JWT.substring(7))).thenReturn(MOCK_USER.getUsername());
-        when(mockJwtService.isValidToken(MOCK_JWT.substring(7), MOCK_USER)).thenReturn(true);
-        when(mockUserDetailsService.loadUserByUsername(MOCK_USER.getUsername())).thenReturn(MOCK_USER);
+        when(props.getCorsExclusion()).thenReturn("http://localhost:3000/api");
 
         filter = new RequestFilter(props, mockUserDetailsService, mockJwtService);
         setMocks();
-
+        SecurityContextHolder.clearContext();
     }
 
     @Test
     void shouldSetSecurityContextForValidatedUsers() throws ServletException, IOException {
-        request.addHeader(HttpHeaders.AUTHORIZATION, MOCK_JWT);
+        request.setCookies(new Cookie("jwt", "mockJwt"));
+
+        when(mockJwtService.extractUsername(any())).thenReturn(mockUser.getUsername());
+        when(mockUserDetailsService.loadUserByUsername(any())).thenReturn(mockUser);
+        when(mockJwtService.isValidToken(any(), any())).thenReturn(true);
 
         filter.doFilterInternal(request, response, filterChain);
 
-        assertThat(SecurityContextHolder.getContext().getAuthentication().getPrincipal(), is(MOCK_USER));
+        assertThat(SecurityContextHolder.getContext().getAuthentication().getPrincipal(), is(mockUser));
     }
 
     @Test
-    void shouldThrowInvalidJwtExceptionForInvalidJwt() {
-        request.addHeader(HttpHeaders.AUTHORIZATION, "invalidJwt");
+    void shouldThrowInvalidJwtExceptionForUnauthenticatedJwt() {
+        request.setCookies(new Cookie("jwt", "mockJwt"));
 
-        assertThrows(JwtException.class, () -> filter.doFilterInternal(request, response, filterChain));
+        when(mockJwtService.extractUsername(any())).thenReturn(mockUser.getUsername());
+        when(mockUserDetailsService.loadUserByUsername(any())).thenReturn(mockUser);
+        when(mockJwtService.isValidToken(any(), any())).thenReturn(false);
+
+        Exception exception = assertThrows(
+                JwtException.class,
+                () -> filter.doFilterInternal(request, response, filterChain)
+        );
+
+        assertThat(exception.getMessage(), is("Jwt cannot be authenticated."));
+    }
+
+    @Test
+    void shouldThrowJwtExceptionForNullJwtValue() {
+        request.setCookies(new Cookie("jwt", null));
+        Exception exception = assertThrows(
+                JwtException.class,
+                () -> filter.doFilterInternal(request, response, filterChain)
+        );
+
+
+        assertThat(exception.getMessage(), is("Invalid jwt."));
+    }
+
+    @Test
+    void shouldThrowJwtExceptionIfNoCookiesInRequest() {
+        Exception exception = assertThrows(
+                JwtException.class,
+                () -> filter.doFilterInternal(request, response, filterChain)
+        );
+
+        assertThat(exception.getMessage(), is("No cookies found in request."));
+    }
+
+    @Test
+    void shouldThrowJwtExceptionIfNoJwtCookie() {
+        request.setCookies(new Cookie("notJwt", "notJwt"));
+        Exception exception = assertThrows(
+                JwtException.class,
+                () -> filter.doFilterInternal(request, response, filterChain)
+        );
+
+        assertThat(exception.getMessage(), is("JWT cookie not found."));
     }
 
     @Test
     void shouldThrowExpiredJwtExceptionForNonRefreshTokenRequestsWithExpiredJwt() {
-        String jwt = "expiredJwt";
-        when(mockJwtService.extractUsername(jwt)).thenReturn(MOCK_USER.getUsername());
-        when(mockJwtService.isValidToken(jwt, MOCK_USER)).thenThrow(mockExpiredException);
-
-        request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + jwt);
+        request.setCookies(new Cookie("jwt", "expiredJwt"));
+        when(mockJwtService.extractUsername(any())).thenReturn(mockUser.getUsername());
+        when(mockJwtService.isValidToken(any(), any())).thenThrow(mockExpiredException);
 
         assertThrows(ExpiredJwtException.class, () -> filter.doFilterInternal(request, response, filterChain));
     }
 
     @Test
     void shouldAllowRefreshTokenRequestsForValidJwt() throws ServletException, IOException {
-        String jwt = "expiredJwt";
+        when(mockJwtService.extractUsername(any())).thenThrow(mockExpiredException);
+        when(mockUserDetailsService.loadUserByUsername(any())).thenReturn(mockUser);
+        setRefreshTokenRequest();
 
-        when(mockJwtService.extractUsername(jwt)).thenThrow(mockExpiredException);
-
-        setRefreshTokenRequest(jwt);
         filter.doFilterInternal(request, response, filterChain);
 
-        assertThat(SecurityContextHolder.getContext().getAuthentication().getPrincipal(), is(MOCK_USER));
+        assertThat(SecurityContextHolder.getContext().getAuthentication().getPrincipal(), is(mockUser));
     }
 
     @Test
     void shouldAllowSignupRequests() {
+        request.setCookies(new Cookie("jwt", "mockJwt"));
         request.setRequestURI(MOCK_URI + "/signup");
+
         assertDoesNotThrow(() -> filter.doFilterInternal(request, response, filterChain));
     }
 
     @Test
     void shouldAllowLoginRequests() {
+        request.setCookies(new Cookie("jwt", "mockJwt"));
         request.setRequestURI(MOCK_URI + "/login");
+
         assertDoesNotThrow(() -> filter.doFilterInternal(request, response, filterChain));
     }
 
-    private void setRefreshTokenRequest(String jwt) {
-        request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + jwt);
+    private void setRefreshTokenRequest() {
         request.addHeader("isRefreshToken", true);
         request.setRequestURI(MOCK_URI + "/refresh-jwt");
-        request.setCookies(Mocks.refreshCookie("/refresh-jwt", 10000));
+        request.setCookies(
+                Mocks.refreshCookie("/refresh-jwt", 10000),
+                new Cookie("jwt", "mockJwt")
+        );
     }
 
     private void setMocks() {
         mockExpiredException = new ExpiredJwtException
                 (
                         null,
-                        new DefaultClaims().setSubject(MOCK_USER.getUsername()),
+                        new DefaultClaims().setSubject(mockUser.getUsername()),
                         null
                 );
         request = new MockHttpServletRequest();
         response = new MockHttpServletResponse();
         filterChain = new MockFilterChain();
     }
-
-
 }

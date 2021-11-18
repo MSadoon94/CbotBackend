@@ -128,7 +128,7 @@ public class Mocks {
                 Instant.now().plusMillis(expirationMs));
     }
 
-    public static ResponseCookie responseCookie(RefreshToken refreshToken, String path){
+    public static ResponseCookie refreshCookie(RefreshToken refreshToken, String path){
         return ResponseCookie
                 .from("refresh_token", refreshToken.getToken())
                 .httpOnly(true)
@@ -137,9 +137,18 @@ public class Mocks {
                 .maxAge(Duration.between(Instant.now(), refreshToken.getExpiryDate()))
                 .build();
     }
+    public static ResponseCookie jwtCookie(String jwt, Date expiration){
+        return ResponseCookie
+                .from("jwt", jwt)
+                .httpOnly(true)
+                .domain("localhost")
+                .path("/api/")
+                .maxAge(Duration.between(Instant.now(), expiration.toInstant()))
+                .build();
+    }
 
     public static LoginResponse loginResponse(Date date){
-        return new LoginResponse("username", "mockJwt", date);
+        return new LoginResponse("username", date);
     }
 
     public static LoginRequest loginRequest(){
@@ -148,8 +157,8 @@ public class Mocks {
 
     public static HttpHeaders refreshHeaders(RefreshToken token){
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Set-Cookie", responseCookie(token, "/refresh-jwt").toString());
-        headers.add("Set-Cookie", responseCookie(token, "/log-out").toString());
+        headers.add("Set-Cookie", refreshCookie(token, "/refresh-jwt").toString());
+        headers.add("Set-Cookie", refreshCookie(token, "/log-out").toString());
         return headers;
     }
 

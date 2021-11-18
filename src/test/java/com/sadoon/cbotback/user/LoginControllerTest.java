@@ -64,7 +64,6 @@ class LoginControllerTest {
         login().
                 andExpect(status().isOk())
                 .andExpect(jsonPath("$.username", is(loginResponse.getUsername())))
-                .andExpect(jsonPath("$.jwt", is(loginResponse.getJwt())))
                 .andExpect(jsonPath("$.expiration", is(loginResponse.getExpiration().getTime())))
                 .andExpect(jsonPath("$.isLoggedIn", is(loginResponse.getIsLoggedIn())));
     }

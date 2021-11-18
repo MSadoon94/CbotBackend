@@ -45,7 +45,6 @@ public class LoginService {
 
             response = new LoginResponse(
                     request.getUsername(),
-                    jwt,
                     jwtService.extractExpiration(jwt));
 
         return response;

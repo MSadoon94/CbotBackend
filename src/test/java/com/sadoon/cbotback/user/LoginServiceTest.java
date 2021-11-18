@@ -2,10 +2,6 @@ package com.sadoon.cbotback.user;
 
 import com.sadoon.cbotback.common.Mocks;
 import com.sadoon.cbotback.exceptions.LoginCredentialsException;
-import com.sadoon.cbotback.exceptions.RefreshTokenNotFoundException;
-import com.sadoon.cbotback.exceptions.UserNotFoundException;
-import com.sadoon.cbotback.refresh.RefreshService;
-import com.sadoon.cbotback.refresh.models.RefreshToken;
 import com.sadoon.cbotback.security.JwtService;
 import com.sadoon.cbotback.user.models.LoginRequest;
 import com.sadoon.cbotback.user.models.User;
@@ -14,8 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
@@ -46,14 +40,6 @@ class LoginServiceTest {
     @BeforeEach
     public void setUp() {
         loginService = new LoginService(authenticator, jwtService);
-    }
-
-
-    @Test
-    void shouldAddJwtToLoginResponse() {
-        when(jwtService.generateToken(loginRequest.getUsername())).thenReturn("jwt");
-
-        assertThat(loginService.handleLogin(loginRequest).getJwt(), is("jwt"));
     }
 
     @Test

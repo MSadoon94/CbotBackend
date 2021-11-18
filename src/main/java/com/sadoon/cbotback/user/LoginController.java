@@ -37,8 +37,9 @@ public class LoginController {
                         .orElseThrow(LoginCredentialsException::new);
 
         response.setIsLoggedIn(true);
+
         return ResponseEntity.ok()
-                .headers(cookieService.getRefreshHeaders(principal))
+                .headers(cookieService.getJwtHeaders(principal, cookieService.getRefreshHeaders(principal)))
                 .body(response);
     }
 }

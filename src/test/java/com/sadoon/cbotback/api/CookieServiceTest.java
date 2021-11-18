@@ -17,6 +17,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 
+import java.util.Date;
+
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -44,7 +46,7 @@ class CookieServiceTest {
 
     @BeforeEach
     public void setUp(){
-        cookieService = new CookieService(refreshService);
+        cookieService = new CookieService(refreshService, jwtService);
     }
 
     @Test
@@ -53,12 +55,23 @@ class CookieServiceTest {
         given(refreshService.createRefreshToken(any())).willReturn(mockToken);
         given(refreshService.getRefreshToken(any(), any())).willReturn(mockToken);
 
-        ResponseCookie refreshJwtCookie = Mocks.responseCookie(mockToken, "/refresh-jwt");
-        ResponseCookie logoutCookie = Mocks.responseCookie(mockToken, "/log-out");
+        ResponseCookie refreshJwtCookie = Mocks.refreshCookie(mockToken, "/refresh-jwt");
+        ResponseCookie logoutCookie = Mocks.refreshCookie(mockToken, "/log-out");
         setMockHeaders(refreshJwtCookie, logoutCookie);
 
 
         assertThat(cookieService.getRefreshHeaders(auth), is(mockHeaders));
+    }
+
+    @Test
+    void shouldReturnJwtCookieHeaders(){
+        Date expiration = new Date();
+        given(jwtService.generateToken(any())).willReturn("mockJwt");
+        given(jwtService.extractExpiration(any())).willReturn(expiration);
+        ResponseCookie jwtCookie = Mocks.jwtCookie("mockJwt", expiration);
+        setMockHeaders(jwtCookie);
+
+        assertThat(cookieService.getJwtHeaders(auth), is(mockHeaders));
     }
 
     private void setTokenToUser(int tokenExpiration){

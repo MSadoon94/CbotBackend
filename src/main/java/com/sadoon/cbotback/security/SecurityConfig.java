@@ -38,7 +38,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements WebM
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(props.getCorsExclusion()));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "OPTIONS", "DELETE"));
-        configuration.addAllowedHeader("authorization");
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
