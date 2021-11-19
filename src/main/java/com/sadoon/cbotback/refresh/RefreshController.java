@@ -42,7 +42,10 @@ public class RefreshController {
 
         refreshService.deleteRefreshToken(principal);
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity
+                .noContent()
+                .headers(cookieService.getNullHeaders())
+                .build();
     }
 
 }

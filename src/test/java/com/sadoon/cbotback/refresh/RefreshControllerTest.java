@@ -13,11 +13,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.Date;
@@ -25,8 +27,7 @@ import java.util.Date;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
 class RefreshControllerTest {
@@ -90,6 +91,16 @@ class RefreshControllerTest {
     void shouldReturnNoContentOnLogout() throws Exception {
         logout()
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void shouldReturnHeadersToSetCookieToNullOnLogout() throws Exception {
+        HttpHeaders mockHeaders = new HttpHeaders();
+        mockHeaders.add(HttpHeaders.SET_COOKIE, Mocks.nullCookie("mockName", "mockPath").toString());
+        given(cookieService.getNullHeaders()).willReturn(mockHeaders);
+
+        logout()
+                .andExpect(header().exists("Set-Cookie"));
     }
 
     private ResultActions refreshJwt() throws Exception {

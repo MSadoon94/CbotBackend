@@ -6,7 +6,6 @@ import com.sadoon.cbotback.exceptions.UserNotFoundException;
 import com.sadoon.cbotback.refresh.RefreshService;
 import com.sadoon.cbotback.refresh.models.RefreshToken;
 import com.sadoon.cbotback.security.JwtService;
-import com.sadoon.cbotback.user.UserService;
 import com.sadoon.cbotback.user.models.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,8 +18,8 @@ import org.springframework.security.core.Authentication;
 
 import java.util.Date;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
@@ -29,8 +28,6 @@ class CookieServiceTest {
 
     @Mock
     private RefreshService refreshService;
-    @Mock
-    private UserService userService;
     @Mock
     private JwtService jwtService;
 
@@ -55,10 +52,10 @@ class CookieServiceTest {
         given(refreshService.createRefreshToken(any())).willReturn(mockToken);
         given(refreshService.getRefreshToken(any(), any())).willReturn(mockToken);
 
-        ResponseCookie refreshJwtCookie = Mocks.refreshCookie(mockToken, "/refresh-jwt");
-        ResponseCookie logoutCookie = Mocks.refreshCookie(mockToken, "/log-out");
-        setMockHeaders(refreshJwtCookie, logoutCookie);
-
+        setMockHeaders(
+                Mocks.refreshCookie(mockToken, "/refresh-jwt"),
+                Mocks.refreshCookie(mockToken, "/log-out")
+        );
 
         assertThat(cookieService.getRefreshHeaders(auth), is(mockHeaders));
     }
@@ -68,10 +65,20 @@ class CookieServiceTest {
         Date expiration = new Date();
         given(jwtService.generateToken(any())).willReturn("mockJwt");
         given(jwtService.extractExpiration(any())).willReturn(expiration);
-        ResponseCookie jwtCookie = Mocks.jwtCookie("mockJwt", expiration);
-        setMockHeaders(jwtCookie);
+        setMockHeaders(Mocks.jwtCookie("mockJwt", expiration));
 
         assertThat(cookieService.getJwtHeaders(auth), is(mockHeaders));
+    }
+
+    @Test
+    void shouldReturnNullCookieHeaders(){
+        setMockHeaders(
+                Mocks.nullCookie("refresh_token", "/refresh-jwt"),
+                Mocks.nullCookie("refresh_token", "/log-out"),
+                Mocks.nullCookie("jwt", "/")
+        );
+
+        assertThat(cookieService.getNullHeaders(), is(mockHeaders));
     }
 
     private void setTokenToUser(int tokenExpiration){

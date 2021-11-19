@@ -32,38 +32,44 @@ public class CookieService {
 
     public HttpHeaders getRefreshHeaders(Principal principal, String token) throws UserNotFoundException, RefreshTokenNotFoundException {
         HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.SET_COOKIE, getRefreshCookie(principal, token, "/refresh-jwt").toString());
-        headers.add(HttpHeaders.SET_COOKIE, getRefreshCookie(principal, token, "/log-out").toString());
+        RefreshToken refreshToken = refreshService.getRefreshToken(principal, token);
+        headers.add(HttpHeaders.SET_COOKIE, getRefreshCookie(refreshToken, "/refresh-jwt").toString());
+        headers.add(HttpHeaders.SET_COOKIE, getRefreshCookie(refreshToken, "/log-out").toString());
         return headers;
     }
 
     public HttpHeaders getJwtHeaders(Principal principal){
         HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.SET_COOKIE, getJwtCookie(principal).toString());
+        headers.add(HttpHeaders.SET_COOKIE, getJwtCookie(jwtService.generateToken(principal.getName())).toString());
         return headers;
     }
 
     //Used when wanting to add to already created headers.
     public HttpHeaders getJwtHeaders(Principal principal, HttpHeaders headers){
-        headers.add(HttpHeaders.SET_COOKIE, getJwtCookie(principal).toString());
+        headers.add(HttpHeaders.SET_COOKIE, getJwtCookie(jwtService.generateToken(principal.getName())).toString());
         return headers;
     }
 
-    private ResponseCookie getRefreshCookie(Principal principal, String token, String path) throws UserNotFoundException, RefreshTokenNotFoundException {
-        RefreshToken refreshToken = refreshService.getRefreshToken(principal, token);
+    public HttpHeaders getNullHeaders(){
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.SET_COOKIE, getNullCookie("refresh_token", "/refresh-jwt").toString());
+        headers.add(HttpHeaders.SET_COOKIE, getNullCookie("refresh_token", "/log-out").toString());
+        headers.add(HttpHeaders.SET_COOKIE, getNullCookie("jwt", "/").toString());
+        return headers;
+    }
 
+    private ResponseCookie getRefreshCookie(RefreshToken token, String path) {
         return ResponseCookie
-                .from("refresh_token", refreshToken.getToken())
+                .from("refresh_token", token.getToken())
                 .httpOnly(true)
                 .domain("localhost")
                 .path(String.format("/api%s", path))
-                .maxAge(Duration.between(Instant.now(), refreshToken.getExpiryDate()))
+                .maxAge(Duration.between(Instant.now(), token.getExpiryDate()))
                 .build();
 
     }
 
-    private ResponseCookie getJwtCookie(Principal principal){
-        String jwt = jwtService.generateToken(principal.getName());
+    private ResponseCookie getJwtCookie(String jwt){
 
         return ResponseCookie
                 .from("jwt", jwt)
@@ -71,6 +77,16 @@ public class CookieService {
                 .domain("localhost")
                 .path("/api/")
                 .maxAge(Duration.between(Instant.now(), jwtService.extractExpiration(jwt).toInstant()))
+                .build();
+    }
+
+    private ResponseCookie getNullCookie(String name, String path){
+        return ResponseCookie
+                .from(name, null)
+                .httpOnly(true)
+                .domain("localhost")
+                .path(String.format("/api%s", path))
+                .maxAge(-1)
                 .build();
     }
 }

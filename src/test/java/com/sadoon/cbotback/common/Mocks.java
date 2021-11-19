@@ -147,6 +147,16 @@ public class Mocks {
                 .build();
     }
 
+    public static ResponseCookie nullCookie(String name, String path){
+        return ResponseCookie
+                .from(name, null)
+                .httpOnly(true)
+                .domain("localhost")
+                .path(String.format("/api%s", path))
+                .maxAge(-1)
+                .build();
+    }
+
     public static LoginResponse loginResponse(Date date){
         return new LoginResponse("username", date);
     }
