@@ -64,21 +64,9 @@ class CookieServiceTest {
     void shouldReturnJwtCookieHeaders(){
         Date expiration = new Date();
         given(jwtService.generateToken(any())).willReturn("mockJwt");
-        given(jwtService.extractExpiration(any())).willReturn(expiration);
         setMockHeaders(Mocks.jwtCookie("mockJwt", expiration));
 
         assertThat(cookieService.getJwtHeaders(auth), is(mockHeaders));
-    }
-
-    @Test
-    void shouldReturnNullCookieHeaders(){
-        setMockHeaders(
-                Mocks.nullCookie("refresh_token", "/refresh-jwt"),
-                Mocks.nullCookie("refresh_token", "/log-out"),
-                Mocks.nullCookie("jwt", "/")
-        );
-
-        assertThat(cookieService.getNullHeaders(), is(mockHeaders));
     }
 
     private void setTokenToUser(int tokenExpiration){

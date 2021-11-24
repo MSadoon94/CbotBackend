@@ -50,14 +50,6 @@ public class CookieService {
         return headers;
     }
 
-    public HttpHeaders getNullHeaders(){
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.SET_COOKIE, getNullCookie("refresh_token", "/refresh-jwt").toString());
-        headers.add(HttpHeaders.SET_COOKIE, getNullCookie("refresh_token", "/log-out").toString());
-        headers.add(HttpHeaders.SET_COOKIE, getNullCookie("jwt", "/").toString());
-        return headers;
-    }
-
     private ResponseCookie getRefreshCookie(RefreshToken token, String path) {
         return ResponseCookie
                 .from("refresh_token", token.getToken())
@@ -70,23 +62,11 @@ public class CookieService {
     }
 
     private ResponseCookie getJwtCookie(String jwt){
-
         return ResponseCookie
                 .from("jwt", jwt)
                 .httpOnly(true)
                 .domain("localhost")
                 .path("/api/")
-                .maxAge(Duration.between(Instant.now(), jwtService.extractExpiration(jwt).toInstant()))
-                .build();
-    }
-
-    private ResponseCookie getNullCookie(String name, String path){
-        return ResponseCookie
-                .from(name, null)
-                .httpOnly(true)
-                .domain("localhost")
-                .path(String.format("/api%s", path))
-                .maxAge(-1)
                 .build();
     }
 }

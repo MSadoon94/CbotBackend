@@ -143,7 +143,6 @@ public class Mocks {
                 .httpOnly(true)
                 .domain("localhost")
                 .path("/api/")
-                .maxAge(Duration.between(Instant.now(), expiration.toInstant()))
                 .build();
     }
 

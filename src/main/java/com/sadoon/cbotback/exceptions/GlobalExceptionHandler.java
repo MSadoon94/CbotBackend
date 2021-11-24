@@ -1,5 +1,7 @@
 package com.sadoon.cbotback.exceptions;
 
+import com.sadoon.cbotback.api.CookieRemover;
+import io.jsonwebtoken.ExpiredJwtException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -61,6 +63,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler({UnauthorizedUserException.class, CredentialsException.class})
     protected ResponseEntity<Object> handleUnauthorizedUser(CustomException ex) {
         return buildResponseEntity(addSubErrors(buildApiError(HttpStatus.UNAUTHORIZED, ex), ex));
+    }
+
+    @ExceptionHandler(ExpiredJwtException.class)
+    protected ResponseEntity<Object> handleExpiredJwt(ExpiredJwtException ex){
+        ApiError apiError = new ApiError(HttpStatus.UNAUTHORIZED);
+        apiError.setMessage(ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .headers(CookieRemover.getNullHeaders())
+                .body(apiError);
     }
 
     private ApiError buildApiError(HttpStatus status, CustomException ex) {

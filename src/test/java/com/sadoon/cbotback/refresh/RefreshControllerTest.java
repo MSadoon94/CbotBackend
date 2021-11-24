@@ -1,5 +1,6 @@
 package com.sadoon.cbotback.refresh;
 
+import com.sadoon.cbotback.api.CookieRemover;
 import com.sadoon.cbotback.api.CookieService;
 import com.sadoon.cbotback.common.Mocks;
 import com.sadoon.cbotback.exceptions.GlobalExceptionHandler;
@@ -19,7 +20,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.Date;
@@ -97,7 +97,7 @@ class RefreshControllerTest {
     void shouldReturnHeadersToSetCookieToNullOnLogout() throws Exception {
         HttpHeaders mockHeaders = new HttpHeaders();
         mockHeaders.add(HttpHeaders.SET_COOKIE, Mocks.nullCookie("mockName", "mockPath").toString());
-        given(cookieService.getNullHeaders()).willReturn(mockHeaders);
+        given(CookieRemover.getNullHeaders()).willReturn(mockHeaders);
 
         logout()
                 .andExpect(header().exists("Set-Cookie"));

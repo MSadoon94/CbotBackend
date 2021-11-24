@@ -1,5 +1,6 @@
 package com.sadoon.cbotback.refresh;
 
+import com.sadoon.cbotback.api.CookieRemover;
 import com.sadoon.cbotback.api.CookieService;
 import com.sadoon.cbotback.exceptions.RefreshExpiredException;
 import com.sadoon.cbotback.exceptions.RefreshTokenNotFoundException;
@@ -44,7 +45,7 @@ public class RefreshController {
 
         return ResponseEntity
                 .noContent()
-                .headers(cookieService.getNullHeaders())
+                .headers(CookieRemover.getNullHeaders())
                 .build();
     }
 
