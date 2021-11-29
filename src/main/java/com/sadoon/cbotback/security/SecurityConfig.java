@@ -61,7 +61,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements WebM
                         (request, response, ex) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
                                 ex.getMessage()))
                 .and().authorizeRequests()
-                .antMatchers("api/login", "api/signup").permitAll()
+                .antMatchers("api/login", "api/sign-up").permitAll()
                 .anyRequest().authenticated()
                 .and().sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);

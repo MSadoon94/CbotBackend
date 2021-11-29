@@ -93,7 +93,7 @@ public class RequestFilter extends OncePerRequestFilter {
     }
 
     private boolean isPublicEndpoint(HttpServletRequest request) {
-        return request.getRequestURL().toString().equals(url + "/signup")
+        return request.getRequestURL().toString().equals(url + "/sign-up")
                 || request.getRequestURL().toString().equals(url + "/login");
     }
 

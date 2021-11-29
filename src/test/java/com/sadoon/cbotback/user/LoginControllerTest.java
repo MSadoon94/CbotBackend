@@ -29,13 +29,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(MockitoExtension.class)
-@JsonTest
 class LoginControllerTest {
 
     private MockMvc mvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     @Mock
     private LoginService loginService;

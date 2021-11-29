@@ -1,6 +1,7 @@
 package com.sadoon.cbotback.exceptions;
 
 import com.sadoon.cbotback.api.CookieRemover;
+import com.sadoon.cbotback.exceptions.duplication.DuplicateEntityException;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,6 +73,15 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .headers(CookieRemover.getNullHeaders())
+                .body(apiError);
+    }
+
+    @ExceptionHandler(DuplicateEntityException.class)
+    protected ResponseEntity<Object> handleDuplicateEntity(DuplicateEntityException ex){
+        ApiError apiError = new ApiError(HttpStatus.CONFLICT);
+        apiError.setMessage(ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
                 .body(apiError);
     }
 
