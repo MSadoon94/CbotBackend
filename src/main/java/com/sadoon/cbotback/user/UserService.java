@@ -2,6 +2,7 @@ package com.sadoon.cbotback.user;
 
 import com.sadoon.cbotback.card.models.Card;
 import com.sadoon.cbotback.exceptions.UserNotFoundException;
+import com.sadoon.cbotback.strategy.Strategy;
 import com.sadoon.cbotback.user.models.User;
 import org.springframework.stereotype.Service;
 
@@ -49,7 +50,13 @@ public class UserService {
         Map<String, Card> cards = user.getCards();
         cards.put(card.getCardName(), card);
         user.setCards(cards);
-        repo.deleteById(user.getId());
-        repo.save(user);
+        replace(user);
+    }
+
+    public void addStrategy(User user, Strategy strategy) {
+        Map<String, Strategy> strategies = user.getStrategies();
+        strategies.put(strategy.getName(), strategy);
+        user.setStrategies(strategies);
+        replace(user);
     }
 }

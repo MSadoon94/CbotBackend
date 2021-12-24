@@ -11,6 +11,7 @@ import com.sadoon.cbotback.card.models.Card;
 import com.sadoon.cbotback.card.models.CardApiRequest;
 import com.sadoon.cbotback.refresh.models.RefreshResponse;
 import com.sadoon.cbotback.refresh.models.RefreshToken;
+import com.sadoon.cbotback.strategy.Strategy;
 import com.sadoon.cbotback.user.models.LoginRequest;
 import com.sadoon.cbotback.user.models.LoginResponse;
 import com.sadoon.cbotback.user.models.SignUpRequest;
@@ -176,4 +177,9 @@ public class Mocks {
         return new SignUpRequest("mockUser", "password", "USER");
     }
 
+    public static Strategy strategy(){
+        Strategy strategy = new Strategy();
+        strategy.setName("mockStrategy");
+        return strategy;
+    }
 }

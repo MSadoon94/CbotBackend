@@ -146,7 +146,7 @@ class RequestFilterTest {
     @Test
     void shouldAllowSignupRequests() {
         request.setCookies(new Cookie("jwt", "mockJwt"));
-        request.setRequestURI(MOCK_URI + "/signup");
+        request.setRequestURI(MOCK_URI + "/sign-up");
 
         assertDoesNotThrow(() -> filter.doFilterInternal(request, response, filterChain));
     }

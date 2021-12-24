@@ -3,6 +3,7 @@ package com.sadoon.cbotback.user;
 import com.sadoon.cbotback.common.Mocks;
 import com.sadoon.cbotback.exceptions.UserNotFoundException;
 import com.sadoon.cbotback.refresh.models.RefreshToken;
+import com.sadoon.cbotback.strategy.Strategy;
 import com.sadoon.cbotback.user.models.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,8 @@ class UserServiceTest {
 
     private RefreshToken mockToken = Mocks.refreshToken(10000);
 
+    private Strategy mockStrategy = Mocks.strategy();
+
     @BeforeEach
     public void setup() {
         repo.deleteAll();
@@ -34,9 +37,9 @@ class UserServiceTest {
     }
 
     @Test
-    void shouldAddCardsToUser() {
+    void shouldAddCardToUser() {
         userService.addCard(mockUser, Mocks.card());
-        assertThat(repo.getUserByUsername("mockUser").getCards().get(Mocks.card().getCardName()),
+        assertThat(repo.getUserByUsername(mockUser.getUsername()).getCards().get(Mocks.card().getCardName()),
                 samePropertyValuesAs(Mocks.card(), "balances"));
     }
 
@@ -52,6 +55,13 @@ class UserServiceTest {
         userService.replace(mockUser);
 
         assertThat(repo.getUserByUsername(mockUser.getUsername()).getRefreshToken(), samePropertyValuesAs(mockToken));
+    }
+
+    @Test
+    void shouldAddStrategyToUser() {
+        userService.addStrategy(mockUser, mockStrategy);
+        assertThat(repo.getUserByUsername(mockUser.getUsername()).getStrategies().get(mockStrategy.getName()),
+                samePropertyValuesAs(mockStrategy));
     }
 
 }
