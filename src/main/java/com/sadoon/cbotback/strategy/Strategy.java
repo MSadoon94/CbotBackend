@@ -4,6 +4,7 @@ public class Strategy {
     private String name;
     private String base;
     private String quote;
+    private String stopLoss;
 
     public void setName(String name) {
         this.name = name;
@@ -27,5 +28,13 @@ public class Strategy {
 
     public void setQuote(String quote) {
         this.quote = quote;
+    }
+
+    public String getStopLoss() {
+        return stopLoss;
+    }
+
+    public void setStopLoss(String stopLoss) {
+        this.stopLoss = stopLoss;
     }
 }
