@@ -5,6 +5,11 @@ public class Strategy {
     private String base;
     private String quote;
     private String stopLoss;
+    private String maxPosition;
+    private String targetProfit;
+    private String movingStopLoss;
+    private String maxLoss;
+    private String longEntry;
 
     public void setName(String name) {
         this.name = name;
@@ -36,5 +41,45 @@ public class Strategy {
 
     public void setStopLoss(String stopLoss) {
         this.stopLoss = stopLoss;
+    }
+
+    public String getMaxPosition() {
+        return maxPosition;
+    }
+
+    public void setMaxPosition(String maxPosition) {
+        this.maxPosition = maxPosition;
+    }
+
+    public String getTargetProfit() {
+        return targetProfit;
+    }
+
+    public void setTargetProfit(String targetProfit) {
+        this.targetProfit = targetProfit;
+    }
+
+    public String getMovingStopLoss() {
+        return movingStopLoss;
+    }
+
+    public void setMovingStopLoss(String movingStopLoss) {
+        this.movingStopLoss = movingStopLoss;
+    }
+
+    public String getMaxLoss() {
+        return maxLoss;
+    }
+
+    public void setMaxLoss(String maxLoss) {
+        this.maxLoss = maxLoss;
+    }
+
+    public String getLongEntry() {
+        return longEntry;
+    }
+
+    public void setLongEntry(String longEntry) {
+        this.longEntry = longEntry;
     }
 }
