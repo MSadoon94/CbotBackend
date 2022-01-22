@@ -11,6 +11,7 @@ import com.sadoon.cbotback.card.models.Card;
 import com.sadoon.cbotback.card.models.CardApiRequest;
 import com.sadoon.cbotback.refresh.models.RefreshResponse;
 import com.sadoon.cbotback.refresh.models.RefreshToken;
+import com.sadoon.cbotback.status.CbotStatus;
 import com.sadoon.cbotback.strategy.Strategy;
 import com.sadoon.cbotback.user.models.LoginRequest;
 import com.sadoon.cbotback.user.models.LoginResponse;
@@ -88,7 +89,7 @@ public class Mocks {
 
     public static Brokerage brokerage(String url) {
         Brokerage brokerage = new Brokerage();
-        brokerage.setName("mockKraken");
+        brokerage.setName("mockkraken");
         brokerage.setUrl(url);
         brokerage.setEndpoints(Map.of("balance", "/mockBalance"));
         brokerage.setMethods(Map.of("balance", "POST"));
@@ -181,5 +182,9 @@ public class Mocks {
         Strategy strategy = new Strategy();
         strategy.setName("mockStrategy");
         return strategy;
+    }
+
+    public static CbotStatus cbotStatus(){
+        return new CbotStatus(true, List.of(strategy().getName()));
     }
 }

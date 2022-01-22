@@ -2,6 +2,7 @@ package com.sadoon.cbotback.user;
 
 import com.sadoon.cbotback.card.models.Card;
 import com.sadoon.cbotback.exceptions.UserNotFoundException;
+import com.sadoon.cbotback.status.CbotStatus;
 import com.sadoon.cbotback.strategy.Strategy;
 import com.sadoon.cbotback.user.models.User;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,11 @@ public class UserService {
         } else {
             return user;
         }
+    }
+
+    public User updateStatus(User user, CbotStatus status){
+        user.setCbotStatus(status);
+        return replace(user);
     }
 
     public void deleteAll() {

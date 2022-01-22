@@ -37,12 +37,12 @@ class BrokerageServiceTest {
 
     private final String requestType = "balance";
 
-    private CardApiRequest request = Mocks.cardRequest("mockKraken");
+    private CardApiRequest request = Mocks.cardRequest("mockkraken");
 
     @BeforeEach
     public void setup() {
         brokerageService = new BrokerageService(repo, nonceCreator);
-        brokerage = repo.getBrokerageByName("mockKraken");
+        brokerage = repo.getBrokerageByName("mockkraken");
 
     }
 

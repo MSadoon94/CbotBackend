@@ -12,7 +12,6 @@
     <artifactId>cbotback</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>cbotback</name>
-    <description>Demo project for Spring Boot</description>
     <properties>
         <java.version>16</java.version>
         <start-class>com.sadoon.cbotback.CbotbackApplication</start-class>
@@ -60,10 +59,6 @@
             <artifactId>spring-boot-starter-data-mongodb</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>okhttp</artifactId>
-        </dependency>
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>mockwebserver</artifactId>

@@ -2,6 +2,7 @@ package com.sadoon.cbotback.user.models;
 
 import com.sadoon.cbotback.card.models.Card;
 import com.sadoon.cbotback.refresh.models.RefreshToken;
+import com.sadoon.cbotback.status.CbotStatus;
 import com.sadoon.cbotback.strategy.Strategy;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -29,6 +30,8 @@ public class User implements UserDetails {
     private Map<String, Card> cards = new LinkedHashMap<>();
 
     private Map<String, Strategy> strategies = new LinkedHashMap<>();
+
+    private CbotStatus cbotStatus = new CbotStatus(false, List.of());
 
     public User(String username, String password, GrantedAuthority authority) {
         this.username = username;
@@ -98,5 +101,13 @@ public class User implements UserDetails {
 
     public void setStrategies(Map<String, Strategy> strategies) {
         this.strategies = strategies;
+    }
+
+    public CbotStatus getCbotStatus() {
+        return cbotStatus;
+    }
+
+    public void setCbotStatus(CbotStatus cbotStatus) {
+        this.cbotStatus = cbotStatus;
     }
 }

@@ -3,6 +3,7 @@ package com.sadoon.cbotback.user;
 import com.sadoon.cbotback.common.Mocks;
 import com.sadoon.cbotback.exceptions.UserNotFoundException;
 import com.sadoon.cbotback.refresh.models.RefreshToken;
+import com.sadoon.cbotback.status.CbotStatus;
 import com.sadoon.cbotback.strategy.Strategy;
 import com.sadoon.cbotback.user.models.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +28,8 @@ class UserServiceTest {
     private RefreshToken mockToken = Mocks.refreshToken(10000);
 
     private Strategy mockStrategy = Mocks.strategy();
+
+    private CbotStatus mockStatus = Mocks.cbotStatus();
 
     @BeforeEach
     public void setup() {
@@ -62,6 +65,12 @@ class UserServiceTest {
         userService.addStrategy(mockUser, mockStrategy);
         assertThat(repo.getUserByUsername(mockUser.getUsername()).getStrategies().get(mockStrategy.getName()),
                 samePropertyValuesAs(mockStrategy));
+    }
+
+    @Test
+    void shouldChangeUserStatus(){
+        userService.updateStatus(mockUser, mockStatus);
+        assertThat(repo.getUserByUsername(mockUser.getUsername()).getCbotStatus(), samePropertyValuesAs(mockStatus));
     }
 
 }
