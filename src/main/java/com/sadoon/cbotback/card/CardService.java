@@ -65,6 +65,10 @@ public class CardService {
     public void verifyPassword(Card card, String password, Principal principal)
             throws GeneralSecurityException, PasswordException {
 
+        if(password.length() < 6){
+            throw new PasswordException("Password cannot be shorter than 6 characters.");
+        }
+
         String signature = signatureCreator.signature(card.getCardName(), password, principal.getName());
         keyStoreUtil.getKey(signature);
         String decrypted;

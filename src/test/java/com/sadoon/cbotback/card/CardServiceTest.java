@@ -90,4 +90,10 @@ class CardServiceTest {
         assertThrows(CardNotFoundException.class, () -> cardService.getCard(mockUser, mockCard.getCardName()));
     }
 
+    @Test
+    void shouldThrowExceptionWhenPasswordIsShorterThanSixChars(){
+        assertThrows(PasswordException.class,
+                ()-> cardService.verifyPassword(mockCard, "pass",  Mocks.auth(Mocks.user())));
+    }
+
 }

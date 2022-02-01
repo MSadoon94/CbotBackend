@@ -19,7 +19,7 @@ public class StrategyController {
         this.userService = userService;
     }
 
-    @PostMapping("/save-strategy")
+    @PostMapping("/user/strategy")
     public ResponseEntity<HttpStatus> saveStrategy(@RequestBody Strategy strategy, Principal principal)
             throws UserNotFoundException {
 
@@ -27,13 +27,13 @@ public class StrategyController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-    @GetMapping("/load-strategies")
+    @GetMapping("/user/strategies")
     public ResponseEntity<Map<String, Strategy>> loadStrategies(Principal principal) throws UserNotFoundException {
         User user = userService.getUserWithUsername(principal.getName());
         return ResponseEntity.ok(user.getStrategies());
     }
 
-    @GetMapping("/load-strategy/{strategy}")
+    @GetMapping("/user/strategy/{strategy}")
     public ResponseEntity<Strategy> loadStrategy(@PathVariable("strategy") String strategy, Principal principal) throws UserNotFoundException {
         User user = userService.getUserWithUsername(principal.getName());
         return ResponseEntity.ok(user.getStrategies().get(strategy));

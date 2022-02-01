@@ -91,7 +91,7 @@ class StrategyControllerTest {
     private ResultActions saveStrategy() throws Exception {
         return mvc.perform(
                 MockMvcRequestBuilders
-                        .post("/save-strategy")
+                        .post("/user/strategy")
                         .content(objectMapper.writeValueAsString(mockStrategy))
                         .contentType(MediaType.APPLICATION_JSON)
                         .principal(auth)
@@ -101,7 +101,7 @@ class StrategyControllerTest {
     private ResultActions loadStrategies() throws Exception {
         return mvc.perform(
                 MockMvcRequestBuilders
-                        .get("/load-strategies")
+                        .get("/user/strategies")
                         .principal(auth)
         );
     }
@@ -109,7 +109,7 @@ class StrategyControllerTest {
     private ResultActions loadStrategy() throws Exception {
         return mvc.perform(
                 MockMvcRequestBuilders
-                        .get(String.format("/load-strategy/%s", mockStrategy.getName()))
+                        .get(String.format("/user/strategy/%s", mockStrategy.getName()))
                         .principal(auth)
         );
     }

@@ -35,13 +35,13 @@ public class CardController {
         this.brokerageService = apiModule.getBrokerageService();
     }
 
-    @GetMapping("/load-cards")
+    @GetMapping("/user/cards")
     public ResponseEntity<Map<String, Card>> loadCards(Principal principal) throws UserNotFoundException {
         Map<String, Card> cards = userService.getUserWithUsername(principal.getName()).getCards();
         return ResponseEntity.ok().body(cards);
     }
 
-    @PostMapping("/save-card")
+    @PostMapping("/user/card")
     public ResponseEntity<String> saveCard(@RequestBody CardApiRequest request, Principal principal)
             throws EntityNotFoundException, CardPasswordEncryptionException, KrakenRequestException {
 
@@ -50,7 +50,7 @@ public class CardController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-    @PostMapping("/card-password")
+    @PostMapping("/user/card-password")
     public ResponseEntity<String> verifyCardPassword(
             @RequestBody CardPasswordVerificationRequest request, Principal principal)
             throws EntityNotFoundException, PasswordException, GeneralSecurityException {
@@ -60,7 +60,7 @@ public class CardController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/load-a-card/{cardName}")
+    @GetMapping("/user/card/{cardName}")
     public ResponseEntity<Card> loadSingleCard(@PathVariable("cardName") String cardName, Principal principal) throws EntityNotFoundException {
 
         return ResponseEntity.ok(

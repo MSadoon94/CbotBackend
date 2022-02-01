@@ -27,6 +27,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
 import java.util.Map;
 
@@ -192,22 +193,31 @@ class CardControllerTest {
                 .andExpect(jsonPath("$.message", is(exception.getMessage())));
     }
 
+    @Test
+    void shouldReturnServiceUnavailableOnKeyStoreException() throws Exception {
+        Exception exception = new GeneralSecurityException();
+        doThrow(exception).when(cardService).verifyPassword(any(), any(), any());
+
+        cardPasswordPost()
+                .andExpect(status().isServiceUnavailable());
+    }
+
 
     private ResultActions loadCards() throws Exception {
         return mvc.perform(MockMvcRequestBuilders
-                .get("/load-cards")
+                .get("/user/cards")
                 .principal(auth));
     }
 
     private ResultActions loadSingleCard() throws Exception {
         return mvc.perform(MockMvcRequestBuilders
-                .get(String.format("/load-a-card/%s", mockCardName))
+                .get(String.format("/user/card/%s", mockCardName))
                 .principal(auth));
     }
 
     private ResultActions saveCard() throws Exception {
         return mvc.perform(MockMvcRequestBuilders
-                .post("/save-card")
+                .post("/user/card")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(cardRequest))
@@ -216,7 +226,7 @@ class CardControllerTest {
 
     private ResultActions cardPasswordPost() throws Exception {
         return mvc.perform(MockMvcRequestBuilders
-                .post("/card-password")
+                .post("/user/card-password")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(passwordVerification))
@@ -224,4 +234,3 @@ class CardControllerTest {
         );
     }
 }
-

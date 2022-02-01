@@ -18,21 +18,24 @@ class SignatureCreatorTest {
     private final String API_SIGN = "4/dpxb3iT4tp/ZCVEwSnEsLxx0bqyhLpdfOpc6fn7OR8+UClSV5n9E6aSS8MPtnRfp32bAb0nmbRn6H8ndwLUQ==";
     private final String ENDPOINT = "/0/private/AddOrder";
     private final String NONCE = "1616492376594";
-    private final String SECRET_KEY = "kQH5HW/8p1uGOVjbgWA7FunAmGO8lsSUXNsu3eow76sz84Q18fWxnyRzBHCd3pd5nE9qa99HAZtuZuj6F1huXg==";
+    private final String SECRET_KEY = "kQH5HW/8p1uGOVjbgWA7FunAmGO8lsSUXN==su3eow76sz84Q18fWxnyRzBHCd3pd5nE9qa99HAZtuZuj6F1huXg==";
 
 
     @Test
-    void shouldGenerateSignatureThatMatchesApiSignConstant() {
-        CardApiRequest request = new CardApiRequest("Account", SECRET_KEY);
+    void shouldGenerateSignatureThatMatchesApiSignConstant(){
+        assertThat(new SignatureCreator()
+                        .requestWrapper(getDto(new CardApiRequest("Account", SECRET_KEY))),
+                is(API_SIGN));
+    }
+
+
+    private BrokerageDto getDto(CardApiRequest request){
         request.setBrokerage("kraken");
         BrokerageDto brokerageDTO = new BrokerageDto(request, "add-order");
         brokerageDTO.setBrokerage(mockBrokerage());
         brokerageDTO.setNonce(NONCE);
         addBodyValues(brokerageDTO);
-
-        assertThat(new SignatureCreator()
-                        .requestWrapper(brokerageDTO),
-                is(API_SIGN));
+        return brokerageDTO;
     }
 
     private void addBodyValues(BrokerageDto brokerageDTO) {

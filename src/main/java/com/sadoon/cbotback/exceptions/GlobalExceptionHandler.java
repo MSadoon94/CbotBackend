@@ -15,6 +15,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import java.security.GeneralSecurityException;
 import java.util.List;
 
 
@@ -72,6 +73,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         apiError.setMessage(ex.getMessage());
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
+                .headers(CookieRemover.getNullHeaders())
+                .body(apiError);
+    }
+
+    @ExceptionHandler(GeneralSecurityException.class)
+    protected ResponseEntity<Object> handleGeneralSecurityException(GeneralSecurityException ex){
+        ApiError apiError = new ApiError(HttpStatus.SERVICE_UNAVAILABLE);
+        if(ex.getMessage() != null){
+            apiError.setMessage(ex.getMessage());
+        }
+        return ResponseEntity
+                .status(HttpStatus.SERVICE_UNAVAILABLE)
                 .headers(CookieRemover.getNullHeaders())
                 .body(apiError);
     }
