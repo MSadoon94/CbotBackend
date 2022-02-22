@@ -51,8 +51,16 @@ public class KeyStoreUtil {
         writeToFile();
     }
 
-    public Key getKey(String alias) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
-        return keyStore.getKey(alias, appProps.getKeystorePassword().toCharArray());
+    public Key getKey(String alias) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException, IOException, CertificateException {
+        InputStream inputStream = Files.newInputStream(keystoreFilePath);
+        keyStore.load(inputStream, pwdArray);
+
+        keyStore.aliases().asIterator().forEachRemaining(System.out::println);
+        Key key = keyStore.getKey(alias, appProps.getKeystorePassword().toCharArray());
+
+        inputStream.close();
+
+        return key;
     }
 
     private Path getKeystorePath() throws IOException {

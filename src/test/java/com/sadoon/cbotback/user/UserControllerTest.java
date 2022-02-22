@@ -1,6 +1,6 @@
 package com.sadoon.cbotback.user;
 
-import com.sadoon.cbotback.common.Mocks;
+import com.sadoon.cbotback.tools.Mocks;
 import com.sadoon.cbotback.exceptions.GlobalExceptionHandler;
 import com.sadoon.cbotback.user.models.User;
 import org.junit.jupiter.api.BeforeEach;

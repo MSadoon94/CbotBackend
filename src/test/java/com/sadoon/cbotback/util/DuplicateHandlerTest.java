@@ -1,6 +1,6 @@
 package com.sadoon.cbotback.util;
 
-import com.sadoon.cbotback.common.Mocks;
+import com.sadoon.cbotback.tools.Mocks;
 import com.sadoon.cbotback.exceptions.duplication.DuplicateUserException;
 import com.sadoon.cbotback.user.UserRepository;
 import com.sadoon.cbotback.user.models.User;

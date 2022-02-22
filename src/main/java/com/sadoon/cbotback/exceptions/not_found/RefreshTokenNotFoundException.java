@@ -1,6 +1,8 @@
-package com.sadoon.cbotback.exceptions;
+package com.sadoon.cbotback.exceptions.not_found;
 
-public class RefreshTokenNotFoundException extends EntityNotFoundException{
+import com.sadoon.cbotback.exceptions.ApiError;
+
+public class RefreshTokenNotFoundException extends EntityNotFoundException {
     public RefreshTokenNotFoundException(String token) {
         super(String.format("Refresh Token: %s", token));
     }

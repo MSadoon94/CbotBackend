@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sadoon.cbotback.brokerage.model.Balances;
 import com.sadoon.cbotback.brokerage.util.BrokerageDto;
-import com.sadoon.cbotback.common.Mocks;
+import com.sadoon.cbotback.tools.Mocks;
 import com.sadoon.cbotback.exceptions.KrakenRequestException;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;

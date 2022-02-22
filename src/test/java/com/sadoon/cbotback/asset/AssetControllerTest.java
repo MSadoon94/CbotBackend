@@ -4,7 +4,7 @@ import com.sadoon.cbotback.api.PublicRequestDto;
 import com.sadoon.cbotback.brokerage.BrokerageService;
 import com.sadoon.cbotback.brokerage.WebClientService;
 import com.sadoon.cbotback.brokerage.util.BrokerageApiModule;
-import com.sadoon.cbotback.common.Mocks;
+import com.sadoon.cbotback.tools.Mocks;
 import com.sadoon.cbotback.exceptions.GlobalExceptionHandler;
 import com.sadoon.cbotback.exceptions.KrakenRequestException;
 import com.sadoon.cbotback.user.models.User;

@@ -8,6 +8,11 @@ import com.sadoon.cbotback.card.models.Card;
 import com.sadoon.cbotback.card.models.CardApiRequest;
 import com.sadoon.cbotback.card.models.CardPasswordVerificationRequest;
 import com.sadoon.cbotback.exceptions.*;
+import com.sadoon.cbotback.exceptions.not_found.BrokerageNotFoundException;
+import com.sadoon.cbotback.exceptions.not_found.EntityNotFoundException;
+import com.sadoon.cbotback.exceptions.not_found.UserNotFoundException;
+import com.sadoon.cbotback.exceptions.password.CardPasswordEncryptionException;
+import com.sadoon.cbotback.exceptions.password.PasswordException;
 import com.sadoon.cbotback.user.UserService;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
@@ -53,7 +58,7 @@ public class CardController {
     @PostMapping("/user/card-password")
     public ResponseEntity<String> verifyCardPassword(
             @RequestBody CardPasswordVerificationRequest request, Principal principal)
-            throws EntityNotFoundException, PasswordException, GeneralSecurityException {
+            throws EntityNotFoundException, PasswordException {
 
         Card card = cardService.getCard(userService.getUserWithUsername(principal.getName()), request.getCardName());
         cardService.verifyPassword(card, request.getPassword(), principal);

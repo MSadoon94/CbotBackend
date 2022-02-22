@@ -5,8 +5,8 @@ import com.sadoon.cbotback.brokerage.util.SignatureCreator;
 import com.sadoon.cbotback.card.models.Card;
 import com.sadoon.cbotback.card.models.CardApiRequest;
 import com.sadoon.cbotback.exceptions.ApiError;
-import com.sadoon.cbotback.exceptions.CardNotFoundException;
-import com.sadoon.cbotback.exceptions.PasswordException;
+import com.sadoon.cbotback.exceptions.not_found.CardNotFoundException;
+import com.sadoon.cbotback.exceptions.password.PasswordException;
 import com.sadoon.cbotback.security.AESKeyUtil;
 import com.sadoon.cbotback.security.KeyStoreUtil;
 import com.sadoon.cbotback.user.models.User;
@@ -63,19 +63,17 @@ public class CardService {
 
 
     public void verifyPassword(Card card, String password, Principal principal)
-            throws GeneralSecurityException, PasswordException {
+            throws PasswordException {
 
         if(password.length() < 6){
             throw new PasswordException("Password cannot be shorter than 6 characters.");
         }
 
         String signature = signatureCreator.signature(card.getCardName(), password, principal.getName());
-        keyStoreUtil.getKey(signature);
         String decrypted;
         try {
             SecretKey key = (SecretKey) keyStoreUtil.getKey(String.format("%skey", signature));
             SecretKey iv = (SecretKey) keyStoreUtil.getKey(String.format("%siv", signature));
-
 
             decrypted = aesKeyUtil.decrypt(
                     "AES/GCM/NoPadding",

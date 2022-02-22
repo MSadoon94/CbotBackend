@@ -1,6 +1,5 @@
 package com.sadoon.cbotback.security;
 
-import com.sadoon.cbotback.AppProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -17,27 +16,25 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.servlet.http.HttpServletResponse;
-import java.util.Arrays;
 import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
 
-    private AppProperties props;
     private final RequestFilter filter;
 
-    public SecurityConfig(AppProperties props, RequestFilter filter) {
+    public SecurityConfig(RequestFilter filter) {
         super();
         this.filter = filter;
-        this.props = props;
     }
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(props.getCorsExclusion()));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "OPTIONS", "DELETE"));
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:3000", "http://localhost:8080"));
+        configuration.setAllowedMethods(List.of("*"));
+        configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
@@ -61,7 +58,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements WebM
                         (request, response, ex) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
                                 ex.getMessage()))
                 .and().authorizeRequests()
-                .antMatchers("api/login", "api/sign-up").permitAll()
+                .antMatchers("/login", "/sign-up").permitAll()
                 .anyRequest().authenticated()
                 .and().sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);

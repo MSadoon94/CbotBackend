@@ -1,7 +1,7 @@
 package com.sadoon.cbotback.user;
 
-import com.sadoon.cbotback.common.Mocks;
-import com.sadoon.cbotback.exceptions.UserNotFoundException;
+import com.sadoon.cbotback.tools.Mocks;
+import com.sadoon.cbotback.exceptions.not_found.UserNotFoundException;
 import com.sadoon.cbotback.refresh.models.RefreshToken;
 import com.sadoon.cbotback.status.CbotStatus;
 import com.sadoon.cbotback.strategy.Strategy;

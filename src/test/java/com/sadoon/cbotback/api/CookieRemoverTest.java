@@ -1,6 +1,6 @@
 package com.sadoon.cbotback.api;
 
-import com.sadoon.cbotback.common.Mocks;
+import com.sadoon.cbotback.tools.Mocks;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;

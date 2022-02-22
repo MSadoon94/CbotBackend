@@ -2,10 +2,10 @@ package com.sadoon.cbotback.refresh;
 
 import com.sadoon.cbotback.api.CookieRemover;
 import com.sadoon.cbotback.api.CookieService;
-import com.sadoon.cbotback.common.Mocks;
+import com.sadoon.cbotback.tools.Mocks;
 import com.sadoon.cbotback.exceptions.GlobalExceptionHandler;
-import com.sadoon.cbotback.exceptions.RefreshExpiredException;
-import com.sadoon.cbotback.exceptions.RefreshTokenNotFoundException;
+import com.sadoon.cbotback.exceptions.auth.RefreshExpiredException;
+import com.sadoon.cbotback.exceptions.not_found.RefreshTokenNotFoundException;
 import com.sadoon.cbotback.refresh.models.RefreshResponse;
 import com.sadoon.cbotback.user.models.User;
 import org.junit.jupiter.api.BeforeEach;

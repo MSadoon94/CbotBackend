@@ -1,7 +1,7 @@
 package com.sadoon.cbotback.api;
 
-import com.sadoon.cbotback.exceptions.RefreshTokenNotFoundException;
-import com.sadoon.cbotback.exceptions.UserNotFoundException;
+import com.sadoon.cbotback.exceptions.not_found.RefreshTokenNotFoundException;
+import com.sadoon.cbotback.exceptions.not_found.UserNotFoundException;
 import com.sadoon.cbotback.refresh.RefreshService;
 import com.sadoon.cbotback.refresh.models.RefreshToken;
 import com.sadoon.cbotback.security.JwtService;
@@ -55,7 +55,7 @@ public class CookieService {
                 .from("refresh_token", token.getToken())
                 .httpOnly(true)
                 .domain("localhost")
-                .path(String.format("/api%s", path))
+                .path(String.format("%s", path))
                 .maxAge(Duration.between(Instant.now(), token.getExpiryDate()))
                 .build();
 
@@ -66,7 +66,7 @@ public class CookieService {
                 .from("jwt", jwt)
                 .httpOnly(true)
                 .domain("localhost")
-                .path("/api/")
+                .path("/")
                 .build();
     }
 }

@@ -1,7 +1,7 @@
 package com.sadoon.cbotback.security;
 
 import com.sadoon.cbotback.AppProperties;
-import com.sadoon.cbotback.common.Mocks;
+import com.sadoon.cbotback.tools.Mocks;
 import com.sadoon.cbotback.user.MongoUserDetailsService;
 import com.sadoon.cbotback.user.models.User;
 import io.jsonwebtoken.ExpiredJwtException;

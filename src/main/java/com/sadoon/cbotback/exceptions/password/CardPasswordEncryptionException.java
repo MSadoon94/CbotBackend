@@ -1,4 +1,7 @@
-package com.sadoon.cbotback.exceptions;
+package com.sadoon.cbotback.exceptions.password;
+
+import com.sadoon.cbotback.exceptions.ApiError;
+import com.sadoon.cbotback.exceptions.CustomException;
 
 public class CardPasswordEncryptionException extends CustomException {
 

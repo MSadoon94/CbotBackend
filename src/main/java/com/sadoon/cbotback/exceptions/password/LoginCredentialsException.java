@@ -1,4 +1,6 @@
-package com.sadoon.cbotback.exceptions;
+package com.sadoon.cbotback.exceptions.password;
+
+import com.sadoon.cbotback.exceptions.ApiError;
 
 public class LoginCredentialsException extends CredentialsException {
     public LoginCredentialsException() {

@@ -1,7 +1,12 @@
 package com.sadoon.cbotback.exceptions;
 
 import com.sadoon.cbotback.api.CookieRemover;
+import com.sadoon.cbotback.exceptions.auth.ProcessingException;
+import com.sadoon.cbotback.exceptions.auth.UnauthorizedUserException;
 import com.sadoon.cbotback.exceptions.duplication.DuplicateEntityException;
+import com.sadoon.cbotback.exceptions.not_found.EntityNotFoundException;
+import com.sadoon.cbotback.exceptions.password.CardPasswordEncryptionException;
+import com.sadoon.cbotback.exceptions.password.CredentialsException;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +14,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
+import org.springframework.messaging.support.ErrorMessage;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
@@ -38,6 +47,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     private ResponseEntity<Object> buildResponseEntity(ApiError apiError) {
         logException(apiError);
         return new ResponseEntity<>(apiError, apiError.getStatus());
+    }
+
+    @ExceptionHandler(ProcessingException.class)
+    protected ResponseEntity<Object> handleNestedServletException(CustomException ex){
+        return buildResponseEntity(addSubErrors(ex.subError, ex));
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
@@ -96,6 +110,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body(apiError);
+    }
+
+    @MessageExceptionHandler
+    protected Message<Throwable> handleMessageException(Exception ex){
+        return MessageBuilder.fromMessage(new ErrorMessage(ex)).build();
     }
 
     private ApiError buildApiError(HttpStatus status, CustomException ex) {

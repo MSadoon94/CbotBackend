@@ -1,8 +1,10 @@
 package com.sadoon.cbotback.status;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sadoon.cbotback.common.Mocks;
-import com.sadoon.cbotback.exceptions.GlobalExceptionHandler;
+import com.sadoon.cbotback.exceptions.not_found.UserNotFoundException;
+import com.sadoon.cbotback.tools.Mocks;
+import com.sadoon.cbotback.tools.WebSocketTest;
 import com.sadoon.cbotback.user.UserService;
 import com.sadoon.cbotback.user.models.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,24 +13,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.MediaType;
+import org.springframework.messaging.Message;
 import org.springframework.security.core.Authentication;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.test.util.JsonPathExpectationsHelper;
 
+import java.nio.charset.StandardCharsets;
+
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(MockitoExtension.class)
 class StatusControllerTest {
-
-    private ObjectMapper objectMapper = new ObjectMapper();
-    private MockMvc mvc;
 
     @Mock
     private UserService userService;
@@ -38,43 +35,41 @@ class StatusControllerTest {
 
     private User mockUser = Mocks.user();
     private final Authentication auth = Mocks.auth(mockUser);
-
     @BeforeEach
     void setUp() {
-        mvc = MockMvcBuilders.standaloneSetup(controller)
-                .setControllerAdvice(GlobalExceptionHandler.class)
-                .build();
         mockUser.setCbotStatus(Mocks.cbotStatus());
     }
 
     @Test
-    void shouldReturnOkResponseOnSuccessfulStatusUpdate() throws Exception {
-        statusUpdate()
-                .andExpect(status().isOk());
+    void shouldReturnCbotStatusOnSubscribe() throws Exception {
+        given(userService.getUserWithUsername(any())).willReturn(mockUser);
+
+        WebSocketTest webSocketTest = new WebSocketTest(controller);
+
+        webSocketTest.responseMessage(webSocketTest.subscribeHeaderAccessor("/topic/cbot-status", auth));
+
+        Message<?> reply = webSocketTest.getOutboundChannel().getMessages().get(0);
+
+        String responseJson = new String((byte[]) reply.getPayload(), StandardCharsets.UTF_8);
+
+        new JsonPathExpectationsHelper("$.isActive")
+                .assertValue(responseJson, is(mockUser.getCbotStatus().isActive()));
+        new JsonPathExpectationsHelper("$.activeStrategies")
+                .assertValue(responseJson, is(mockUser.getCbotStatus().activeStrategies()));
     }
 
     @Test
-    void shouldReturnCbotStatusOnGetRequest() throws Exception {
+    void shouldSendStatusUpdatesToBrokerOnIncomingMessage() throws JsonProcessingException, UserNotFoundException {
         given(userService.getUserWithUsername(any())).willReturn(mockUser);
-        getStatus()
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.isActive", is(mockUser.getCbotStatus().isActive())))
-                .andExpect(jsonPath("$.activeStrategies", is(mockUser.getCbotStatus().activeStrategies())));
-    }
+        given(userService.updateStatus(any(), any())).willReturn(mockUser);
+        WebSocketTest webSocketTest = new WebSocketTest(controller);
 
-    private ResultActions statusUpdate() throws Exception {
-        return mvc.perform(
-                MockMvcRequestBuilders.put("/user/cbot-status")
-                        .principal(auth)
-                        .content(objectMapper.writeValueAsString(Mocks.cbotStatus()))
-                        .contentType(MediaType.APPLICATION_JSON)
-        );
-    }
+        webSocketTest.responseMessage(
+                webSocketTest.sendHeaderAccessor("/app/cbot-status", auth),
+                new ObjectMapper().writeValueAsBytes(Mocks.cbotStatus()));
 
-    private ResultActions getStatus() throws Exception {
-        return mvc.perform(
-                MockMvcRequestBuilders.get("/user/cbot-status")
-                        .principal(auth));
-    }
+        Message<?> reply = webSocketTest.getBrokerMessagingChannel().getMessages().get(0);
 
+        assertThat(reply.getPayload(), is(mockUser.getCbotStatus()));
+    }
 }

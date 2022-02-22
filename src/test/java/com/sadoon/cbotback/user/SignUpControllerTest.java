@@ -1,7 +1,7 @@
 package com.sadoon.cbotback.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sadoon.cbotback.common.Mocks;
+import com.sadoon.cbotback.tools.Mocks;
 import com.sadoon.cbotback.exceptions.GlobalExceptionHandler;
 import com.sadoon.cbotback.exceptions.duplication.DuplicateUserException;
 import com.sadoon.cbotback.user.models.SignUpRequest;

@@ -1,10 +1,10 @@
 package com.sadoon.cbotback.refresh;
 
 import com.sadoon.cbotback.AppProperties;
-import com.sadoon.cbotback.common.Mocks;
-import com.sadoon.cbotback.exceptions.RefreshExpiredException;
-import com.sadoon.cbotback.exceptions.RefreshTokenNotFoundException;
-import com.sadoon.cbotback.exceptions.UserNotFoundException;
+import com.sadoon.cbotback.tools.Mocks;
+import com.sadoon.cbotback.exceptions.auth.RefreshExpiredException;
+import com.sadoon.cbotback.exceptions.not_found.RefreshTokenNotFoundException;
+import com.sadoon.cbotback.exceptions.not_found.UserNotFoundException;
 import com.sadoon.cbotback.refresh.models.RefreshToken;
 import com.sadoon.cbotback.security.JwtService;
 import com.sadoon.cbotback.user.UserService;

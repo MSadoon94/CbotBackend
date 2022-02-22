@@ -6,7 +6,7 @@ import com.sadoon.cbotback.brokerage.model.Brokerage;
 import com.sadoon.cbotback.brokerage.model.BrokerageApiRequest;
 import com.sadoon.cbotback.brokerage.util.BrokerageDto;
 import com.sadoon.cbotback.brokerage.util.NonceCreator;
-import com.sadoon.cbotback.exceptions.BrokerageNotFoundException;
+import com.sadoon.cbotback.exceptions.not_found.BrokerageNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;

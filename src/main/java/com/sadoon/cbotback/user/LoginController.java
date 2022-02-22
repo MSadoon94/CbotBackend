@@ -1,9 +1,9 @@
 package com.sadoon.cbotback.user;
 
 import com.sadoon.cbotback.api.CookieService;
-import com.sadoon.cbotback.exceptions.LoginCredentialsException;
-import com.sadoon.cbotback.exceptions.RefreshTokenNotFoundException;
-import com.sadoon.cbotback.exceptions.UserNotFoundException;
+import com.sadoon.cbotback.exceptions.password.LoginCredentialsException;
+import com.sadoon.cbotback.exceptions.not_found.RefreshTokenNotFoundException;
+import com.sadoon.cbotback.exceptions.not_found.UserNotFoundException;
 import com.sadoon.cbotback.user.models.LoginRequest;
 import com.sadoon.cbotback.user.models.LoginResponse;
 import org.springframework.http.ResponseEntity;

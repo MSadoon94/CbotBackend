@@ -1,4 +1,4 @@
-package com.sadoon.cbotback.exceptions;
+package com.sadoon.cbotback.exceptions.auth;
 
 public class RefreshExpiredException extends UnauthorizedUserException{
     public RefreshExpiredException() {

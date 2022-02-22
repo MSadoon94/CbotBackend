@@ -1,4 +1,4 @@
-package com.sadoon.cbotback.common;
+package com.sadoon.cbotback.tools;
 
 import com.sadoon.cbotback.api.PublicRequestDto;
 import com.sadoon.cbotback.asset.AssetPair;
@@ -136,7 +136,7 @@ public class Mocks {
                 .from("refresh_token", refreshToken.getToken())
                 .httpOnly(true)
                 .domain("localhost")
-                .path(String.format("/api%s", path))
+                .path(String.format("%s", path))
                 .maxAge(Duration.between(Instant.now(), refreshToken.getExpiryDate()))
                 .build();
     }
@@ -145,7 +145,7 @@ public class Mocks {
                 .from("jwt", jwt)
                 .httpOnly(true)
                 .domain("localhost")
-                .path("/api/")
+                .path("/")
                 .build();
     }
 
@@ -154,7 +154,7 @@ public class Mocks {
                 .from(name, null)
                 .httpOnly(true)
                 .domain("localhost")
-                .path(String.format("/api%s", path))
+                .path(String.format("%s", path))
                 .maxAge(-1)
                 .build();
     }

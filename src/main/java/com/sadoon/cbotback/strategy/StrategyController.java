@@ -1,6 +1,6 @@
 package com.sadoon.cbotback.strategy;
 
-import com.sadoon.cbotback.exceptions.UserNotFoundException;
+import com.sadoon.cbotback.exceptions.not_found.UserNotFoundException;
 import com.sadoon.cbotback.user.UserService;
 import com.sadoon.cbotback.user.models.User;
 import org.springframework.http.HttpStatus;

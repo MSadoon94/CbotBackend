@@ -17,7 +17,7 @@ public class CookieRemover {
                 .from(name, null)
                 .httpOnly(true)
                 .domain("localhost")
-                .path(String.format("/api%s", path))
+                .path(String.format("%s", path))
                 .maxAge(-1)
                 .build();
     }

@@ -8,7 +8,11 @@ import com.sadoon.cbotback.brokerage.util.BrokerageApiModule;
 import com.sadoon.cbotback.card.models.Card;
 import com.sadoon.cbotback.card.models.CardApiRequest;
 import com.sadoon.cbotback.card.models.CardPasswordVerificationRequest;
-import com.sadoon.cbotback.common.Mocks;
+import com.sadoon.cbotback.exceptions.not_found.BrokerageNotFoundException;
+import com.sadoon.cbotback.exceptions.not_found.CardNotFoundException;
+import com.sadoon.cbotback.exceptions.not_found.UserNotFoundException;
+import com.sadoon.cbotback.exceptions.password.PasswordException;
+import com.sadoon.cbotback.tools.Mocks;
 import com.sadoon.cbotback.exceptions.*;
 import com.sadoon.cbotback.user.UserService;
 import com.sadoon.cbotback.user.models.User;
@@ -27,7 +31,6 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
 import java.util.Map;
 
@@ -194,12 +197,12 @@ class CardControllerTest {
     }
 
     @Test
-    void shouldReturnServiceUnavailableOnKeyStoreException() throws Exception {
-        Exception exception = new GeneralSecurityException();
+    void shouldReturnUnauthorizedOnKeyStoreException() throws Exception {
+        Exception exception = new PasswordException("card password");
         doThrow(exception).when(cardService).verifyPassword(any(), any(), any());
 
         cardPasswordPost()
-                .andExpect(status().isServiceUnavailable());
+                .andExpect(status().isUnauthorized());
     }
 
 
