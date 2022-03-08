@@ -9,16 +9,16 @@ import java.util.*;
 public class AssetPairs implements KrakenResponse {
 
     @JsonAlias("result")
-    private Map<String, AssetPair> pairNames;
+    private Map<String, AssetPair> pairs;
 
     private List<String> errors;
 
-    public Map<String, AssetPair> getPairNames() {
-        return pairNames;
+    public Map<String, AssetPair> getPairs() {
+        return pairs;
     }
 
-    public void setPairNames(Map<String, AssetPair> pairNames) {
-        this.pairNames = pairNames;
+    public void setPairs(Map<String, AssetPair> pairs) {
+        this.pairs = pairs;
     }
 
     @Override

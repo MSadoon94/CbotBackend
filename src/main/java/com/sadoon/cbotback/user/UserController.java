@@ -1,6 +1,6 @@
 package com.sadoon.cbotback.user;
 
-import com.sadoon.cbotback.exceptions.not_found.UserNotFoundException;
+import com.sadoon.cbotback.exceptions.notfound.UserNotFoundException;
 import com.sadoon.cbotback.user.models.User;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

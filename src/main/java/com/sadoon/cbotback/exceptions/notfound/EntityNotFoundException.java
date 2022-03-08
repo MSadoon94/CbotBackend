@@ -1,4 +1,4 @@
-package com.sadoon.cbotback.exceptions.not_found;
+package com.sadoon.cbotback.exceptions.notfound;
 
 import com.sadoon.cbotback.exceptions.ApiError;
 import com.sadoon.cbotback.exceptions.CustomException;

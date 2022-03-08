@@ -3,7 +3,7 @@ package com.sadoon.cbotback.card;
 import com.sadoon.cbotback.brokerage.util.SignatureCreator;
 import com.sadoon.cbotback.card.models.Card;
 import com.sadoon.cbotback.tools.Mocks;
-import com.sadoon.cbotback.exceptions.not_found.CardNotFoundException;
+import com.sadoon.cbotback.exceptions.notfound.CardNotFoundException;
 import com.sadoon.cbotback.exceptions.password.PasswordException;
 import com.sadoon.cbotback.security.AESKeyUtil;
 import com.sadoon.cbotback.security.KeyStoreUtil;

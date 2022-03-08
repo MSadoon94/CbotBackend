@@ -4,7 +4,7 @@ import com.sadoon.cbotback.api.CookieRemover;
 import com.sadoon.cbotback.exceptions.auth.ProcessingException;
 import com.sadoon.cbotback.exceptions.auth.UnauthorizedUserException;
 import com.sadoon.cbotback.exceptions.duplication.DuplicateEntityException;
-import com.sadoon.cbotback.exceptions.not_found.EntityNotFoundException;
+import com.sadoon.cbotback.exceptions.notfound.EntityNotFoundException;
 import com.sadoon.cbotback.exceptions.password.CardPasswordEncryptionException;
 import com.sadoon.cbotback.exceptions.password.CredentialsException;
 import io.jsonwebtoken.ExpiredJwtException;

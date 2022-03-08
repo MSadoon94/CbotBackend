@@ -17,18 +17,24 @@ import com.sadoon.cbotback.user.models.LoginRequest;
 import com.sadoon.cbotback.user.models.LoginResponse;
 import com.sadoon.cbotback.user.models.SignUpRequest;
 import com.sadoon.cbotback.user.models.User;
+import com.sadoon.cbotback.websocket.KrakenTickerMessage;
+import com.sadoon.cbotback.websocket.PayloadType;
+import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.mock.web.MockCookie;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.web.reactive.socket.WebSocketMessage;
+import reactor.core.publisher.Flux;
 
 import javax.servlet.http.Cookie;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.function.Predicate;
 
 public class Mocks {
 
@@ -106,12 +112,12 @@ public class Mocks {
 
     public static AssetPairs assetPairs() {
         AssetPairs assetPairs = new AssetPairs();
-        assetPairs.setPairNames(Map.of("BTCUSD", new AssetPair()));
+        assetPairs.setPairs(Map.of("BTC/USD", new AssetPair()));
         assetPairs.unpackErrors(List.of("").toArray(String[]::new));
         return assetPairs;
     }
 
-    public static Cookie refreshCookie(String path, int maxAge){
+    public static Cookie refreshCookie(String path, int maxAge) {
         MockCookie cookie = new MockCookie("refresh_token", "mockToken");
         cookie.setHttpOnly(true);
         cookie.setMaxAge(maxAge);
@@ -120,18 +126,18 @@ public class Mocks {
         return cookie;
     }
 
-    public static RefreshResponse refreshResponse(Date date){
+    public static RefreshResponse refreshResponse(Date date) {
         RefreshResponse response = new RefreshResponse("mockJwt", date);
         return response;
     }
 
-    public static RefreshToken refreshToken(int expirationMs){
+    public static RefreshToken refreshToken(int expirationMs) {
         return new RefreshToken(
                 UUID.randomUUID().toString(),
                 Instant.now().plusMillis(expirationMs));
     }
 
-    public static ResponseCookie refreshCookie(RefreshToken refreshToken, String path){
+    public static ResponseCookie refreshCookie(RefreshToken refreshToken, String path) {
         return ResponseCookie
                 .from("refresh_token", refreshToken.getToken())
                 .httpOnly(true)
@@ -140,7 +146,8 @@ public class Mocks {
                 .maxAge(Duration.between(Instant.now(), refreshToken.getExpiryDate()))
                 .build();
     }
-    public static ResponseCookie jwtCookie(String jwt, Date expiration){
+
+    public static ResponseCookie jwtCookie(String jwt, Date expiration) {
         return ResponseCookie
                 .from("jwt", jwt)
                 .httpOnly(true)
@@ -149,7 +156,7 @@ public class Mocks {
                 .build();
     }
 
-    public static ResponseCookie nullCookie(String name, String path){
+    public static ResponseCookie nullCookie(String name, String path) {
         return ResponseCookie
                 .from(name, null)
                 .httpOnly(true)
@@ -159,32 +166,70 @@ public class Mocks {
                 .build();
     }
 
-    public static LoginResponse loginResponse(Date date){
+    public static LoginResponse loginResponse(Date date) {
         return new LoginResponse("username", date);
     }
 
-    public static LoginRequest loginRequest(){
+    public static LoginRequest loginRequest() {
         return new LoginRequest("mockUser", "password", "mockId");
     }
 
-    public static HttpHeaders refreshHeaders(RefreshToken token){
+    public static HttpHeaders refreshHeaders(RefreshToken token) {
         HttpHeaders headers = new HttpHeaders();
         headers.add("Set-Cookie", refreshCookie(token, "/refresh-jwt").toString());
         headers.add("Set-Cookie", refreshCookie(token, "/log-out").toString());
         return headers;
     }
 
-    public static SignUpRequest signUpRequest(){
+    public static SignUpRequest signUpRequest() {
         return new SignUpRequest("mockUser", "password", "USER");
     }
 
-    public static Strategy strategy(){
+    public static Strategy strategy() {
         Strategy strategy = new Strategy();
         strategy.setName("mockStrategy");
+        strategy.setBase("BTC");
+        strategy.setQuote("USD");
+        strategy.setStopLoss("1000");
+        strategy.setMaxPosition("5000");
+        strategy.setTargetProfit("3000");
+        strategy.setMaxLoss("10000");
+        strategy.setEntry("10");
         return strategy;
     }
 
-    public static CbotStatus cbotStatus(){
+    public static CbotStatus cbotStatus() {
         return new CbotStatus(true, List.of(strategy().getName()));
     }
+
+    public static Flux<WebSocketMessage> mockMessageFlux(List<String> payloads) {
+        DefaultDataBufferFactory dataBufferFactory = new DefaultDataBufferFactory();
+        return Flux.fromIterable(payloads)
+                .map(payload -> new WebSocketMessage(
+                                WebSocketMessage.Type.TEXT,
+                                dataBufferFactory.wrap(payload.getBytes())
+                        )
+                );
+
+    }
+
+    public static Predicate<WebSocketMessage> mockTickerMessageFilter(){
+        return message ->
+                !PayloadType.getType(message).equals(PayloadType.EVENT) &&
+                        PayloadType.getType(message).equals(PayloadType.TICKER);
+    }
+
+    public static KrakenTickerMessage krakenTickerMessage(String[] mockValues){
+        KrakenTickerMessage message = new KrakenTickerMessage();
+        message.setPair("BTC/USD");
+        message.setAsk(mockValues);
+        message.setBid(mockValues);
+        message.setOpen(mockValues);
+        message.setClose(mockValues);
+        message.setHigh(mockValues);
+        message.setLow(mockValues);
+        message.setVolume(mockValues);
+        return message;
+    }
+
 }

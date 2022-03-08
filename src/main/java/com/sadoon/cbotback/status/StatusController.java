@@ -1,6 +1,6 @@
 package com.sadoon.cbotback.status;
 
-import com.sadoon.cbotback.exceptions.not_found.UserNotFoundException;
+import com.sadoon.cbotback.exceptions.notfound.UserNotFoundException;
 import com.sadoon.cbotback.user.UserService;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;

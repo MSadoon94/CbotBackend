@@ -6,7 +6,7 @@ import com.sadoon.cbotback.brokerage.util.BrokerageDto;
 import com.sadoon.cbotback.brokerage.util.NonceCreator;
 import com.sadoon.cbotback.card.models.CardApiRequest;
 import com.sadoon.cbotback.tools.Mocks;
-import com.sadoon.cbotback.exceptions.not_found.BrokerageNotFoundException;
+import com.sadoon.cbotback.exceptions.notfound.BrokerageNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

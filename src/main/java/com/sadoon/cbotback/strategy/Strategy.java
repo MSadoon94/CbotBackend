@@ -2,6 +2,8 @@ package com.sadoon.cbotback.strategy;
 
 public class Strategy {
     private String name;
+    private String type;
+    private String brokerage;
     private String base;
     private String quote;
     private String stopLoss;
@@ -9,7 +11,8 @@ public class Strategy {
     private String targetProfit;
     private String movingStopLoss;
     private String maxLoss;
-    private String longEntry;
+    private String entry;
+    private String timeFrame;
 
     public void setName(String name) {
         this.name = name;
@@ -75,11 +78,35 @@ public class Strategy {
         this.maxLoss = maxLoss;
     }
 
-    public String getLongEntry() {
-        return longEntry;
+    public String getEntry() {
+        return entry;
     }
 
-    public void setLongEntry(String longEntry) {
-        this.longEntry = longEntry;
+    public void setEntry(String entry) {
+        this.entry = entry;
+    }
+
+    public String getTimeFrame() {
+        return timeFrame;
+    }
+
+    public void setTimeFrame(String timeFrame) {
+        this.timeFrame = timeFrame;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getBrokerage() {
+        return brokerage;
+    }
+
+    public void setBrokerage(String brokerage) {
+        this.brokerage = brokerage;
     }
 }

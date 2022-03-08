@@ -1,7 +1,7 @@
 package com.sadoon.cbotback.user;
 
 import com.sadoon.cbotback.card.models.Card;
-import com.sadoon.cbotback.exceptions.not_found.UserNotFoundException;
+import com.sadoon.cbotback.exceptions.notfound.UserNotFoundException;
 import com.sadoon.cbotback.status.CbotStatus;
 import com.sadoon.cbotback.strategy.Strategy;
 import com.sadoon.cbotback.user.models.User;

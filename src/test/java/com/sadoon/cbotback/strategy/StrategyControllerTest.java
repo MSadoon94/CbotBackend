@@ -3,7 +3,7 @@ package com.sadoon.cbotback.strategy;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sadoon.cbotback.tools.Mocks;
 import com.sadoon.cbotback.exceptions.GlobalExceptionHandler;
-import com.sadoon.cbotback.exceptions.not_found.UserNotFoundException;
+import com.sadoon.cbotback.exceptions.notfound.UserNotFoundException;
 import com.sadoon.cbotback.user.UserService;
 import com.sadoon.cbotback.user.models.User;
 import org.junit.jupiter.api.BeforeEach;

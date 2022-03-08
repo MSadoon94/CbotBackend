@@ -2,7 +2,7 @@ package com.sadoon.cbotback.status;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sadoon.cbotback.exceptions.not_found.UserNotFoundException;
+import com.sadoon.cbotback.exceptions.notfound.UserNotFoundException;
 import com.sadoon.cbotback.tools.Mocks;
 import com.sadoon.cbotback.tools.WebSocketTest;
 import com.sadoon.cbotback.user.UserService;
