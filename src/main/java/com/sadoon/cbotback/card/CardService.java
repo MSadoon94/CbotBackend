@@ -82,11 +82,11 @@ public class CardService {
                     iv.getEncoded()
             );
         } catch (Exception e) {
-            throw new PasswordException("card password", new ApiError(HttpStatus.BAD_REQUEST, e.getMessage(), e));
+            throw new PasswordException("card", new ApiError(HttpStatus.BAD_REQUEST, e.getMessage(), e));
         }
 
         if (!decrypted.equals(password)) {
-            throw new PasswordException("card password");
+            throw new PasswordException("card");
         }
     }
 

@@ -4,8 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sadoon.cbotback.brokerage.model.Balances;
 import com.sadoon.cbotback.brokerage.util.BrokerageDto;
+import com.sadoon.cbotback.exceptions.exchange.ExchangeRequestException;
 import com.sadoon.cbotback.tools.Mocks;
-import com.sadoon.cbotback.exceptions.KrakenRequestException;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterAll;
@@ -61,7 +61,7 @@ class WebClientServiceTest {
     }
 
     @Test
-    void shouldReturnResponseOfSpecifiedTypeOnSuccess() throws JsonProcessingException, KrakenRequestException {
+    void shouldReturnResponseOfSpecifiedTypeOnSuccess() throws JsonProcessingException, ExchangeRequestException, InterruptedException {
         MockResponse mockResponse = new MockResponse()
                 .setResponseCode(HttpStatus.OK.value())
                 .setBody(objectMapper.writeValueAsString(mockBalances))
@@ -76,7 +76,7 @@ class WebClientServiceTest {
 
     @Test
     void shouldReturnWebClientExceptionOnFail() throws JsonProcessingException {
-        mockBalances.unpackErrors(new String[]{"mockError"});
+        mockBalances.setErrors(new String[]{"mockError"});
         MockResponse mockResponse = new MockResponse()
                 .setResponseCode(HttpStatus.BAD_REQUEST.value())
                 .setBody(objectMapper.writeValueAsString(mockBalances))

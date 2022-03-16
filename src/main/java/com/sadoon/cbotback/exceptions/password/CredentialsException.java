@@ -5,11 +5,11 @@ import com.sadoon.cbotback.exceptions.CustomException;
 
 public class CredentialsException extends CustomException {
 
-    protected CredentialsException(String message) {
+    public CredentialsException(String message) {
         super(String.format("%s is incorrect. Please try again.", message));
     }
 
-    protected CredentialsException(String message, ApiError subError) {
+    public CredentialsException(String message, ApiError subError) {
         super(String.format("%s is incorrect. Please try again.", message), subError);
     }
 }

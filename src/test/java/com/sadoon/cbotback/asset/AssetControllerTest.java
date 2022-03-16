@@ -3,10 +3,10 @@ package com.sadoon.cbotback.asset;
 import com.sadoon.cbotback.api.PublicRequestDto;
 import com.sadoon.cbotback.brokerage.BrokerageService;
 import com.sadoon.cbotback.brokerage.WebClientService;
-import com.sadoon.cbotback.brokerage.util.BrokerageApiModule;
-import com.sadoon.cbotback.tools.Mocks;
 import com.sadoon.cbotback.exceptions.GlobalExceptionHandler;
-import com.sadoon.cbotback.exceptions.KrakenRequestException;
+import com.sadoon.cbotback.exceptions.exchange.ExchangeRequestException;
+import com.sadoon.cbotback.exchange.ExchangeNames;
+import com.sadoon.cbotback.tools.Mocks;
 import com.sadoon.cbotback.user.models.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,7 +14,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.autoconfigure.json.JsonTest;
 import org.springframework.security.core.Authentication;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -31,15 +30,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(MockitoExtension.class)
-@JsonTest
 class AssetControllerTest {
 
     @Mock
     private WebClientService webClientService;
     @Mock
     private BrokerageService brokerageService;
-    @Mock
-    private BrokerageApiModule brokerageApiModule;
 
     @InjectMocks
     private AssetController controller;
@@ -74,7 +70,8 @@ class AssetControllerTest {
 
     @Test
     void shouldReturnErrorResponseForInvalidAssetPair() throws Exception {
-        KrakenRequestException exception = new KrakenRequestException(Arrays.toString(new String[]{"InvalidAssets"}));
+        ExchangeRequestException exception =
+                new ExchangeRequestException(ExchangeNames.KRAKEN, Arrays.toString(new String[]{"InvalidAssets"}));
 
         given(brokerageService.createPublicDto(any(AssetPairRequest.class), any())).willReturn(dto);
         given(webClientService.onResponse(any(), any())).willThrow(exception);

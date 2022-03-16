@@ -1,4 +1,4 @@
-package com.sadoon.cbotback.websocket;
+package com.sadoon.cbotback.exchange;
 
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import org.springframework.web.reactive.socket.WebSocketSession;
@@ -9,25 +9,25 @@ import reactor.core.publisher.Mono;
 import java.net.URI;
 import java.util.function.Function;
 
-public class BrokerageWebSocket {
+public class ExchangeWebSocket {
 
     private WebSocketClient client;
     private URI webSocketURI;
     private Flux<Function<WebSocketSession, Mono<Void>>> sendFunctions = Flux.just();
     private Flux<Function<WebSocketSession, Flux<WebSocketMessage>>> receiveFunctions = Flux.just();
 
-    public BrokerageWebSocket(WebSocketClient client, URI webSocketURI) {
+    public ExchangeWebSocket(WebSocketClient client, URI webSocketURI) {
         this.client = client;
         this.webSocketURI = webSocketURI;
         startClient();
     }
 
-    public BrokerageWebSocket addSendFunction(Function<WebSocketSession, Mono<Void>> function) {
+    public ExchangeWebSocket addSendFunction(Function<WebSocketSession, Mono<Void>> function) {
         sendFunctions = sendFunctions.concatWithValues(function);
         return this;
     }
 
-    public BrokerageWebSocket addReceiveFunction(Function<WebSocketSession, Flux<WebSocketMessage>> function) {
+    public ExchangeWebSocket addReceiveFunction(Function<WebSocketSession, Flux<WebSocketMessage>> function) {
         receiveFunctions = receiveFunctions.concatWithValues(function);
         return this;
     }

@@ -1,4 +1,4 @@
-package com.sadoon.cbotback.websocket;
+package com.sadoon.cbotback.exchange;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;

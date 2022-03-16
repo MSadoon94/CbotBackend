@@ -4,7 +4,7 @@ import com.sadoon.cbotback.api.PublicRequestDto;
 import com.sadoon.cbotback.brokerage.BrokerageService;
 import com.sadoon.cbotback.brokerage.WebClientService;
 import com.sadoon.cbotback.brokerage.util.BrokerageApiModule;
-import com.sadoon.cbotback.exceptions.KrakenRequestException;
+import com.sadoon.cbotback.exceptions.exchange.ExchangeRequestException;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,7 +23,7 @@ public class AssetController {
     }
 
     @GetMapping("/asset-pair/{assets}/{brokerage}")
-    public ResponseEntity<AssetPairs> getAssetPair(AssetPairRequest request) throws KrakenRequestException {
+    public ResponseEntity<AssetPairs> getAssetPair(AssetPairRequest request) throws ExchangeRequestException {
         PublicRequestDto<AssetPairRequest> dto = brokerageService.createPublicDto(request, "asset-pair");
         dto.appendEndpoint(request.getAssets());
 

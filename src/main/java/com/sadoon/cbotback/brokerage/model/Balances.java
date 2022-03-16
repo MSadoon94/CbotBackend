@@ -13,7 +13,7 @@ import static java.util.Map.Entry;
 public class Balances implements KrakenResponse {
     private Map<String, BigDecimal> balances;
 
-    private List<String> errors;
+    private String[] errors;
 
     public Balances() {
     }
@@ -34,12 +34,12 @@ public class Balances implements KrakenResponse {
                 .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
     }
 
-    public List<String> getErrors() {
-        return Optional.ofNullable(errors).orElse(Collections.emptyList());
+    public String[] getErrors() {
+        return Optional.ofNullable(errors).orElse(new String[]{});
     }
 
     @JsonProperty(value = "error", access = Access.WRITE_ONLY)
-    public void unpackErrors(String[] error) {
-        this.errors = Arrays.stream(error).toList();
+    public void setErrors(String[] errors) {
+        this.errors = errors;
     }
 }

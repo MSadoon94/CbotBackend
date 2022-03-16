@@ -1,11 +1,12 @@
-package com.sadoon.cbotback.websocket;
+package com.sadoon.cbotback.exchange.kraken;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sadoon.cbotback.asset.AssetPairs;
+import com.sadoon.cbotback.exchange.BrokerageMessageFactory;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.util.List;
 import java.util.Map;
 
 public class KrakenMessageFactory implements BrokerageMessageFactory {
@@ -31,15 +32,13 @@ public class KrakenMessageFactory implements BrokerageMessageFactory {
                 .share()
                 .subscribeOn(Schedulers.boundedElastic());
     }
-
     @Override
-    public Mono<String> tickerSubscribe(AssetPairs assetPairs) {
-        String[] pairs = assetPairs.getPairs().keySet().toArray(new String[]{});
+    public Mono<String> tickerSubscribe(List<String> pairs){
         return Mono.fromCallable(() ->
                         mapper.writeValueAsString(
                                 Map.of(
                                         "event", "subscribe",
-                                        "pair", pairs,
+                                        "pair", pairs.toArray(new String[]{}),
                                         "subscription", Map.of("name", "ticker")
                                 )))
                 .subscribeOn(Schedulers.boundedElastic());

@@ -1,4 +1,4 @@
-package com.sadoon.cbotback.websocket;
+package com.sadoon.cbotback.exchange.model;
 
 public interface TickerMessage {
 

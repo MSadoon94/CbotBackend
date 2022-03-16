@@ -1,5 +1,10 @@
 package com.sadoon.cbotback.strategy;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.sadoon.cbotback.exceptions.notfound.StrategyTypeNotFoundException;
+
+import java.util.Arrays;
+
 public class Strategy {
     private String name;
     private String type;
@@ -96,6 +101,14 @@ public class Strategy {
 
     public String getType() {
         return type;
+    }
+
+    @JsonIgnore
+    public StrategyType asStrategyType() throws StrategyTypeNotFoundException {
+        return Arrays.stream(StrategyType.values())
+                .filter(strategyType -> strategyType.name().equalsIgnoreCase(type))
+                .findFirst()
+                .orElseThrow(() -> new StrategyTypeNotFoundException(type));
     }
 
     public void setType(String type) {

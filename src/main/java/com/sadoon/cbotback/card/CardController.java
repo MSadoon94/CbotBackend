@@ -7,7 +7,7 @@ import com.sadoon.cbotback.brokerage.util.BrokerageApiModule;
 import com.sadoon.cbotback.card.models.Card;
 import com.sadoon.cbotback.card.models.CardApiRequest;
 import com.sadoon.cbotback.card.models.CardPasswordVerificationRequest;
-import com.sadoon.cbotback.exceptions.*;
+import com.sadoon.cbotback.exceptions.exchange.ExchangeRequestException;
 import com.sadoon.cbotback.exceptions.notfound.BrokerageNotFoundException;
 import com.sadoon.cbotback.exceptions.notfound.EntityNotFoundException;
 import com.sadoon.cbotback.exceptions.notfound.UserNotFoundException;
@@ -48,7 +48,7 @@ public class CardController {
 
     @PostMapping("/user/card")
     public ResponseEntity<String> saveCard(@RequestBody CardApiRequest request, Principal principal)
-            throws EntityNotFoundException, CardPasswordEncryptionException, KrakenRequestException {
+            throws EntityNotFoundException, CardPasswordEncryptionException, ExchangeRequestException {
 
         userService.addCard(userService.getUserWithUsername(principal.getName()), createCard(request, principal));
 
@@ -74,7 +74,7 @@ public class CardController {
     }
 
     private Card createCard(CardApiRequest request, Principal principal)
-            throws CardPasswordEncryptionException, BrokerageNotFoundException, KrakenRequestException {
+            throws CardPasswordEncryptionException, BrokerageNotFoundException, ExchangeRequestException {
         try {
             Card card = cardService.newCard(request);
             card.setBalances(getBalances(request));
@@ -84,7 +84,7 @@ public class CardController {
         }
     }
 
-    private Balances getBalances(CardApiRequest request) throws KrakenRequestException, BrokerageNotFoundException {
+    private Balances getBalances(CardApiRequest request) throws ExchangeRequestException, BrokerageNotFoundException {
         return webClientService.onResponse(
                 new ParameterizedTypeReference<Balances>() {
                 },

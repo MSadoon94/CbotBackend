@@ -10,7 +10,7 @@ import java.util.List;
 
 public class AssetPair {
 
-    private String altName, base, quote, baseType, quoteType, feeVolumeCurrency, orderMin;
+    private String altName, wsName,  base, quote, baseType, quoteType, feeVolumeCurrency, orderMin;
 
     private Integer pairDecimals, lotDecimals, lotMultiplier, marginCall, marginStop;
 
@@ -23,8 +23,18 @@ public class AssetPair {
         return altName;
     }
 
+    @JsonAlias("altname")
     public void setAltName(String altName) {
         this.altName = altName;
+    }
+
+    public String getWsName() {
+        return wsName;
+    }
+
+    @JsonAlias("wsname")
+    public void setWsName(String wsName) {
+        this.wsName = wsName;
     }
 
     public String getBase() {

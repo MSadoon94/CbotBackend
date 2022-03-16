@@ -1,8 +1,9 @@
-package com.sadoon.cbotback.websocket;
+package com.sadoon.cbotback.exchange.kraken;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSetter;
+import com.sadoon.cbotback.exchange.model.TickerMessage;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class KrakenTickerMessage implements TickerMessage {

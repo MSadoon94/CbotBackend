@@ -1,40 +1,45 @@
 package com.sadoon.cbotback.asset;
 
-import com.sadoon.cbotback.websocket.*;
+import com.sadoon.cbotback.exchange.*;
+import com.sadoon.cbotback.exchange.model.PayloadType;
+import com.sadoon.cbotback.exchange.model.TickerMessage;
 import org.springframework.web.reactive.socket.WebSocketMessage;
-import reactor.core.publisher.*;
+import reactor.core.publisher.BaseSubscriber;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Predicate;
 
 public class AssetTracker {
-
-    private Map<String, BrokerageSocketModule> socketModules;
-    private BrokerageSocketModule socketService;
-    private BrokerageWebSocket client;
+    private ExchangeWebSocket client;
     private BrokerageMessageFactory messageFactory;
     private WebSocketFunctions functions;
+    private List<String> pairs = new ArrayList<>();
     private Sinks.Many<Mono<? extends TickerMessage>> tickerFeed = Sinks.many().multicast().onBackpressureBuffer();
 
-    public AssetTracker(Map<String, BrokerageSocketModule> socketModules,
-                        String brokerageName) {
-        this.socketModules = socketModules;
-        this.socketService = socketModules.get(brokerageName);
-
-        unpackModule();
+    public AssetTracker(ExchangeWebSocket client,
+                        BrokerageMessageFactory messageFactory) {
+        this.client = client;
+        this.messageFactory = messageFactory;
 
         this.functions = new WebSocketFunctions();
     }
 
-    public Flux<Mono<? extends TickerMessage>> getTickerFlux(AssetPairs assetPairs) {
+    public Flux<Mono<? extends TickerMessage>> getTickerFlux(String pair) {
 
-        client.addSendFunction(
-                functions.sendMessage(
-                        messageFactory.tickerSubscribe(assetPairs)
-                )
-        ).addReceiveFunction(
-                functions.receiveMessages(tickerSubscriber(), messageFilter())
-        );
+        if (!pairs.contains(pair)) {
+            pairs.add(pair);
+            client.addSendFunction(
+                    functions.sendMessage(
+                            messageFactory.tickerSubscribe(pairs)
+                    )
+            ).addReceiveFunction(
+                    functions.receiveMessages(tickerSubscriber(), messageFilter())
+            );
+        }
 
         return tickerFeed.asFlux();
     }
@@ -54,10 +59,5 @@ public class AssetTracker {
         return message ->
                 !PayloadType.getType(message).equals(PayloadType.EVENT) &&
                         PayloadType.getType(message).equals(PayloadType.TICKER);
-    }
-
-    private void unpackModule() {
-        this.client = socketService.getWebSocketClient();
-        this.messageFactory = socketService.getMessageFactory();
     }
 }

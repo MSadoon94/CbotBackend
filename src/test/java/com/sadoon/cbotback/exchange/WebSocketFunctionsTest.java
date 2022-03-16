@@ -1,5 +1,6 @@
-package com.sadoon.cbotback.websocket;
+package com.sadoon.cbotback.exchange;
 
+import com.sadoon.cbotback.exchange.model.PayloadType;
 import com.sadoon.cbotback.tools.Mocks;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -1,11 +1,13 @@
-package com.sadoon.cbotback.websocket;
+package com.sadoon.cbotback.exchange;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sadoon.cbotback.exchange.kraken.KrakenMessageFactory;
 import com.sadoon.cbotback.tools.Mocks;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -40,7 +42,7 @@ class KrakenMessageFactoryTest {
                 "subscription", Map.of("name", "ticker")
         ));
 
-        assertThat(factory.tickerSubscribe(Mocks.assetPairs()).block(), is(equalTo(expected)));
+        assertThat(factory.tickerSubscribe(List.of("BTC/USD")).block(), is(equalTo(expected)));
     }
 
     private Object[] socketMessage(String[] mockValues) {

@@ -9,6 +9,8 @@ import com.sadoon.cbotback.brokerage.model.Brokerage;
 import com.sadoon.cbotback.brokerage.util.BrokerageDto;
 import com.sadoon.cbotback.card.models.Card;
 import com.sadoon.cbotback.card.models.CardApiRequest;
+import com.sadoon.cbotback.exchange.model.Fees;
+import com.sadoon.cbotback.exchange.model.TradeVolume;
 import com.sadoon.cbotback.refresh.models.RefreshResponse;
 import com.sadoon.cbotback.refresh.models.RefreshToken;
 import com.sadoon.cbotback.status.CbotStatus;
@@ -17,8 +19,8 @@ import com.sadoon.cbotback.user.models.LoginRequest;
 import com.sadoon.cbotback.user.models.LoginResponse;
 import com.sadoon.cbotback.user.models.SignUpRequest;
 import com.sadoon.cbotback.user.models.User;
-import com.sadoon.cbotback.websocket.KrakenTickerMessage;
-import com.sadoon.cbotback.websocket.PayloadType;
+import com.sadoon.cbotback.exchange.kraken.KrakenTickerMessage;
+import com.sadoon.cbotback.exchange.model.PayloadType;
 import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -44,7 +46,7 @@ public class Mocks {
 
     public static Balances balances(String currency, String amount) {
         Balances balances = new Balances(Map.of(currency, new BigDecimal(amount)));
-        balances.unpackErrors(new String[]{});
+        balances.setErrors(new String[]{});
         return balances;
     }
 
@@ -112,9 +114,21 @@ public class Mocks {
 
     public static AssetPairs assetPairs() {
         AssetPairs assetPairs = new AssetPairs();
-        assetPairs.setPairs(Map.of("BTC/USD", new AssetPair()));
-        assetPairs.unpackErrors(List.of("").toArray(String[]::new));
+        assetPairs.setPairs(Map.of("BTC/USD", assetPair()));
+        assetPairs.setErrors(List.of("").toArray(String[]::new));
         return assetPairs;
+    }
+
+    public static AssetPair assetPair(){
+        AssetPair pair = new AssetPair();
+        pair.setBase("BTC");
+        pair.setQuote("USD");
+        pair.setAltName("XBTUSD");
+        pair.setWsName("BTC/USD");
+        String[] fees = new String[]{"0", "0.26"};
+        pair.setFeeSchedule(List.of(fees, fees));
+        pair.setMakerTakerFees(List.of(fees, fees));
+        return pair;
     }
 
     public static Cookie refreshCookie(String path, int maxAge) {
@@ -232,4 +246,21 @@ public class Mocks {
         return message;
     }
 
+    public static TradeVolume mockTradeVolume(String[] errors) {
+        TradeVolume volume = new TradeVolume();
+        volume.setErrors(errors);
+        volume.setProperties("result", Map.of("volume", "mockVolume"));
+        return volume;
+    }
+
+    public static Fees mockFees(){
+        Fees fees = new Fees();
+        fees.setFee("0.1000");
+        fees.setMinFee("0.1000");
+        fees.setMaxFee("0.2600");
+        fees.setNextFee("null");
+        fees.setNextVolume("null");
+        fees.setTierVolume("10000000.0000");
+        return fees.setPair("BTC/USD");
+    }
 }

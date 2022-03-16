@@ -3,7 +3,7 @@ package com.sadoon.cbotback.brokerage;
 import com.sadoon.cbotback.api.KrakenResponse;
 import com.sadoon.cbotback.api.PublicRequestDto;
 import com.sadoon.cbotback.brokerage.util.BrokerageRequestConfig;
-import com.sadoon.cbotback.exceptions.KrakenRequestException;
+import com.sadoon.cbotback.exceptions.exchange.ExchangeRequestException;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 public class WebClientService {
 
     public <T extends KrakenResponse, V extends PublicRequestDto<?>> T onResponse(
-            ParameterizedTypeReference<T> type, V dto) throws KrakenRequestException {
+            ParameterizedTypeReference<T> type, V dto) throws ExchangeRequestException {
         T response = new BrokerageRequestConfig().webClient(dto.getUrl())
                 .method(dto.getMethod())
                 .uri(dto.getEndpoint())
