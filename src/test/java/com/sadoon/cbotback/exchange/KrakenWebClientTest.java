@@ -6,6 +6,7 @@ import com.sadoon.cbotback.api.KrakenResponse;
 import com.sadoon.cbotback.asset.AssetPairs;
 import com.sadoon.cbotback.brokerage.util.NonceCreator;
 import com.sadoon.cbotback.brokerage.util.SignatureCreator;
+import com.sadoon.cbotback.exceptions.exchange.ExchangeRequestException;
 import com.sadoon.cbotback.exchange.model.ExchangeCredentials;
 import com.sadoon.cbotback.exchange.kraken.KrakenWebClient;
 import com.sadoon.cbotback.tools.Mocks;
@@ -103,7 +104,7 @@ class KrakenWebClientTest {
     }
 
     @Test
-    void shouldReturnAssetPairs() throws JsonProcessingException {
+    void shouldReturnAssetPairs() throws JsonProcessingException, ExchangeRequestException {
         String pair = "BTC/USD";
         mockWebServer.enqueue(mockResponse(
                 HttpStatus.OK,

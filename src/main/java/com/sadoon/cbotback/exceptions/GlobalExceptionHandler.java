@@ -4,6 +4,7 @@ import com.sadoon.cbotback.api.CookieRemover;
 import com.sadoon.cbotback.exceptions.auth.ProcessingException;
 import com.sadoon.cbotback.exceptions.auth.UnauthorizedUserException;
 import com.sadoon.cbotback.exceptions.duplication.DuplicateEntityException;
+import com.sadoon.cbotback.exceptions.exchange.ExchangeRequestException;
 import com.sadoon.cbotback.exceptions.notfound.EntityNotFoundException;
 import com.sadoon.cbotback.exceptions.password.CardPasswordEncryptionException;
 import com.sadoon.cbotback.exceptions.password.CredentialsException;
@@ -71,8 +72,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return buildResponseEntity(apiError);
     }
 
-    @ExceptionHandler(KrakenRequestException.class)
-    protected ResponseEntity<Object> handleKrakenRequestException(KrakenRequestException ex) {
+    @ExceptionHandler(ExchangeRequestException.class)
+    protected ResponseEntity<Object> handleExchangeRequestException(ExchangeRequestException ex) {
         return buildResponseEntity(addSubErrors(buildApiError(HttpStatus.BAD_REQUEST, ex), ex));
     }
 

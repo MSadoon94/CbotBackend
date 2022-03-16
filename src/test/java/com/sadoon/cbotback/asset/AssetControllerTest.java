@@ -1,17 +1,16 @@
 package com.sadoon.cbotback.asset;
 
 import com.sadoon.cbotback.api.PublicRequestDto;
-import com.sadoon.cbotback.brokerage.BrokerageService;
-import com.sadoon.cbotback.brokerage.WebClientService;
 import com.sadoon.cbotback.exceptions.GlobalExceptionHandler;
 import com.sadoon.cbotback.exceptions.exchange.ExchangeRequestException;
+import com.sadoon.cbotback.exchange.Exchange;
 import com.sadoon.cbotback.exchange.ExchangeNames;
+import com.sadoon.cbotback.exchange.kraken.KrakenWebClient;
 import com.sadoon.cbotback.tools.Mocks;
 import com.sadoon.cbotback.user.models.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
@@ -19,8 +18,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
+import java.util.Map;
 
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.is;
@@ -33,11 +34,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AssetControllerTest {
 
     @Mock
-    private WebClientService webClientService;
-    @Mock
-    private BrokerageService brokerageService;
+    private KrakenWebClient webClient;
 
-    @InjectMocks
+    private Exchange exchange;
+
     private AssetController controller;
 
     private AssetPairRequest mockRequest = Mocks.assetPairRequest();
@@ -52,20 +52,23 @@ class AssetControllerTest {
 
     @BeforeEach
     void setUp() {
+        exchange = new Exchange()
+                .setWebClient(webClient);
+        controller = new AssetController(Map.of("kraken", exchange));
         mvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(GlobalExceptionHandler.class)
                 .build();
     }
 
     @Test
-    void shouldReturnResponseWithAssetPairInformationForValidAssetPair() throws Exception {
-        given(brokerageService.createPublicDto(any(AssetPairRequest.class), any())).willReturn(dto);
-        given(webClientService.onResponse(any(), any())).willReturn(mockAssetPairs);
+    void shouldReturnResponseWithAssetPairsForValidAssetPair() throws Exception {
+        given(webClient.getAssetPairs(any())).willReturn(Mono.just(mockAssetPairs));
+
 
         getAssetPair()
                 .andExpect(status().isOk())
                 .andExpect(jsonPath(
-                        "$.pairNames", hasKey(mockRequest.getAssets())));
+                        "$.pairs", hasKey("BTC/USD")));
     }
 
     @Test
@@ -73,8 +76,8 @@ class AssetControllerTest {
         ExchangeRequestException exception =
                 new ExchangeRequestException(ExchangeNames.KRAKEN, Arrays.toString(new String[]{"InvalidAssets"}));
 
-        given(brokerageService.createPublicDto(any(AssetPairRequest.class), any())).willReturn(dto);
-        given(webClientService.onResponse(any(), any())).willThrow(exception);
+        mockAssetPairs.setErrors(new String[]{"InvalidAssets"});
+        given(webClient.getAssetPairs(any())).willReturn(Mono.just(mockAssetPairs));
 
         getAssetPair()
                 .andExpect(status().is4xxClientError())
@@ -83,7 +86,7 @@ class AssetControllerTest {
 
     private ResultActions getAssetPair() throws Exception {
         return mvc.perform(
-                MockMvcRequestBuilders.get("/asset-pair/BTCUSD/kraken")
+                MockMvcRequestBuilders.get("/asset-pair/BTC/USD/kraken")
                         .principal(auth)
         );
     }

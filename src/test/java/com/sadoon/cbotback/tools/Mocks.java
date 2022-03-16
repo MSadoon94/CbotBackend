@@ -115,7 +115,7 @@ public class Mocks {
     public static AssetPairs assetPairs() {
         AssetPairs assetPairs = new AssetPairs();
         assetPairs.setPairs(Map.of("BTC/USD", assetPair()));
-        assetPairs.setErrors(List.of("").toArray(String[]::new));
+        assetPairs.setErrors(new String[]{});
         return assetPairs;
     }
 
