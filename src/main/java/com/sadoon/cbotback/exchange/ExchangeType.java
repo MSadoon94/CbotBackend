@@ -1,11 +1,11 @@
 package com.sadoon.cbotback.exchange;
 
-public enum ExchangeNames {
+public enum ExchangeType {
     KRAKEN("result");
 
     private final String responseKey;
 
-    ExchangeNames(String responseKey){
+    ExchangeType(String responseKey){
         this.responseKey = responseKey;
     }
 

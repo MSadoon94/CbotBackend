@@ -3,9 +3,11 @@ package com.sadoon.cbotback.exp;
 import com.sadoon.cbotback.brokerage.util.SignatureCreator;
 import com.sadoon.cbotback.exceptions.password.CredentialsException;
 import com.sadoon.cbotback.exceptions.password.PasswordException;
-import com.sadoon.cbotback.exchange.model.ExchangeCredentials;
+import com.sadoon.cbotback.exchange.ExchangeType;
 import com.sadoon.cbotback.security.AESKeyUtil;
+import com.sadoon.cbotback.security.CredentialManager;
 import com.sadoon.cbotback.security.KeyStoreUtil;
+import com.sadoon.cbotback.security.SecurityCredentials;
 import com.sadoon.cbotback.tools.Mocks;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,11 +41,11 @@ class CredentialManagerTest {
 
     private Authentication mockAuth = Mocks.auth(Mocks.user());
 
-    private ExchangeCredentials mockCredentials =
-            new ExchangeCredentials("mockAccount", "mockPassword");
+    private SecurityCredentials mockCredentials =
+            new SecurityCredentials(ExchangeType.KRAKEN.name(), "mockAccount", "mockPassword");
 
-    private ExchangeCredentials encryptedCredentials =
-            new ExchangeCredentials("mockAccount", "mockEncrypted");
+    private SecurityCredentials encryptedCredentials =
+            new SecurityCredentials(ExchangeType.KRAKEN.name(), "mockAccount", "mockEncrypted");
 
     @InjectMocks
     private CredentialManager manager;
@@ -64,7 +66,5 @@ class CredentialManagerTest {
         assertThat(manager.decryptPassword(encryptedCredentials, mockAuth), samePropertyValuesAs(mockCredentials));
 
     }
-
-
 
 }

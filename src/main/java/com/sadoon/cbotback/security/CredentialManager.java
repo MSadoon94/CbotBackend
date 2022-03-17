@@ -1,12 +1,9 @@
-package com.sadoon.cbotback.exp;
+package com.sadoon.cbotback.security;
 
 import com.sadoon.cbotback.brokerage.util.SignatureCreator;
 import com.sadoon.cbotback.exceptions.ApiError;
 import com.sadoon.cbotback.exceptions.password.CredentialsException;
 import com.sadoon.cbotback.exceptions.password.PasswordException;
-import com.sadoon.cbotback.exchange.model.ExchangeCredentials;
-import com.sadoon.cbotback.security.AESKeyUtil;
-import com.sadoon.cbotback.security.KeyStoreUtil;
 import org.springframework.http.HttpStatus;
 
 import javax.crypto.BadPaddingException;
@@ -34,7 +31,7 @@ public class CredentialManager {
     }
 
 
-    public ExchangeCredentials addCredentials(Principal principal, ExchangeCredentials credentials) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, CertificateException, KeyStoreException, IOException {
+    public String addCredentials(Principal principal, SecurityCredentials credentials) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, CertificateException, KeyStoreException, IOException {
         SecretKey key = aesKeyUtil.generateKey(256);
         SecretKey iv = new SecretKeySpec(aesKeyUtil.getIv(), "AES");
 
@@ -51,13 +48,13 @@ public class CredentialManager {
                 iv.getEncoded()
         );
 
-        keyStoreUtil.storeSecretKeyEntry(key, String.format("%skey", signature));
+        keyStoreUtil.storeSecretKeyEntry(key, String.format("%1skey", signature));
         keyStoreUtil.storeSecretKeyEntry(iv, String.format("%siv", signature));
-        return new ExchangeCredentials(credentials.account(), encrypted);
+        return encrypted;
     }
 
-    public ExchangeCredentials decryptPassword(ExchangeCredentials credentials, Principal principal) throws PasswordException, CredentialsException {
-        if(credentials.password().length() < 6){
+    public String decryptPassword(SecurityCredentials credentials, Principal principal) throws PasswordException, CredentialsException {
+        if (credentials.password().length() < 6) {
             throw new CredentialsException(
                     "Password",
                     new ApiError(HttpStatus.UNAUTHORIZED, "Password cannot be shorter than 6 characters."));
@@ -84,15 +81,11 @@ public class CredentialManager {
             throw new PasswordException("credentials", new ApiError(HttpStatus.BAD_REQUEST, e.getMessage(), e));
         }
 
-       /* if(!decryptedAccount.equals(credentials.account())){
-            throw new CredentialsException("Exchange account");
+        if (!decryptedPass.equals(credentials.password())) {
+            throw new CredentialsException("Exchange password");
         }
 
-        if (!decryptedPass.equals(credentials.password())) {
-            throw new PasswordException("exchange");
-        }*/
-
-        return new ExchangeCredentials(credentials.account(), decryptedPass);
+        return decryptedPass;
     }
 
 }

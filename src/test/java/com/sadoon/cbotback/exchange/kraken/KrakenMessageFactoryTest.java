@@ -1,8 +1,7 @@
-package com.sadoon.cbotback.exchange;
+package com.sadoon.cbotback.exchange.kraken;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sadoon.cbotback.exchange.kraken.KrakenMessageFactory;
 import com.sadoon.cbotback.tools.Mocks;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

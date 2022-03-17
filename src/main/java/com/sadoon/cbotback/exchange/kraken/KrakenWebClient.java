@@ -4,8 +4,8 @@ import com.sadoon.cbotback.asset.AssetPairs;
 import com.sadoon.cbotback.brokerage.util.NonceCreator;
 import com.sadoon.cbotback.brokerage.util.SignatureCreator;
 import com.sadoon.cbotback.exchange.ExchangeWebClient;
-import com.sadoon.cbotback.exchange.model.ExchangeCredentials;
 import com.sadoon.cbotback.exchange.model.TradeVolume;
+import com.sadoon.cbotback.security.SecurityCredentials;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -43,7 +43,7 @@ public class KrakenWebClient implements ExchangeWebClient {
     }
 
     @Override
-    public Mono<TradeVolume> getTradeVolume(ExchangeCredentials credentials, String pair) {
+    public Mono<TradeVolume> getTradeVolume(SecurityCredentials credentials, String pair) {
         if (!pairs.contains(pair)) {
             pairs.add(pair);
         }
@@ -58,7 +58,7 @@ public class KrakenWebClient implements ExchangeWebClient {
     }
 
     private WebClient.RequestBodySpec getHeaders(WebClient.RequestBodyUriSpec bodySpec,
-                                                 ExchangeCredentials credentials,
+                                                 SecurityCredentials credentials,
                                                  Map<String, String> bodyValues,
                                                  String endpoint) {
 
@@ -72,7 +72,7 @@ public class KrakenWebClient implements ExchangeWebClient {
                         ));
     }
 
-    private String getSignature(ExchangeCredentials credentials,
+    private String getSignature(SecurityCredentials credentials,
                                 Map<String, String> bodyValues,
                                 String endpoint) {
 

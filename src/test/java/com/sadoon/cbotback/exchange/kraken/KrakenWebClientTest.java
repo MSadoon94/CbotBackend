@@ -1,4 +1,4 @@
-package com.sadoon.cbotback.exchange;
+package com.sadoon.cbotback.exchange.kraken;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -7,8 +7,8 @@ import com.sadoon.cbotback.asset.AssetPairs;
 import com.sadoon.cbotback.brokerage.util.NonceCreator;
 import com.sadoon.cbotback.brokerage.util.SignatureCreator;
 import com.sadoon.cbotback.exceptions.exchange.ExchangeRequestException;
-import com.sadoon.cbotback.exchange.model.ExchangeCredentials;
-import com.sadoon.cbotback.exchange.kraken.KrakenWebClient;
+import com.sadoon.cbotback.exchange.ExchangeType;
+import com.sadoon.cbotback.security.SecurityCredentials;
 import com.sadoon.cbotback.tools.Mocks;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -42,8 +42,8 @@ class KrakenWebClientTest {
 
     private String mockNonce = "mockNonce";
     private String pair = "BTCUSD";
-    private ExchangeCredentials credentials
-            = new ExchangeCredentials("mockAccount", "mockPassword");
+    private SecurityCredentials credentials
+            = new SecurityCredentials(ExchangeType.KRAKEN.name(), "mockAccount", "mockPassword");
 
     private KrakenWebClient client;
 

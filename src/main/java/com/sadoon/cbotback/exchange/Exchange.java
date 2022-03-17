@@ -1,22 +1,22 @@
 package com.sadoon.cbotback.exchange;
 
 import com.sadoon.cbotback.asset.AssetTracker;
-import com.sadoon.cbotback.exchange.model.ExchangeCredentials;
+import com.sadoon.cbotback.security.SecurityCredentials;
 
 public class Exchange {
-    private ExchangeNames name;
-    private ExchangeCredentials credentials;
+    private ExchangeType name;
+    private SecurityCredentials credentials;
     private ExchangeWebSocket webSocket;
     private BrokerageMessageFactory messageFactory;
     private ExchangeWebClient webClient;
     private ExchangeResponseHandler responseHandler;
     private AssetTracker tracker;
 
-    public ExchangeNames getName() {
+    public ExchangeType getName() {
         return name;
     }
 
-    public Exchange setName(ExchangeNames name) {
+    public Exchange setName(ExchangeType name) {
         this.name = name;
         return this;
     }
@@ -48,11 +48,11 @@ public class Exchange {
         return this;
     }
 
-    public ExchangeCredentials getCredentials() {
+    public SecurityCredentials getCredentials() {
         return credentials;
     }
 
-    public Exchange setCredentials(ExchangeCredentials credentials) {
+    public Exchange setCredentials(SecurityCredentials credentials) {
         this.credentials = credentials;
         return this;
     }

@@ -1,4 +1,4 @@
-package com.sadoon.cbotback.exp;
+package com.sadoon.cbotback.executor;
 
 import com.sadoon.cbotback.exceptions.exchange.ExchangeRequestException;
 import com.sadoon.cbotback.exceptions.notfound.EntityNotFoundException;
@@ -6,7 +6,6 @@ import com.sadoon.cbotback.exchange.Exchange;
 import com.sadoon.cbotback.exchange.ExchangeResponseHandler;
 import com.sadoon.cbotback.exchange.kraken.KrakenWebClient;
 import com.sadoon.cbotback.exchange.model.Fees;
-import com.sadoon.cbotback.executor.FeeProcessor;
 import com.sadoon.cbotback.tools.Mocks;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

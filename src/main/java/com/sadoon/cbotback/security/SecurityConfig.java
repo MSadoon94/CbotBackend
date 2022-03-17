@@ -1,5 +1,7 @@
 package com.sadoon.cbotback.security;
 
+import com.sadoon.cbotback.AppProperties;
+import com.sadoon.cbotback.brokerage.util.SignatureCreator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,6 +29,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements WebM
     public SecurityConfig(RequestFilter filter) {
         super();
         this.filter = filter;
+    }
+
+    @Bean
+    CredentialManager credentialManager(AppProperties props){
+        return new CredentialManager(
+                new AESKeyUtil(),
+                new SignatureCreator(),
+                new KeyStoreUtil(props)
+        );
     }
 
     @Bean
