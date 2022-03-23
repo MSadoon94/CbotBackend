@@ -28,7 +28,13 @@ public class AssetTracker {
         this.functions = new WebSocketFunctions();
     }
 
-    public Flux<Mono<? extends TickerMessage>> getTickerFlux(String pair) {
+    public Flux<TickerMessage> getTickerFeed(){
+        return tickerFeed
+                .asFlux()
+                .flatMap(Mono::flux);
+    }
+
+    public AssetTracker trackPair(String pair) {
 
         if (!pairs.contains(pair)) {
             pairs.add(pair);
@@ -40,8 +46,7 @@ public class AssetTracker {
                     functions.receiveMessages(tickerSubscriber(), messageFilter())
             );
         }
-
-        return tickerFeed.asFlux();
+        return this;
     }
 
     private BaseSubscriber<WebSocketMessage> tickerSubscriber() {

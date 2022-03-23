@@ -15,6 +15,7 @@ import com.sadoon.cbotback.refresh.models.RefreshResponse;
 import com.sadoon.cbotback.refresh.models.RefreshToken;
 import com.sadoon.cbotback.status.CbotStatus;
 import com.sadoon.cbotback.strategy.Strategy;
+import com.sadoon.cbotback.strategy.StrategyType;
 import com.sadoon.cbotback.user.models.LoginRequest;
 import com.sadoon.cbotback.user.models.LoginResponse;
 import com.sadoon.cbotback.user.models.SignUpRequest;
@@ -201,6 +202,7 @@ public class Mocks {
 
     public static Strategy strategy() {
         Strategy strategy = new Strategy();
+        strategy.setType(StrategyType.LONG.name());
         strategy.setName("mockStrategy");
         strategy.setBase("BTC");
         strategy.setQuote("USD");

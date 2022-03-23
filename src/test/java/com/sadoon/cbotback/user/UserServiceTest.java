@@ -1,15 +1,16 @@
 package com.sadoon.cbotback.user;
 
-import com.sadoon.cbotback.tools.Mocks;
 import com.sadoon.cbotback.exceptions.notfound.UserNotFoundException;
 import com.sadoon.cbotback.refresh.models.RefreshToken;
 import com.sadoon.cbotback.status.CbotStatus;
 import com.sadoon.cbotback.strategy.Strategy;
+import com.sadoon.cbotback.tools.Mocks;
 import com.sadoon.cbotback.user.models.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
+import reactor.test.StepVerifier;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.samePropertyValuesAs;
@@ -52,7 +53,7 @@ class UserServiceTest {
     }
 
     @Test
-    void shouldReplaceUsers(){
+    void shouldReplaceUsers() {
         mockUser.setRefreshToken(mockToken);
 
         userService.replace(mockUser);
@@ -68,9 +69,19 @@ class UserServiceTest {
     }
 
     @Test
-    void shouldChangeUserStatus(){
+    void shouldChangeUserStatus() {
         userService.updateStatus(mockUser, mockStatus);
         assertThat(repo.getUserByUsername(mockUser.getUsername()).getCbotStatus(), samePropertyValuesAs(mockStatus));
+    }
+
+    @Test
+    void shouldEmitCbotStatusOnUpdate() {
+        StepVerifier.create(userService.cbotStatusFlux())
+                .expectSubscription()
+                .then(() -> userService.updateStatus(mockUser, mockStatus))
+                .assertNext(status -> assertThat(status, samePropertyValuesAs(mockStatus)))
+                .thenCancel()
+                .verify();
     }
 
 }

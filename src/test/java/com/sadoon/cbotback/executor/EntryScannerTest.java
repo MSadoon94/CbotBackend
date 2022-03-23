@@ -14,10 +14,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -42,6 +42,7 @@ class EntryScannerTest {
 
     @BeforeEach
     public void setUp() {
+        given(tracker.trackPair(any())).willReturn(tracker);
         exchange = new Exchange()
                 .setTracker(tracker);
         scanner = new EntryScanner(exchange, executorConfig.entryScannerExecutor());
@@ -56,11 +57,11 @@ class EntryScannerTest {
     void shouldUpdateSubscribersWhenPotentialLongEntryFound() {
 
 
-        given(tracker.getTickerFlux(any()))
+        given(tracker.getTickerFeed())
                 .willReturn(Flux.just(
-                        Mono.just(Mocks.krakenTickerMessage(lesserValue)),
-                        Mono.just(Mocks.krakenTickerMessage(targetValue)),
-                        Mono.just(Mocks.krakenTickerMessage(greaterValue))
+                        Mocks.krakenTickerMessage(lesserValue),
+                        Mocks.krakenTickerMessage(targetValue),
+                        Mocks.krakenTickerMessage(greaterValue)
                 ));
 
         Trade trade = new Trade()
@@ -74,18 +75,18 @@ class EntryScannerTest {
                 .consumeNextWith(message -> assertThat(message.getCurrentPrice(), is(new BigDecimal(targetValue[0]))))
                 .consumeNextWith(message -> assertThat(message.getCurrentPrice(), is(new BigDecimal(greaterValue[0]))))
                 .thenCancel()
-                .verify();
+                .verify(Duration.ofSeconds(1L));
 
     }
 
     @Test
     void shouldUpdateSubscribersWhenPotentialShortEntryFound() {
 
-        given(tracker.getTickerFlux(any()))
+        given(tracker.getTickerFeed())
                 .willReturn(Flux.just(
-                        Mono.just(Mocks.krakenTickerMessage(greaterValue)),
-                        Mono.just(Mocks.krakenTickerMessage(targetValue)),
-                        Mono.just(Mocks.krakenTickerMessage(lesserValue))
+                        Mocks.krakenTickerMessage(greaterValue),
+                        Mocks.krakenTickerMessage(targetValue),
+                        Mocks.krakenTickerMessage(lesserValue)
                 ));
 
         Trade trade = new Trade()
@@ -99,7 +100,7 @@ class EntryScannerTest {
                 .consumeNextWith(message -> assertThat(message.getCurrentPrice(), is(new BigDecimal(targetValue[0]))))
                 .consumeNextWith(message -> assertThat(message.getCurrentPrice(), is(new BigDecimal(lesserValue[0]))))
                 .thenCancel()
-                .verify();
+                .verify(Duration.ofSeconds(1L));
     }
 
 }

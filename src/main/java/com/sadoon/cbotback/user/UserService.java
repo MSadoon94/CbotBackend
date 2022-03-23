@@ -6,6 +6,8 @@ import com.sadoon.cbotback.status.CbotStatus;
 import com.sadoon.cbotback.strategy.Strategy;
 import com.sadoon.cbotback.user.models.User;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Sinks;
 
 import java.util.Map;
 
@@ -13,6 +15,8 @@ import java.util.Map;
 public class UserService {
 
     private UserRepository repo;
+
+    private Sinks.Many<CbotStatus> cbotStatusSink = Sinks.many().multicast().onBackpressureBuffer();
 
     public UserService(UserRepository repo) {
         this.repo = repo;
@@ -34,9 +38,14 @@ public class UserService {
         }
     }
 
-    public User updateStatus(User user, CbotStatus status){
+    public User updateStatus(User user, CbotStatus status) {
         user.setCbotStatus(status);
+        cbotStatusSink.tryEmitNext(status);
         return replace(user);
+    }
+
+    public Flux<CbotStatus> cbotStatusFlux() {
+        return cbotStatusSink.asFlux();
     }
 
     public void deleteAll() {
@@ -47,7 +56,7 @@ public class UserService {
         return repo.save(user);
     }
 
-    public User replace(User user){
+    public User replace(User user) {
         repo.deleteById(user.getId());
         return repo.save(user);
     }

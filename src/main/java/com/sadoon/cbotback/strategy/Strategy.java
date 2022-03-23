@@ -19,6 +19,11 @@ public class Strategy {
     private String entry;
     private String timeFrame;
 
+    @JsonIgnore
+    public String getPair() {
+        return String.format("%1s/%2s", base, quote);
+    }
+
     public void setName(String name) {
         this.name = name;
     }

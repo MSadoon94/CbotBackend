@@ -32,8 +32,8 @@ public class EntryScanner {
         trades.forEach(
                 trade ->
                         entryScannerExecutor.execute(() ->
-                                tracker.getTickerFlux(trade.getPair())
-                                        .flatMap(Mono::flux)
+                                tracker.trackPair(trade.getPair())
+                                        .getTickerFeed()
                                         .map(tickerMessage -> trade
                                                 .setCurrentPrice(
                                                         new BigDecimal(tickerMessage.getPrice(trade.getType())))
