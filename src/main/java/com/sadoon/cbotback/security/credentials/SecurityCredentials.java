@@ -1,4 +1,4 @@
-package com.sadoon.cbotback.security;
+package com.sadoon.cbotback.security.credentials;
 
 public record SecurityCredentials (
         String type,

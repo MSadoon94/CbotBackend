@@ -3,6 +3,7 @@ package com.sadoon.cbotback.security;
 import com.sadoon.cbotback.AppProperties;
 import com.sadoon.cbotback.exceptions.ApiError;
 import com.sadoon.cbotback.exceptions.auth.ProcessingException;
+import com.sadoon.cbotback.security.util.JwtService;
 import com.sadoon.cbotback.user.MongoUserDetailsService;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;

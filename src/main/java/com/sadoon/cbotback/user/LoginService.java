@@ -2,7 +2,7 @@ package com.sadoon.cbotback.user;
 
 import com.sadoon.cbotback.exceptions.ApiError;
 import com.sadoon.cbotback.exceptions.password.LoginCredentialsException;
-import com.sadoon.cbotback.security.JwtService;
+import com.sadoon.cbotback.security.util.JwtService;
 import com.sadoon.cbotback.user.models.LoginRequest;
 import com.sadoon.cbotback.user.models.LoginResponse;
 import org.springframework.http.HttpStatus;

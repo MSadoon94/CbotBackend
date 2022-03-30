@@ -5,7 +5,7 @@ import com.sadoon.cbotback.exceptions.notfound.RefreshTokenNotFoundException;
 import com.sadoon.cbotback.exceptions.notfound.UserNotFoundException;
 import com.sadoon.cbotback.refresh.RefreshService;
 import com.sadoon.cbotback.refresh.models.RefreshToken;
-import com.sadoon.cbotback.security.JwtService;
+import com.sadoon.cbotback.security.util.JwtService;
 import com.sadoon.cbotback.user.models.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

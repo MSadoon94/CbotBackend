@@ -1,5 +1,6 @@
 package com.sadoon.cbotback.exchange.kraken;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sadoon.cbotback.exceptions.exchange.ExchangeRequestException;
 import com.sadoon.cbotback.exchange.model.TradeVolume;
@@ -18,10 +19,11 @@ class KrakenResponseHandlerTest {
 
     private KrakenResponseHandler responseHandler;
 
-    private TradeVolume volume = Mocks.mockTradeVolume(new String[]{});
+    private TradeVolume volume;
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws JsonProcessingException {
+        volume = Mocks.tradeVolume(mapper, new String[]{});
         responseHandler = new KrakenResponseHandler(mapper);
     }
 
@@ -38,7 +40,7 @@ class KrakenResponseHandlerTest {
                                 "tiervolume", "10000000.0000"
                         ))
         ));
-        assertThat(responseHandler.getFees(volume).get(0), samePropertyValuesAs(Mocks.mockFees()));
+        assertThat(responseHandler.getFees(volume).get(0), samePropertyValuesAs(Mocks.fees()));
     }
 
     @Test

@@ -1,24 +1,24 @@
 package com.sadoon.cbotback.executor;
 
-import com.sadoon.cbotback.exceptions.notfound.EntityNotFoundException;
-import com.sadoon.cbotback.exceptions.notfound.StrategyTypeNotFoundException;
 import com.sadoon.cbotback.exceptions.outofbounds.OutOfBoundsException;
+import com.sadoon.cbotback.exchange.model.Trade;
 import com.sadoon.cbotback.strategy.Strategy;
 import com.sadoon.cbotback.strategy.StrategyType;
 import com.sadoon.cbotback.tools.Mocks;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 
 import java.math.BigDecimal;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.hamcrest.Matchers.isA;
 
 @ExtendWith(MockitoExtension.class)
 class PriceCalculatorTest {
@@ -28,6 +28,7 @@ class PriceCalculatorTest {
     private Strategy mockStrategy = Mocks.strategy();
     private String entry = String.valueOf(Math.random());
     private String price = String.valueOf(Math.floor(Math.random() * ((1000000 - 1 + 1) + 1)));
+    private Trade mockTrade = Mocks.trade(true, BigDecimal.ONE, BigDecimal.ZERO);
     private String[] mockValues = new String[]{price, "1", "1"};
 
     @BeforeEach
@@ -37,63 +38,61 @@ class PriceCalculatorTest {
     }
 
     @RepeatedTest(10)
-    void shouldReturnTargetPriceAsBigDecimalForLongStrategies() throws OutOfBoundsException, EntityNotFoundException {
-        mockStrategy.setEntry(entry);
-        mockStrategy.setType(StrategyType.LONG.name());
+    void shouldReturnTradeForLongStrategiesWithTargetPriceSet() {
+        mockTrade.setCurrentPrice(new BigDecimal(price))
+                .setEntryPercentage(new BigDecimal(mockStrategy.getEntry()))
+                .setFees(Mocks.fees());
+
+        Flux<Trade> tradeFeedIn = Flux.just(mockTrade);
 
         BigDecimal solution =
                 new BigDecimal(Mocks.krakenTickerMessage(mockValues).getBid()).subtract(
                                 (new BigDecimal(mockStrategy.getEntry()).movePointLeft(2))
                                         .multiply(new BigDecimal(Mocks.krakenTickerMessage(mockValues).getBid())))
-                        .subtract(new BigDecimal(Mocks.mockFees().getFee()));
+                        .subtract(new BigDecimal(Mocks.fees().getFee()));
 
-        assertThat(calculator.targetPrice(
-                        Mocks.krakenTickerMessage(mockValues),
-                        mockStrategy,
-                        Mocks.mockFees()),
-                is(solution));
+        StepVerifier.create(calculator.tradeFeed(tradeFeedIn))
+                .expectSubscription()
+                .consumeNextWith(trade -> assertThat(trade.getTargetPrice(), is(solution)))
+                .thenCancel()
+                .verify();
     }
 
     @RepeatedTest(10)
-    void shouldReturnTargetPriceAsBigDecimalForShortStrategies() throws EntityNotFoundException, OutOfBoundsException {
-        mockStrategy.setEntry(entry);
-        mockStrategy.setType(StrategyType.SHORT.name());
+    void shouldReturnTradeForShortStrategiesWithTargetPriceSet() {
+        mockTrade.setCurrentPrice(new BigDecimal(price))
+                .setType(StrategyType.SHORT)
+                .setEntryPercentage(new BigDecimal(mockStrategy.getEntry()))
+                .setFees(Mocks.fees());
+
+        Flux<Trade> tradeFeedIn = Flux.just(mockTrade);
 
         BigDecimal solution =
                 new BigDecimal(Mocks.krakenTickerMessage(mockValues).getAsk()).add(
                                 (new BigDecimal(mockStrategy.getEntry()).movePointLeft(2))
                                         .multiply(new BigDecimal(Mocks.krakenTickerMessage(mockValues).getAsk())))
-                        .add(new BigDecimal(Mocks.mockFees().getFee()));
+                        .add(new BigDecimal(Mocks.fees().getFee()));
 
-        assertThat(calculator.targetPrice(
-                        Mocks.krakenTickerMessage(mockValues),
-                        mockStrategy,
-                        Mocks.mockFees()),
-                is(solution));
-    }
-
-    @Test
-    void shouldThrowExceptionIfStrategyTypeNotFound() {
-        mockStrategy.setEntry(entry);
-        mockStrategy.setType("unknown");
-
-        assertThrows(StrategyTypeNotFoundException.class, () -> calculator.targetPrice(
-                Mocks.krakenTickerMessage(mockValues),
-                mockStrategy,
-                Mocks.mockFees()));
+        StepVerifier.create(calculator.tradeFeed(tradeFeedIn))
+                .expectSubscription()
+                .consumeNextWith(trade -> assertThat(trade.getTargetPrice(), is(solution)))
+                .thenCancel()
+                .verify();
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"0", "-1", "101"})
-    void shouldThrowExceptionIfStrategyEntryIsOutOfBounds(String value) {
-        mockStrategy.setEntry(value);
-        mockStrategy.setType(StrategyType.LONG.name());
+    void shouldThrowExceptionIfTradeEntryIsOutOfBounds(String value) {
+        mockTrade.setEntryPercentage(new BigDecimal(value));
 
-        assertThrows(OutOfBoundsException.class, () -> calculator.targetPrice(
-                Mocks.krakenTickerMessage(mockValues),
-                mockStrategy,
-                Mocks.mockFees()));
+        Flux<Trade> tradeFeedIn = Flux.just(mockTrade);
+
+        StepVerifier.create(calculator.tradeFeed(tradeFeedIn))
+                .expectSubscription()
+                .expectErrorSatisfies(error -> {
+                    assertThat(error, isA(OutOfBoundsException.class));
+                    assertThat(error.getMessage(), is(String.format("%s is outside the range of 0-100", value)));
+                })
+                .verify();
     }
-
-
 }

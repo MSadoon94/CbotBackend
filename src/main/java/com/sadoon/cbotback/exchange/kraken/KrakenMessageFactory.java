@@ -2,7 +2,7 @@ package com.sadoon.cbotback.exchange.kraken;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sadoon.cbotback.exchange.BrokerageMessageFactory;
+import com.sadoon.cbotback.exchange.structure.BrokerageMessageFactory;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 

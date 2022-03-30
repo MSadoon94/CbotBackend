@@ -3,7 +3,7 @@ package com.sadoon.cbotback.exchange.model;
 import com.fasterxml.jackson.annotation.*;
 import com.sadoon.cbotback.api.KrakenResponse;
 import com.sadoon.cbotback.exceptions.exchange.ExchangeRequestException;
-import com.sadoon.cbotback.exchange.ExchangeType;
+import com.sadoon.cbotback.exchange.meta.ExchangeType;
 
 import java.util.*;
 

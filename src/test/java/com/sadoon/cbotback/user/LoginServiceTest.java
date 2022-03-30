@@ -1,8 +1,8 @@
 package com.sadoon.cbotback.user;
 
-import com.sadoon.cbotback.tools.Mocks;
 import com.sadoon.cbotback.exceptions.password.LoginCredentialsException;
-import com.sadoon.cbotback.security.JwtService;
+import com.sadoon.cbotback.security.util.JwtService;
+import com.sadoon.cbotback.tools.Mocks;
 import com.sadoon.cbotback.user.models.LoginRequest;
 import com.sadoon.cbotback.user.models.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +18,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
 class LoginServiceTest {
@@ -49,13 +49,13 @@ class LoginServiceTest {
 
     @Test
     void shouldReturnAuthenticatedUserAsPrincipal() throws LoginCredentialsException {
-        when(authenticator.authenticate(any())).thenReturn(auth);
+        given(authenticator.authenticate(any())).willReturn(auth);
         assertThat(loginService.getPrincipal(loginRequest).getName(), is(loginRequest.getUsername()));
     }
 
     @Test
-    void shouldThrowLoginCredentialsExceptionOnAuthenticateFail(){
-        when(authenticator.authenticate(any())).thenThrow(new BadCredentialsException("BadCredentials"));
+    void shouldThrowLoginCredentialsExceptionOnAuthenticateFail() {
+        given(authenticator.authenticate(any())).willThrow(new BadCredentialsException("BadCredentials"));
 
         assertThrows(LoginCredentialsException.class, () -> loginService.getPrincipal(loginRequest));
     }

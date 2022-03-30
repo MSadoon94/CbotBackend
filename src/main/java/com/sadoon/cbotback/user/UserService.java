@@ -2,12 +2,16 @@ package com.sadoon.cbotback.user;
 
 import com.sadoon.cbotback.card.models.Card;
 import com.sadoon.cbotback.exceptions.notfound.UserNotFoundException;
+import com.sadoon.cbotback.exchange.model.Trade;
+import com.sadoon.cbotback.exchange.structure.ExchangeSupplier;
 import com.sadoon.cbotback.status.CbotStatus;
 import com.sadoon.cbotback.strategy.Strategy;
 import com.sadoon.cbotback.user.models.User;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Sinks;
+import reactor.core.publisher.GroupedFlux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.Map;
 
@@ -15,11 +19,11 @@ import java.util.Map;
 public class UserService {
 
     private UserRepository repo;
+    private ExchangeSupplier exchangeSupplier;
 
-    private Sinks.Many<CbotStatus> cbotStatusSink = Sinks.many().multicast().onBackpressureBuffer();
-
-    public UserService(UserRepository repo) {
+    public UserService(UserRepository repo, ExchangeSupplier exchangeSupplier) {
         this.repo = repo;
+        this.exchangeSupplier = exchangeSupplier;
     }
 
     public User getUserWithUsername(String username) throws UserNotFoundException {
@@ -40,12 +44,18 @@ public class UserService {
 
     public User updateStatus(User user, CbotStatus status) {
         user.setCbotStatus(status);
-        cbotStatusSink.tryEmitNext(status);
         return replace(user);
     }
 
-    public Flux<CbotStatus> cbotStatusFlux() {
-        return cbotStatusSink.asFlux();
+    public Flux<GroupedFlux<String, Flux<Trade>>> getTradeFeeds(User user) {
+        return Flux.fromIterable(user.getExchanges())
+                .map(exchangeSupplier::getExchange)
+                .flatMap(exchange -> Mono.fromCallable(() ->
+                                exchange.getTradeFeed(user))
+                        .flux()
+                        .groupBy(feed -> user.getId())
+                        .subscribeOn(Schedulers.boundedElastic())
+                        .doOnNext(exchange::addUserTradeFeeds));
     }
 
     public void deleteAll() {
@@ -72,6 +82,13 @@ public class UserService {
         Map<String, Strategy> strategies = user.getStrategies();
         strategies.put(strategy.getName(), strategy);
         user.setStrategies(strategies);
+        replace(user);
+    }
+
+    public void addTrade(User user, Trade trade) {
+        Map<String, Trade> trades = user.getTrades();
+        trades.put(trade.getPair(), trade);
+        user.setTrades(trades);
         replace(user);
     }
 }

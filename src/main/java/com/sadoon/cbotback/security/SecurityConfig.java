@@ -32,15 +32,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements WebM
     }
 
     @Bean
-    CredentialManager credentialManager(AppProperties props){
-        return new CredentialManager(
-                new AESKeyUtil(),
-                new SignatureCreator(),
-                new KeyStoreUtil(props)
-        );
-    }
-
-    @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(List.of("http://localhost:3000", "http://localhost:8080"));

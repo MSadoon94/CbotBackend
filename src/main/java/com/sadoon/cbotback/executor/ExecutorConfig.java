@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 public class ExecutorConfig {
     private ExecutorService entryScannerExecutor;
+    private Logger logger;
 
     @Bean("entryScannerExecutor")
     public ExecutorService entryScannerExecutor() {
@@ -20,7 +21,7 @@ public class ExecutorConfig {
     }
 
     @PreDestroy
-    public void shutdown(Logger logger) {
+    public void shutdown() {
         entryScannerExecutor.shutdown();
         try {
             if (!entryScannerExecutor.awaitTermination(1000, TimeUnit.MILLISECONDS)) {

@@ -1,7 +1,7 @@
 package com.sadoon.cbotback.api;
 
 import com.sadoon.cbotback.exceptions.exchange.ExchangeRequestException;
-import com.sadoon.cbotback.exchange.ExchangeType;
+import com.sadoon.cbotback.exchange.meta.ExchangeType;
 
 import java.util.Arrays;
 

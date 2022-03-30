@@ -1,4 +1,4 @@
-package com.sadoon.cbotback.security;
+package com.sadoon.cbotback.security.util;
 
 import com.sadoon.cbotback.AppProperties;
 import org.springframework.context.annotation.Bean;

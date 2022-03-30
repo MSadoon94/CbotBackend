@@ -3,34 +3,40 @@ package com.sadoon.cbotback.exchange.kraken;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sadoon.cbotback.api.KrakenResponse;
-import com.sadoon.cbotback.asset.AssetPairs;
 import com.sadoon.cbotback.brokerage.util.NonceCreator;
 import com.sadoon.cbotback.brokerage.util.SignatureCreator;
 import com.sadoon.cbotback.exceptions.exchange.ExchangeRequestException;
-import com.sadoon.cbotback.exchange.ExchangeType;
-import com.sadoon.cbotback.security.SecurityCredentials;
+import com.sadoon.cbotback.exchange.meta.ExchangeType;
+import com.sadoon.cbotback.exchange.model.Trade;
+import com.sadoon.cbotback.exchange.model.TradeVolume;
+import com.sadoon.cbotback.exchange.structure.ExchangeResponseHandler;
+import com.sadoon.cbotback.security.credentials.SecurityCredentials;
 import com.sadoon.cbotback.tools.Mocks;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.samePropertyValuesAs;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.hamcrest.Matchers.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+
 
 @ExtendWith(MockitoExtension.class)
 class KrakenWebClientTest {
@@ -39,33 +45,34 @@ class KrakenWebClientTest {
 
     @Mock
     private NonceCreator nonceCreator;
+    @Mock
+    private ExchangeResponseHandler responseHandler;
+    private TradeVolume mockVolume;
+
 
     private String mockNonce = "mockNonce";
-    private String pair = "BTCUSD";
+    private List<String> pairs = List.of("BTCUSD");
     private SecurityCredentials credentials
             = new SecurityCredentials(ExchangeType.KRAKEN.name(), "mockAccount", "mockPassword");
 
     private KrakenWebClient client;
 
-
-    @BeforeAll
-    static void setUpMockServer() throws IOException {
+    @BeforeEach
+    public void setUp() throws IOException {
+        mockVolume = Mocks.tradeVolume(mapper, new String[]{});
         mockWebServer = new MockWebServer();
         mockWebServer.start();
-    }
-
-    @AfterAll
-    static void shutdownMockServer() throws IOException {
-        mockWebServer.shutdown();
-    }
-
-    @BeforeEach
-    public void setUp() {
         client = new KrakenWebClient(
+                responseHandler,
                 nonceCreator,
                 mockWebServer.url("/").toString()
         );
 
+    }
+
+    @AfterEach
+    public void tearDown() throws IOException {
+        mockWebServer.shutdown();
     }
 
     @Test
@@ -77,9 +84,9 @@ class KrakenWebClientTest {
                 "/0/private/TradeVolume"
         );
 
-        mockWebServer.enqueue(mockResponse(HttpStatus.OK, Mocks.mockTradeVolume(new String[]{})));
+        mockWebServer.enqueue(mockResponse(HttpStatus.OK, mockVolume));
 
-        client.getTradeVolume(credentials, pair)
+        client.tradeVolume(credentials, pairs)
                 .block();
 
         RecordedRequest request = mockWebServer.takeRequest();
@@ -90,43 +97,90 @@ class KrakenWebClientTest {
     @Test
     void shouldReturnTradeVolume() throws JsonProcessingException {
         given(nonceCreator.createNonce()).willReturn(mockNonce);
-        mockWebServer.enqueue(mockResponse(HttpStatus.OK, Mocks.mockTradeVolume(new String[]{})));
+        mockWebServer.enqueue(mockResponse(HttpStatus.OK, mockVolume));
 
-        assertThat(client.getTradeVolume(credentials, pair).block(), samePropertyValuesAs(Mocks.mockTradeVolume(new String[]{})));
+        assertThat(client.tradeVolume(credentials, pairs).block(),
+                samePropertyValuesAs(mockVolume));
     }
 
     @Test
-    void shouldReturnMonoOnTradeVolumeError() throws JsonProcessingException {
-        given(nonceCreator.createNonce()).willReturn(mockNonce);
-        mockWebServer.enqueue(mockResponse(HttpStatus.BAD_REQUEST, Mocks.mockTradeVolume(new String[]{})));
+    void shouldReturnTradeWithAllNamesSet() throws JsonProcessingException {
+        Trade mockTrade = Mocks.trade(true, BigDecimal.ZERO, BigDecimal.ONE);
+        mockTrade.setAllNames(new ArrayList<>(Collections.singleton(mockTrade.getPair())));
+        Flux<Trade> tradeFeedIn = Flux.just(mockTrade);
 
-        assertThrows(WebClientResponseException.class, () -> client.getTradeVolume(credentials, pair).block());
-    }
-
-    @Test
-    void shouldReturnAssetPairs() throws JsonProcessingException, ExchangeRequestException {
-        String pair = "BTC/USD";
         mockWebServer.enqueue(mockResponse(
                 HttpStatus.OK,
                 Mocks.assetPairs()
         ));
 
-        AssetPairs assetPairs = client.getAssetPairs(pair).block();
-
-        assertThat(assetPairs, samePropertyValuesAs(Mocks.assetPairs(), "pairs"));
-
-        assertThat(assetPairs.getPairs().get(pair),
-                samePropertyValuesAs(
-                        Mocks.assetPairs().getPairs().get(pair),
-                        "feeSchedule", "makerTakerFees")
-        );
-
+        StepVerifier.create(client.assetPairTradeFeed(tradeFeedIn))
+                .expectSubscription()
+                .consumeNextWith(trade -> {
+                    System.out.println(trade.getAllNames());
+                    assertThat(trade.getAllNames(),
+                            containsInAnyOrder(
+                                    mockTrade.getPair(),
+                                    Mocks.assetPair().getAltName(),
+                                    Mocks.assetPair().getWsName()));
+                })
+                .thenCancel()
+                .verify();
     }
+
+    @Test
+    void shouldReturnTradeWithFeesSet() throws JsonProcessingException, ExchangeRequestException {
+        Flux<Trade> tradeFeedIn = Flux.just(Mocks.trade(true, BigDecimal.ONE, BigDecimal.TEN));
+
+        given(nonceCreator.createNonce()).willReturn(mockNonce);
+        given(responseHandler.getFees(any())).willReturn(List.of(Mocks.fees()));
+
+        mockWebServer.enqueue(mockResponse(
+                HttpStatus.OK,
+                mockVolume
+        ));
+
+        StepVerifier.create(client.tradeVolumeTradeFeed(credentials, tradeFeedIn))
+                .expectSubscription()
+                .consumeNextWith(trade -> assertThat(trade.getFees(), samePropertyValuesAs(Mocks.fees())))
+                .thenCancel()
+                .verify();
+    }
+
+    @Test
+    void shouldThrowExceptionOnAssetPairRequestError() throws JsonProcessingException {
+        mockWebServer.enqueue(mockResponse(HttpStatus.BAD_REQUEST, mockVolume));
+
+        StepVerifier.create(client.assetPairs(pairs.get(0)))
+                .expectSubscription()
+                .expectErrorSatisfies(error -> {
+                    assertThat(error, isA(ExchangeRequestException.class));
+                    assertThat(error.getMessage(),
+                            containsString("KRAKEN responded with: 400 Bad Request from GET"));
+                })
+                .verify();
+    }
+
+    @Test
+    void shouldThrowExceptionOnTradeVolumeRequestError() throws JsonProcessingException {
+        given(nonceCreator.createNonce()).willReturn(mockNonce);
+        mockWebServer.enqueue(mockResponse(HttpStatus.BAD_REQUEST, mockVolume));
+
+        StepVerifier.create(client.tradeVolume(credentials, pairs))
+                .expectSubscription()
+                .expectErrorSatisfies(error -> {
+                    assertThat(error, isA(ExchangeRequestException.class));
+                    assertThat(error.getMessage(),
+                            containsString("KRAKEN responded with: 400 Bad Request from POST"));
+                })
+                .verify();
+    }
+
 
     private String formattedVolumeRequest() {
         return Map.of(
                         "nonce", mockNonce,
-                        "pair", String.join(",", pair),
+                        "pair", String.join(",", pairs),
                         "fee-info", "true"
                 )
                 .entrySet()

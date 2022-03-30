@@ -1,4 +1,4 @@
-package com.sadoon.cbotback.exchange;
+package com.sadoon.cbotback.exchange.structure;
 
 import com.sadoon.cbotback.exchange.model.TickerMessage;
 import reactor.core.publisher.Mono;

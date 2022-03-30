@@ -4,7 +4,7 @@ import com.sadoon.cbotback.exceptions.notfound.RefreshTokenNotFoundException;
 import com.sadoon.cbotback.exceptions.notfound.UserNotFoundException;
 import com.sadoon.cbotback.refresh.RefreshService;
 import com.sadoon.cbotback.refresh.models.RefreshToken;
-import com.sadoon.cbotback.security.JwtService;
+import com.sadoon.cbotback.security.util.JwtService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;

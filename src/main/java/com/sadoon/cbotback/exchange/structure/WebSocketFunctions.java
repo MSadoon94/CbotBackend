@@ -1,4 +1,4 @@
-package com.sadoon.cbotback.exchange;
+package com.sadoon.cbotback.exchange.structure;
 
 import org.reactivestreams.Subscriber;
 import org.springframework.web.reactive.socket.WebSocketMessage;

@@ -1,4 +1,4 @@
-package com.sadoon.cbotback.exchange;
+package com.sadoon.cbotback.exchange.meta;
 
 public enum ExchangeType {
     KRAKEN("result");

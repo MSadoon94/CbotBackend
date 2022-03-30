@@ -1,9 +1,10 @@
-package com.sadoon.cbotback.security;
+package com.sadoon.cbotback.security.credentials;
 
 import com.sadoon.cbotback.brokerage.util.SignatureCreator;
 import com.sadoon.cbotback.exceptions.ApiError;
 import com.sadoon.cbotback.exceptions.password.CredentialsException;
-import com.sadoon.cbotback.exceptions.password.PasswordException;
+import com.sadoon.cbotback.security.util.AESKeyUtil;
+import com.sadoon.cbotback.security.util.KeyStoreUtil;
 import org.springframework.http.HttpStatus;
 
 import javax.crypto.BadPaddingException;
@@ -31,14 +32,14 @@ public class CredentialManager {
     }
 
 
-    public String addCredentials(Principal principal, SecurityCredentials credentials) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, CertificateException, KeyStoreException, IOException {
+    public String addCredentials(String username, SecurityCredentials credentials) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, CertificateException, KeyStoreException, IOException {
         SecretKey key = aesKeyUtil.generateKey(256);
         SecretKey iv = new SecretKeySpec(aesKeyUtil.getIv(), "AES");
 
         String signature = signatureCreator.signature(
                 credentials.account(),
                 credentials.password(),
-                principal.getName()
+                username
         );
 
         String encrypted = aesKeyUtil.encrypt(
@@ -53,7 +54,7 @@ public class CredentialManager {
         return encrypted;
     }
 
-    public String decryptPassword(SecurityCredentials credentials, Principal principal) throws PasswordException, CredentialsException {
+    public String decryptPassword(SecurityCredentials credentials, String username) throws CredentialsException {
         if (credentials.password().length() < 6) {
             throw new CredentialsException(
                     "Password",
@@ -63,7 +64,7 @@ public class CredentialManager {
         String signature = signatureCreator.signature(
                 credentials.account(),
                 credentials.password(),
-                principal.getName()
+                username
         );
         String decryptedPass;
         try {
@@ -77,12 +78,7 @@ public class CredentialManager {
                     iv.getEncoded()
             );
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new PasswordException("credentials", new ApiError(HttpStatus.BAD_REQUEST, e.getMessage(), e));
-        }
-
-        if (!decryptedPass.equals(credentials.password())) {
-            throw new CredentialsException("Exchange password");
+            throw new CredentialsException("credentials", new ApiError(HttpStatus.BAD_REQUEST, e.getMessage(), e));
         }
 
         return decryptedPass;

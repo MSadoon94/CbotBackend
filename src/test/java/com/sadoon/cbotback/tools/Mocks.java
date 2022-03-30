@@ -1,5 +1,7 @@
 package com.sadoon.cbotback.tools;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sadoon.cbotback.api.PublicRequestDto;
 import com.sadoon.cbotback.asset.AssetPair;
 import com.sadoon.cbotback.asset.AssetPairRequest;
@@ -11,6 +13,7 @@ import com.sadoon.cbotback.card.models.Card;
 import com.sadoon.cbotback.card.models.CardApiRequest;
 import com.sadoon.cbotback.exchange.model.Fees;
 import com.sadoon.cbotback.exchange.model.TradeVolume;
+import com.sadoon.cbotback.exchange.model.Trade;
 import com.sadoon.cbotback.refresh.models.RefreshResponse;
 import com.sadoon.cbotback.refresh.models.RefreshToken;
 import com.sadoon.cbotback.status.CbotStatus;
@@ -21,7 +24,7 @@ import com.sadoon.cbotback.user.models.LoginResponse;
 import com.sadoon.cbotback.user.models.SignUpRequest;
 import com.sadoon.cbotback.user.models.User;
 import com.sadoon.cbotback.exchange.kraken.KrakenTickerMessage;
-import com.sadoon.cbotback.exchange.model.PayloadType;
+import com.sadoon.cbotback.exchange.meta.PayloadType;
 import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -248,14 +251,17 @@ public class Mocks {
         return message;
     }
 
-    public static TradeVolume mockTradeVolume(String[] errors) {
+    public static TradeVolume tradeVolume(ObjectMapper mapper, String[] errors) throws JsonProcessingException {
         TradeVolume volume = new TradeVolume();
         volume.setErrors(errors);
-        volume.setProperties("result", Map.of("volume", "mockVolume"));
+        volume.setProperties("result", Map.of(
+                "volume", "mockVolume",
+                "fees", Map.of(fees().getPair(), mapper.writeValueAsString(fees()))
+        ));
         return volume;
     }
 
-    public static Fees mockFees(){
+    public static Fees fees(){
         Fees fees = new Fees();
         fees.setFee("0.1000");
         fees.setMinFee("0.1000");
@@ -264,5 +270,17 @@ public class Mocks {
         fees.setNextVolume("null");
         fees.setTierVolume("10000000.0000");
         return fees.setPair("BTC/USD");
+    }
+
+    public static Trade trade(boolean isActive, BigDecimal currentPrice, BigDecimal targetPrice){
+        return new Trade()
+                .setActive(isActive)
+                .setPair(String.join("/", Mocks.assetPair().getBase(), Mocks.assetPair().getQuote()))
+                .setType(StrategyType.LONG)
+                .setFees(Mocks.fees())
+                .setCurrentPrice(currentPrice)
+                .setTargetPrice(targetPrice)
+                .addPairNames(List.of(Mocks.assetPair().getAltName(), Mocks.assetPair().getWsName()))
+                .setEntryPercentage(new BigDecimal(strategy().getEntry()));
     }
 }

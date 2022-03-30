@@ -1,40 +1,48 @@
 package com.sadoon.cbotback.executor;
 
-import com.sadoon.cbotback.exceptions.notfound.StrategyTypeNotFoundException;
 import com.sadoon.cbotback.exceptions.outofbounds.OutOfBoundsException;
-import com.sadoon.cbotback.exchange.model.Fees;
-import com.sadoon.cbotback.exchange.model.TickerMessage;
-import com.sadoon.cbotback.strategy.Strategy;
+import com.sadoon.cbotback.exchange.model.Trade;
 import com.sadoon.cbotback.strategy.StrategyType;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.math.BigDecimal;
 
 public class PriceCalculator {
 
-    public BigDecimal targetPrice(TickerMessage ticker,
-                                  Strategy strategy,
-                                  Fees fees
+    public Flux<Trade> tradeFeed(Flux<Trade> tradeFeedIn) {
+        return tradeFeedIn
+                .flatMap(trade -> Mono
+                        .fromCallable(() -> addTargetPrice(trade))
+                        .subscribeOn(Schedulers.boundedElastic()));
+    }
 
-    ) throws StrategyTypeNotFoundException, OutOfBoundsException {
+    private Trade addTargetPrice(Trade trade) throws OutOfBoundsException {
         BigDecimal target = BigDecimal.ZERO;
 
-        if (strategy.asStrategyType().equals(StrategyType.LONG)) {
-            target =
-                    new BigDecimal(ticker.getBid())
-                            .subtract((checkEntryBounds(new BigDecimal(strategy.getEntry()))
-                                    .movePointLeft(2))
-                                    .multiply(new BigDecimal(ticker.getBid())))
-                            .subtract(new BigDecimal(fees.getFee()));
-        } else if (strategy.asStrategyType().equals(StrategyType.SHORT)) {
-            target =
-                    new BigDecimal(ticker.getAsk())
-                            .add((checkEntryBounds(new BigDecimal(strategy.getEntry()))
-                                    .movePointLeft(2))
-                                    .multiply(new BigDecimal(ticker.getAsk())))
-                            .add(new BigDecimal(fees.getFee()));
-        }
+        if (trade.getType().equals(StrategyType.LONG)) {
 
-        return target;
+            //Target = (CurrentPrice - (PercentageOfCurrentPriceAsDecimal * 100)) - TotalFeesCost
+
+            target =
+                    trade.getCurrentPrice()
+                            .subtract((checkEntryBounds(trade.getEntryPercentage())
+                                    .movePointLeft(2))
+                                    .multiply(trade.getCurrentPrice()))
+                            .subtract(new BigDecimal(trade.getFees().getFee()));
+        } else if (trade.getType().equals(StrategyType.SHORT)) {
+
+            //Target = (CurrentPrice + (PercentageOfCurrentPriceAsDecimal * 100)) + TotalFeesCost
+
+            target =
+                    trade.getCurrentPrice()
+                            .add((checkEntryBounds(trade.getEntryPercentage())
+                                    .movePointLeft(2))
+                                    .multiply(trade.getCurrentPrice())
+                                    .add(new BigDecimal(trade.getFees().getFee())));
+        }
+        return trade.setTargetPrice(target);
     }
 
     private BigDecimal checkEntryBounds(BigDecimal entry) throws OutOfBoundsException {

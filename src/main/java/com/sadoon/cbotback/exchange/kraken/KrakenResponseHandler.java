@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sadoon.cbotback.exceptions.exchange.ExchangeRequestException;
 import com.sadoon.cbotback.exchange.model.Fees;
 import com.sadoon.cbotback.exchange.model.TradeVolume;
-import com.sadoon.cbotback.exchange.ExchangeResponseHandler;
+import com.sadoon.cbotback.exchange.structure.ExchangeResponseHandler;
 
 import java.util.ArrayList;
 import java.util.List;

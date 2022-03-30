@@ -1,4 +1,4 @@
-package com.sadoon.cbotback.exchange.model;
+package com.sadoon.cbotback.exchange.meta;
 
 import org.springframework.web.reactive.socket.WebSocketMessage;
 

@@ -1,15 +1,17 @@
 package com.sadoon.cbotback.security;
 
-import com.sadoon.cbotback.exchange.ExchangeType;
+import com.sadoon.cbotback.exchange.meta.ExchangeType;
+import com.sadoon.cbotback.security.credentials.CredentialManager;
+import com.sadoon.cbotback.security.credentials.CredentialsService;
+import com.sadoon.cbotback.security.credentials.SecurityCredentials;
 import com.sadoon.cbotback.tools.Mocks;
-import com.sadoon.cbotback.user.UserRepository;
+import com.sadoon.cbotback.user.UserService;
 import com.sadoon.cbotback.user.models.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.core.Authentication;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.samePropertyValuesAs;
@@ -22,10 +24,9 @@ class CredentialsServiceTest {
     @Mock
     private CredentialManager manager;
     @Mock
-    private UserRepository repo;
+    private UserService userService;
 
     private User mockUser = Mocks.user();
-    private Authentication mockAuth = Mocks.auth(mockUser);
     private SecurityCredentials unencrypted =
             new SecurityCredentials(ExchangeType.KRAKEN.name(), "mockAccount", "mockPassword");
 
@@ -37,26 +38,26 @@ class CredentialsServiceTest {
 
     @BeforeEach
     public void setUp() {
-        service = new CredentialsService(manager, repo);
+        service = new CredentialsService(manager, userService);
     }
 
     @Test
     void shouldAddEncryptedCredentialsToUserRepo() throws Exception {
-        given(repo.getUserByUsername(any())).willReturn(mockUser);
+        given(userService.getUserWithUsername(any())).willReturn(mockUser);
         given(manager.addCredentials(any(), any())).willReturn(encrypted.password());
 
-        service.addCredentials(mockAuth, unencrypted);
+        service.addCredentials(mockUser.getUsername(), unencrypted);
 
         assertThat(mockUser.getCredential(ExchangeType.KRAKEN.name()), samePropertyValuesAs(encrypted));
     }
 
     @Test
-    void shouldReturnDecryptedCredentials() throws Exception{
+    void shouldReturnDecryptedCredentials() throws Exception {
         mockUser.setCredential(encrypted.type(), encrypted);
-        given(repo.getUserByUsername(any())).willReturn(mockUser);
+        given(userService.getUserWithUsername(any())).willReturn(mockUser);
         given(manager.decryptPassword(any(), any())).willReturn(unencrypted.password());
 
-        assertThat(service.getCredentials(mockAuth, unencrypted.type()), samePropertyValuesAs(unencrypted));
+        assertThat(service.getCredentials(mockUser.getUsername(), unencrypted.type()), samePropertyValuesAs(unencrypted));
     }
 
 }
