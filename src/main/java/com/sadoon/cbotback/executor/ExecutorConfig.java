@@ -11,25 +11,25 @@ import java.util.concurrent.TimeUnit;
 
 @Configuration
 public class ExecutorConfig {
-    private ExecutorService entryScannerExecutor;
+    private ExecutorService executorService;
     private Logger logger;
 
-    @Bean("entryScannerExecutor")
-    public ExecutorService entryScannerExecutor() {
-        entryScannerExecutor = Executors.newCachedThreadPool();
-        return entryScannerExecutor;
+    @Bean
+    public ExecutorService executorService() {
+        executorService = Executors.newCachedThreadPool();
+        return executorService;
     }
 
     @PreDestroy
     public void shutdown() {
-        entryScannerExecutor.shutdown();
+        executorService.shutdown();
         try {
-            if (!entryScannerExecutor.awaitTermination(1000, TimeUnit.MILLISECONDS)) {
-                entryScannerExecutor.shutdownNow();
+            if (!executorService.awaitTermination(1000, TimeUnit.MILLISECONDS)) {
+                executorService.shutdownNow();
             }
         } catch (InterruptedException e) {
             logger.warn(String.format("Executor service was interrupted on shutdown: %s", e.getMessage()));
-            entryScannerExecutor.shutdownNow();
+            executorService.shutdownNow();
         }
     }
 }

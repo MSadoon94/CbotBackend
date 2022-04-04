@@ -1,5 +1,6 @@
 package com.sadoon.cbotback.exchange.model;
 
+import com.sadoon.cbotback.exchange.meta.TradeStatus;
 import com.sadoon.cbotback.strategy.StrategyType;
 
 import java.math.BigDecimal;
@@ -7,7 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Trade {
-    private boolean isActive = false;
+    private String id;
+    private TradeStatus status;
     private String pair;
     private List<String> allNames = new ArrayList<>();
     private BigDecimal targetPrice;
@@ -17,11 +19,12 @@ public class Trade {
     private StrategyType type;
 
     public String getId(){
-        return String.join("",
-                pair,
-                targetPrice.toString(),
-                currentPrice.toString(),
-                type.name());
+        return id;
+    }
+
+    public Trade setID(String id){
+        this.id = id;
+        return this;
     }
 
     public Fees getFees() {
@@ -33,12 +36,12 @@ public class Trade {
         return this;
     }
 
-    public boolean isActive() {
-        return isActive;
+    public TradeStatus getStatus() {
+        return status;
     }
 
-    public Trade setActive(boolean active) {
-        isActive = active;
+    public Trade setStatus(TradeStatus status) {
+        this.status = status;
         return this;
     }
 

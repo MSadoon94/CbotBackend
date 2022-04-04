@@ -27,7 +27,7 @@ public class ExchangeSupplier {
         return new ObjectMapper();
     }
 
-    public Exchange getExchange(ExchangeType type){
+    public Exchange getExchange(ExchangeType type) {
         return exchangeRegistry.get(type);
     }
 

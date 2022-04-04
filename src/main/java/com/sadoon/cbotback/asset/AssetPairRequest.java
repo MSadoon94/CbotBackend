@@ -4,7 +4,7 @@ import com.sadoon.cbotback.api.ApiRequest;
 
 public class AssetPairRequest implements ApiRequest {
     private String assets;
-    private String brokerage;
+    private String exchange;
 
     public String getAssets() {
         return assets;
@@ -14,11 +14,11 @@ public class AssetPairRequest implements ApiRequest {
         this.assets = assets;
     }
 
-    public String getBrokerage() {
-        return brokerage;
+    public String getExchange() {
+        return exchange;
     }
 
-    public void setBrokerage(String brokerage) {
-        this.brokerage = brokerage;
+    public void setExchange(String exchange) {
+        this.exchange = exchange;
     }
 }

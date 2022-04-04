@@ -11,6 +11,7 @@ import com.sadoon.cbotback.brokerage.model.Brokerage;
 import com.sadoon.cbotback.brokerage.util.BrokerageDto;
 import com.sadoon.cbotback.card.models.Card;
 import com.sadoon.cbotback.card.models.CardApiRequest;
+import com.sadoon.cbotback.exchange.meta.TradeStatus;
 import com.sadoon.cbotback.exchange.model.Fees;
 import com.sadoon.cbotback.exchange.model.TradeVolume;
 import com.sadoon.cbotback.exchange.model.Trade;
@@ -112,7 +113,7 @@ public class Mocks {
     public static AssetPairRequest assetPairRequest() {
         AssetPairRequest request = new AssetPairRequest();
         request.setAssets("BTCUSD");
-        request.setBrokerage("kraken");
+        request.setExchange("kraken");
         return request;
     }
 
@@ -272,9 +273,9 @@ public class Mocks {
         return fees.setPair("BTC/USD");
     }
 
-    public static Trade trade(boolean isActive, BigDecimal currentPrice, BigDecimal targetPrice){
+    public static Trade trade(TradeStatus status, BigDecimal currentPrice, BigDecimal targetPrice){
         return new Trade()
-                .setActive(isActive)
+                .setStatus(status)
                 .setPair(String.join("/", Mocks.assetPair().getBase(), Mocks.assetPair().getQuote()))
                 .setType(StrategyType.LONG)
                 .setFees(Mocks.fees())

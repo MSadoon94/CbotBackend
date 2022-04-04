@@ -52,8 +52,8 @@ class BrokerageServiceTest {
         mockDto.setBrokerage(brokerage);
         PublicRequestDto<CardApiRequest> publicRequestDto = brokerageService.createPublicDto(request, requestType);
 
-        assertThat(publicRequestDto, samePropertyValuesAs(mockDto, "brokerage", "request"));
-        assertThat(publicRequestDto, hasProperty("brokerage", samePropertyValuesAs(brokerage)));
+        assertThat(publicRequestDto, samePropertyValuesAs(mockDto, "exchange", "request"));
+        assertThat(publicRequestDto, hasProperty("exchange", samePropertyValuesAs(brokerage)));
         assertThat(publicRequestDto, hasProperty("request", samePropertyValuesAs(request)));
     }
 
@@ -63,9 +63,9 @@ class BrokerageServiceTest {
         BrokerageDto brokerageDTO = brokerageService.createBrokerageDto(request, requestType);
         assertThat(brokerageDTO,
                 samePropertyValuesAs(
-                        Mocks.brokerageDTO(requestType, brokerage.getUrl()), "brokerage", "request")
+                        Mocks.brokerageDTO(requestType, brokerage.getUrl()), "exchange", "request")
         );
-        assertThat(brokerageDTO, hasProperty("brokerage", samePropertyValuesAs(brokerage)));
+        assertThat(brokerageDTO, hasProperty("exchange", samePropertyValuesAs(brokerage)));
         assertThat(brokerageDTO, hasProperty("request", samePropertyValuesAs(request)));
 
     }

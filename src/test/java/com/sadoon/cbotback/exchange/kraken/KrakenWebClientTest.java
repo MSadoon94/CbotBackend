@@ -7,6 +7,7 @@ import com.sadoon.cbotback.brokerage.util.NonceCreator;
 import com.sadoon.cbotback.brokerage.util.SignatureCreator;
 import com.sadoon.cbotback.exceptions.exchange.ExchangeRequestException;
 import com.sadoon.cbotback.exchange.meta.ExchangeType;
+import com.sadoon.cbotback.exchange.meta.TradeStatus;
 import com.sadoon.cbotback.exchange.model.Trade;
 import com.sadoon.cbotback.exchange.model.TradeVolume;
 import com.sadoon.cbotback.exchange.structure.ExchangeResponseHandler;
@@ -105,7 +106,7 @@ class KrakenWebClientTest {
 
     @Test
     void shouldReturnTradeWithAllNamesSet() throws JsonProcessingException {
-        Trade mockTrade = Mocks.trade(true, BigDecimal.ZERO, BigDecimal.ONE);
+        Trade mockTrade = Mocks.trade(TradeStatus.SELECTED, BigDecimal.ZERO, BigDecimal.ONE);
         mockTrade.setAllNames(new ArrayList<>(Collections.singleton(mockTrade.getPair())));
         Flux<Trade> tradeFeedIn = Flux.just(mockTrade);
 
@@ -130,7 +131,7 @@ class KrakenWebClientTest {
 
     @Test
     void shouldReturnTradeWithFeesSet() throws JsonProcessingException, ExchangeRequestException {
-        Flux<Trade> tradeFeedIn = Flux.just(Mocks.trade(true, BigDecimal.ONE, BigDecimal.TEN));
+        Flux<Trade> tradeFeedIn = Flux.just(Mocks.trade(TradeStatus.SELECTED, BigDecimal.ONE, BigDecimal.TEN));
 
         given(nonceCreator.createNonce()).willReturn(mockNonce);
         given(responseHandler.getFees(any())).willReturn(List.of(Mocks.fees()));

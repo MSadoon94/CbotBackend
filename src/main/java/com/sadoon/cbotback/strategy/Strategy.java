@@ -8,7 +8,7 @@ import java.util.Arrays;
 public class Strategy {
     private String name;
     private String type;
-    private String brokerage;
+    private String exchange;
     private String base;
     private String quote;
     private String stopLoss;
@@ -18,6 +18,7 @@ public class Strategy {
     private String maxLoss;
     private String entry;
     private String timeFrame;
+    private String timeUnit;
 
     @JsonIgnore
     public String getPair() {
@@ -120,11 +121,19 @@ public class Strategy {
         this.type = type;
     }
 
-    public String getBrokerage() {
-        return brokerage;
+    public String getExchange() {
+        return exchange;
     }
 
-    public void setBrokerage(String brokerage) {
-        this.brokerage = brokerage;
+    public void setExchange(String exchange) {
+        this.exchange = exchange;
+    }
+
+    public String getTimeUnit() {
+        return timeUnit;
+    }
+
+    public void setTimeUnit(String timeUnit) {
+        this.timeUnit = timeUnit;
     }
 }

@@ -2,6 +2,7 @@ package com.sadoon.cbotback.user;
 
 import com.sadoon.cbotback.exceptions.notfound.UserNotFoundException;
 import com.sadoon.cbotback.exchange.meta.ExchangeType;
+import com.sadoon.cbotback.exchange.meta.TradeStatus;
 import com.sadoon.cbotback.exchange.model.Trade;
 import com.sadoon.cbotback.exchange.structure.Exchange;
 import com.sadoon.cbotback.exchange.structure.ExchangeSupplier;
@@ -106,7 +107,7 @@ class UserServiceTest {
 
     @Test
     void shouldReturnTradeFeedsGroupedByUserId() throws Exception {
-        Trade mockTrade = Mocks.trade(true, BigDecimal.ONE, BigDecimal.ZERO);
+        Trade mockTrade = Mocks.trade(TradeStatus.SELECTED, BigDecimal.ONE, BigDecimal.ZERO);
         given(supplier.getExchange(any())).willReturn(mockExchange);
         given(mockExchange.getTradeFeed(any())).willReturn(Flux.just(mockTrade));
         given(mockExchange.addUserTradeFeeds(any())).willReturn(mockExchange);

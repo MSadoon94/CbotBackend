@@ -1,5 +1,6 @@
 package com.sadoon.cbotback.executor;
 
+import com.sadoon.cbotback.exchange.meta.TradeStatus;
 import com.sadoon.cbotback.exchange.model.Trade;
 import com.sadoon.cbotback.strategy.StrategyType;
 import com.sadoon.cbotback.tools.Mocks;
@@ -31,33 +32,61 @@ class EntryScannerTest {
     }
 
     @Test
-    void shouldReturnTradeFeedWithLongTradesThatAreInTargetRange() {
-        Trade lesserValue = Mocks.trade(true, BigDecimal.ZERO, BigDecimal.ONE);
-        Trade targetValue = Mocks.trade(true, BigDecimal.ONE, BigDecimal.ONE);
-        Trade greaterValue = Mocks.trade(true, BigDecimal.TEN, BigDecimal.ONE);
-        Flux<Trade> tradeFeedIn = Flux.just(lesserValue, targetValue, greaterValue);
+    void shouldCreateTradeId(){
+        Trade targetValue = Mocks.trade(TradeStatus.SELECTED, BigDecimal.ONE, BigDecimal.ONE);
+        Flux<Trade> tradeFeedIn = Flux.just(targetValue);
+
+        String targetId = String.join("",
+                targetValue.getCurrentPrice().toString(),
+                targetValue.getPair(),
+                targetValue.getTargetPrice().toString(),
+                targetValue.getType().name()
+        );
 
         StepVerifier.create(scanner.tradeFeed(tradeFeedIn))
                 .expectSubscription()
-                .consumeNextWith(trade -> assertThat(trade.getCurrentPrice(), is(targetValue.getCurrentPrice())))
-                .consumeNextWith(trade -> assertThat(trade.getCurrentPrice(), is(greaterValue.getCurrentPrice())))
+                .consumeNextWith(trade -> assertThat(trade.getId(), is(targetId)))
                 .thenCancel()
                 .verify();
     }
 
     @Test
-    void shouldReturnTradeFeedWithShortTradesThatAreInTargetRange() {
-        Trade lesserValue = Mocks.trade(true, BigDecimal.ZERO, BigDecimal.ONE).setType(StrategyType.SHORT);
-        Trade targetValue = Mocks.trade(true, BigDecimal.ONE, BigDecimal.ONE).setType(StrategyType.SHORT);
-        Trade greaterValue = Mocks.trade(true, BigDecimal.TEN, BigDecimal.ONE).setType(StrategyType.SHORT);
+    void shouldReturnTradeFeedWithLongTradesThatHaveStatusSet() {
+        Trade lesserValue = Mocks.trade(TradeStatus.SELECTED, BigDecimal.ZERO, BigDecimal.ONE);
+        Trade targetValue = Mocks.trade(TradeStatus.SELECTED, BigDecimal.ONE, BigDecimal.ONE);
+        Trade greaterValue = Mocks.trade(TradeStatus.SELECTED, BigDecimal.TEN, BigDecimal.ONE);
         Flux<Trade> tradeFeedIn = Flux.just(lesserValue, targetValue, greaterValue);
 
         StepVerifier.create(scanner.tradeFeed(tradeFeedIn))
                 .expectSubscription()
-                .consumeNextWith(trade -> assertThat(trade.getCurrentPrice(), is(lesserValue.getCurrentPrice())))
-                .consumeNextWith(trade -> assertThat(trade.getCurrentPrice(), is(targetValue.getCurrentPrice())))
+                .consumeNextWith(trade -> tradeAssert(trade, lesserValue.getCurrentPrice(), lesserValue.getStatus()))
+                .consumeNextWith(trade -> tradeAssert(trade, targetValue.getCurrentPrice(), targetValue.getStatus()))
+                .consumeNextWith(trade -> tradeAssert(trade, greaterValue.getCurrentPrice(), greaterValue.getStatus()))
                 .thenCancel()
                 .verify();
+    }
+
+
+
+    @Test
+    void shouldReturnTradeFeedWithShortTradesThatAreInTargetRange() {
+        Trade lesserValue = Mocks.trade(TradeStatus.SELECTED, BigDecimal.ZERO, BigDecimal.ONE).setType(StrategyType.SHORT);
+        Trade targetValue = Mocks.trade(TradeStatus.SELECTED, BigDecimal.ONE, BigDecimal.ONE).setType(StrategyType.SHORT);
+        Trade greaterValue = Mocks.trade(TradeStatus.SELECTED, BigDecimal.TEN, BigDecimal.ONE).setType(StrategyType.SHORT);
+        Flux<Trade> tradeFeedIn = Flux.just(lesserValue, targetValue, greaterValue);
+
+        StepVerifier.create(scanner.tradeFeed(tradeFeedIn))
+                .expectSubscription()
+                .consumeNextWith(trade -> tradeAssert(trade, lesserValue.getCurrentPrice(), lesserValue.getStatus()))
+                .consumeNextWith(trade -> tradeAssert(trade, targetValue.getCurrentPrice(), targetValue.getStatus()))
+                .consumeNextWith(trade -> tradeAssert(trade, greaterValue.getCurrentPrice(), greaterValue.getStatus()))
+                .thenCancel()
+                .verify();
+    }
+
+    private void tradeAssert(Trade trade, BigDecimal expectedPrice, TradeStatus expectedStatus){
+        assertThat(trade.getCurrentPrice(), is(expectedPrice));
+        assertThat(trade.getStatus(), is(expectedStatus));
     }
 
 }

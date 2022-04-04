@@ -1,6 +1,7 @@
 package com.sadoon.cbotback.executor;
 
 import com.sadoon.cbotback.exceptions.outofbounds.OutOfBoundsException;
+import com.sadoon.cbotback.exchange.meta.TradeStatus;
 import com.sadoon.cbotback.exchange.model.Trade;
 import com.sadoon.cbotback.strategy.Strategy;
 import com.sadoon.cbotback.strategy.StrategyType;
@@ -28,12 +29,12 @@ class PriceCalculatorTest {
     private Strategy mockStrategy = Mocks.strategy();
     private String entry = String.valueOf(Math.random());
     private String price = String.valueOf(Math.floor(Math.random() * ((1000000 - 1 + 1) + 1)));
-    private Trade mockTrade = Mocks.trade(true, BigDecimal.ONE, BigDecimal.ZERO);
+    private Trade mockTrade = Mocks.trade(TradeStatus.SELECTED, BigDecimal.ONE, BigDecimal.ZERO);
     private String[] mockValues = new String[]{price, "1", "1"};
 
     @BeforeEach
     public void setUp() {
-        mockStrategy.setBrokerage("mockBrokerage");
+        mockStrategy.setExchange("mockBrokerage");
         calculator = new PriceCalculator();
     }
 

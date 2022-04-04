@@ -40,7 +40,7 @@ public class CardApiRequest implements BrokerageApiRequest {
         this.password = password;
     }
 
-    public String getBrokerage() {
+    public String getExchange() {
         return brokerage;
     }
 

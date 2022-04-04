@@ -24,7 +24,7 @@ public class BrokerageService {
     }
 
     public <T extends ApiRequest> PublicRequestDto<T> createPublicDto(T request, String type) {
-        Brokerage brokerage = repo.getBrokerageByName(request.getBrokerage());
+        Brokerage brokerage = repo.getBrokerageByName(request.getExchange());
 
         PublicRequestDto<T> publicDto = new PublicRequestDto<>(request, type);
         publicDto.setBrokerage(brokerage);
@@ -36,8 +36,8 @@ public class BrokerageService {
             throws BrokerageNotFoundException {
 
         Brokerage brokerage =
-                Optional.ofNullable(repo.getBrokerageByName(request.getBrokerage()))
-                        .orElseThrow(() -> new BrokerageNotFoundException(request.getBrokerage()));
+                Optional.ofNullable(repo.getBrokerageByName(request.getExchange()))
+                        .orElseThrow(() -> new BrokerageNotFoundException(request.getExchange()));
 
         BrokerageDto brokerageDTO = new BrokerageDto(request, type);
         brokerageDTO.setBrokerage(brokerage);

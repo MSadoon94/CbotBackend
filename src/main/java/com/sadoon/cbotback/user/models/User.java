@@ -3,6 +3,7 @@ package com.sadoon.cbotback.user.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sadoon.cbotback.card.models.Card;
 import com.sadoon.cbotback.exchange.meta.ExchangeType;
+import com.sadoon.cbotback.exchange.meta.TradeStatus;
 import com.sadoon.cbotback.exchange.model.Trade;
 import com.sadoon.cbotback.refresh.models.RefreshToken;
 import com.sadoon.cbotback.security.credentials.SecurityCredentials;
@@ -169,7 +170,7 @@ public class User implements UserDetails {
                 .flatMap(strategy ->
                         Mono.fromCallable(() ->
                                         new Trade()
-                                                .setActive(cbotStatus.activeStrategies().contains(strategy.getName()))
+                                                .setStatus(getTradeStatusFromActiveStrategies(cbotStatus, strategy))
                                                 .setPair(strategy.getPair())
                                                 .setType(strategy.asStrategyType())
                                                 .setEntryPercentage(new BigDecimal(strategy.getEntry()))
@@ -177,5 +178,13 @@ public class User implements UserDetails {
                                 .onErrorResume(Mono::error)
                                 .subscribeOn(Schedulers.boundedElastic()))
             .takeWhile(trade -> cbotStatus.isActive());
+    }
+
+    private TradeStatus getTradeStatusFromActiveStrategies(CbotStatus cbotStatus, Strategy strategy){
+        if(cbotStatus.activeStrategies().contains(strategy.getName())){
+            return TradeStatus.SELECTED;
+        } else {
+            return TradeStatus.NOT_SELECTED;
+        }
     }
 }
