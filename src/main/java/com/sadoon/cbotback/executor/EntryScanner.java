@@ -11,6 +11,7 @@ public class EntryScanner {
         return tradeFeedIn
                 .map(trade -> trade.setID(
                         String.join("",
+                                trade.getExchange().name(),
                                 trade.getCurrentPrice().toString(),
                                 trade.getPair(),
                                 trade.getTargetPrice().toString(),
@@ -29,9 +30,9 @@ public class EntryScanner {
 
     private boolean isTradeWithinRangeOfTarget(Trade trade) {
         if (trade.getType().equals(StrategyType.LONG)) {
-            return trade.getTargetPrice().compareTo(trade.getCurrentPrice()) <= 0;
+            return trade.getCurrentPrice().compareTo(trade.getTargetPrice()) <= 0;
         } else {
-            return trade.getTargetPrice().compareTo(trade.getCurrentPrice()) >= 0;
+            return trade.getCurrentPrice().compareTo(trade.getTargetPrice()) >= 0;
         }
     }
 }

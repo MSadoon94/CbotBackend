@@ -13,7 +13,10 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
-import java.security.*;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
 public class CredentialManager {
@@ -32,7 +35,7 @@ public class CredentialManager {
     }
 
 
-    public String addCredentials(String username, SecurityCredentials credentials) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, CertificateException, KeyStoreException, IOException {
+    public String addCredentials(String username, SecurityCredential credentials) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, CertificateException, KeyStoreException, IOException {
         SecretKey key = aesKeyUtil.generateKey(256);
         SecretKey iv = new SecretKeySpec(aesKeyUtil.getIv(), "AES");
 
@@ -54,7 +57,7 @@ public class CredentialManager {
         return encrypted;
     }
 
-    public String decryptPassword(SecurityCredentials credentials, String username) throws CredentialsException {
+    public String decryptPassword(SecurityCredential credentials, String username) throws CredentialsException {
         if (credentials.password().length() < 6) {
             throw new CredentialsException(
                     "Password",

@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -26,7 +27,9 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.security.GeneralSecurityException;
+import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 
 
 @ControllerAdvice
@@ -51,7 +54,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(ProcessingException.class)
-    protected ResponseEntity<Object> handleNestedServletException(CustomException ex){
+    protected ResponseEntity<Object> handleNestedServletException(CustomException ex) {
         return buildResponseEntity(addSubErrors(ex.subError, ex));
     }
 
@@ -83,7 +86,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(ExpiredJwtException.class)
-    protected ResponseEntity<Object> handleExpiredJwt(ExpiredJwtException ex){
+    protected ResponseEntity<Object> handleExpiredJwt(ExpiredJwtException ex) {
         ApiError apiError = new ApiError(HttpStatus.UNAUTHORIZED);
         apiError.setMessage(ex.getMessage());
         return ResponseEntity
@@ -93,9 +96,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(GeneralSecurityException.class)
-    protected ResponseEntity<Object> handleGeneralSecurityException(GeneralSecurityException ex){
+    protected ResponseEntity<Object> handleGeneralSecurityException(GeneralSecurityException ex) {
         ApiError apiError = new ApiError(HttpStatus.SERVICE_UNAVAILABLE);
-        if(ex.getMessage() != null){
+        if (ex.getMessage() != null) {
             apiError.setMessage(ex.getMessage());
         }
         return ResponseEntity
@@ -105,7 +108,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(DuplicateEntityException.class)
-    protected ResponseEntity<Object> handleDuplicateEntity(DuplicateEntityException ex){
+    protected ResponseEntity<Object> handleDuplicateEntity(DuplicateEntityException ex) {
         ApiError apiError = new ApiError(HttpStatus.CONFLICT);
         apiError.setMessage(ex.getMessage());
         return ResponseEntity
@@ -114,8 +117,24 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @MessageExceptionHandler
-    protected Message<Throwable> handleMessageException(Exception ex){
-        return MessageBuilder.fromMessage(new ErrorMessage(ex)).build();
+    protected Message<Throwable> handleMessageException(Exception ex) {
+        return MessageBuilder.fromMessage(new ErrorMessage(ex)).setHeader("Error", true).build();
+    }
+
+    @MessageExceptionHandler(value = ExchangeRequestException.class)
+    protected Message<String> handleExchangeRequestExceptionAsMessage(ExchangeRequestException ex,
+                                                                      SimpMessagingTemplate messagingTemplate,
+                                                                      Principal principal
+    ) {
+        if (ex.getMessage().contains("EAPI:Invalid key")) {
+            messagingTemplate.convertAndSendToUser(
+                    principal.getName(),
+                    "/topic/rejected-credentials",
+                    String.format("%1s credentials rejected, please enter correct credentials.", ex.getExchange()),
+                    Map.of("Error", true)
+            );
+        }
+        return MessageBuilder.withPayload(ex.getMessage()).setHeader("Error", true).build();
     }
 
     private ApiError buildApiError(HttpStatus status, CustomException ex) {

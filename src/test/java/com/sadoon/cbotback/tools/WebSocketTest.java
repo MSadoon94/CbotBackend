@@ -17,18 +17,15 @@ import java.util.HashMap;
 import java.util.List;
 
 public class WebSocketTest {
-
     private TestMessageChannel inboundChannel;
     private TestMessageChannel outboundChannel;
     private TestMessageChannel simpMessagingChannel;
-    private SimpMessagingTemplate messagingTemplate;
     private TestAnnotationMethodHandler annotationMethodHandler;
 
-    public WebSocketTest(Object handler) {
+    public WebSocketTest(Object handler, SimpMessagingTemplate messagingTemplate) {
         inboundChannel = new TestMessageChannel();
         outboundChannel = new TestMessageChannel();
-        simpMessagingChannel  = new TestMessageChannel();
-        messagingTemplate = new SimpMessagingTemplate(simpMessagingChannel);
+        simpMessagingChannel = (TestMessageChannel) messagingTemplate.getMessageChannel();
         annotationMethodHandler = new TestAnnotationMethodHandler(
                 inboundChannel,
                 outboundChannel,
@@ -45,15 +42,12 @@ public class WebSocketTest {
         return outboundChannel;
     }
 
+    //Will give false positives when asserting messages with "samePropertyValuesAs()", use "is()" instead.
     public TestMessageChannel getBrokerMessagingChannel() {
         return simpMessagingChannel;
     }
 
-    public SimpMessagingTemplate getMessagingTemplate() {
-        return messagingTemplate;
-    }
-
-    private void setAnnotationMethodHandler(Object handler){
+    private void setAnnotationMethodHandler(Object handler) {
         annotationMethodHandler.registerHandler(handler);
         annotationMethodHandler.setDestinationPrefixes(List.of("/app", "/topic", "/queue"));
         annotationMethodHandler.setMessageConverter(new MappingJackson2MessageConverter());
@@ -61,20 +55,20 @@ public class WebSocketTest {
         annotationMethodHandler.afterPropertiesSet();
     }
 
-    public Message<?> responseMessage(StompHeaderAccessor headers){
+    public Message<?> responseMessage(StompHeaderAccessor headers) {
         Message<byte[]> message =
                 MessageBuilder.withPayload(new byte[0]).setHeaders(headers).build();
         annotationMethodHandler.handleMessage(message);
         return outboundChannel.getMessages().get(0);
     }
 
-    public void responseMessage(StompHeaderAccessor headers, byte[] payload){
+    public void responseMessage(StompHeaderAccessor headers, byte[] payload) {
         Message<byte[]> message =
                 MessageBuilder.withPayload(payload).setHeaders(headers).build();
         annotationMethodHandler.handleMessage(message);
     }
 
-    public StompHeaderAccessor subscribeHeaderAccessor(String destination, Principal principal){
+    public StompHeaderAccessor subscribeHeaderAccessor(String destination, Principal principal) {
         StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
         accessor.setSubscriptionId("0");
         accessor.setDestination(destination);
@@ -83,7 +77,8 @@ public class WebSocketTest {
         accessor.setSessionAttributes(new HashMap<>());
         return accessor;
     }
-    public StompHeaderAccessor sendHeaderAccessor(String destination, Principal principal){
+
+    public StompHeaderAccessor sendHeaderAccessor(String destination, Principal principal) {
         StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SEND);
         accessor.setDestination(destination);
         accessor.setSessionId("0");

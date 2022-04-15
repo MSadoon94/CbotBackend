@@ -37,6 +37,7 @@ class EntryScannerTest {
         Flux<Trade> tradeFeedIn = Flux.just(targetValue);
 
         String targetId = String.join("",
+                targetValue.getExchange().name(),
                 targetValue.getCurrentPrice().toString(),
                 targetValue.getPair(),
                 targetValue.getTargetPrice().toString(),

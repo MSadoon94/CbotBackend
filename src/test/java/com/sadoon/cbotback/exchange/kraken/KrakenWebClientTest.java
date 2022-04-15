@@ -3,15 +3,16 @@ package com.sadoon.cbotback.exchange.kraken;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sadoon.cbotback.api.KrakenResponse;
+import com.sadoon.cbotback.brokerage.model.Balances;
 import com.sadoon.cbotback.brokerage.util.NonceCreator;
 import com.sadoon.cbotback.brokerage.util.SignatureCreator;
 import com.sadoon.cbotback.exceptions.exchange.ExchangeRequestException;
-import com.sadoon.cbotback.exchange.meta.ExchangeType;
+import com.sadoon.cbotback.exchange.meta.ExchangeName;
 import com.sadoon.cbotback.exchange.meta.TradeStatus;
 import com.sadoon.cbotback.exchange.model.Trade;
 import com.sadoon.cbotback.exchange.model.TradeVolume;
 import com.sadoon.cbotback.exchange.structure.ExchangeResponseHandler;
-import com.sadoon.cbotback.security.credentials.SecurityCredentials;
+import com.sadoon.cbotback.security.credentials.SecurityCredential;
 import com.sadoon.cbotback.tools.Mocks;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -49,18 +50,20 @@ class KrakenWebClientTest {
     @Mock
     private ExchangeResponseHandler responseHandler;
     private TradeVolume mockVolume;
+    private Balances mockBalances;
 
 
     private String mockNonce = "mockNonce";
     private List<String> pairs = List.of("BTCUSD");
-    private SecurityCredentials credentials
-            = new SecurityCredentials(ExchangeType.KRAKEN.name(), "mockAccount", "mockPassword");
+    private SecurityCredential credentials
+            = new SecurityCredential(ExchangeName.KRAKEN.name(), "mockAccount", "mockPassword");
 
     private KrakenWebClient client;
 
     @BeforeEach
     public void setUp() throws IOException {
         mockVolume = Mocks.tradeVolume(mapper, new String[]{});
+        mockBalances = Mocks.balances("USD", "100");
         mockWebServer = new MockWebServer();
         mockWebServer.start();
         client = new KrakenWebClient(
@@ -169,6 +172,31 @@ class KrakenWebClientTest {
 
         StepVerifier.create(client.tradeVolume(credentials, pairs))
                 .expectSubscription()
+                .expectErrorSatisfies(error -> {
+                    assertThat(error, isA(ExchangeRequestException.class));
+                    assertThat(error.getMessage(),
+                            containsString("KRAKEN responded with: 400 Bad Request from POST"));
+                })
+                .verify();
+    }
+
+    @Test
+    void shouldReturnBalances() throws JsonProcessingException {
+        given(nonceCreator.createNonce()).willReturn(mockNonce);
+        mockWebServer.enqueue(mockResponse(HttpStatus.OK, mockBalances));
+
+        StepVerifier.create(client.balances(credentials))
+                .consumeNextWith(result -> assertThat(result, samePropertyValuesAs(mockBalances)))
+                .thenCancel()
+                .verify();
+    }
+
+    @Test
+    void shouldThrowExceptionOnBalancesRequestError() throws JsonProcessingException {
+        given(nonceCreator.createNonce()).willReturn(mockNonce);
+        mockWebServer.enqueue(mockResponse(HttpStatus.BAD_REQUEST, mockBalances));
+
+        StepVerifier.create(client.balances(credentials))
                 .expectErrorSatisfies(error -> {
                     assertThat(error, isA(ExchangeRequestException.class));
                     assertThat(error.getMessage(),

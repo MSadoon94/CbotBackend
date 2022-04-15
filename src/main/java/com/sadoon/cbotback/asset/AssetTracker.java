@@ -2,65 +2,53 @@ package com.sadoon.cbotback.asset;
 
 import com.sadoon.cbotback.exchange.meta.PayloadType;
 import com.sadoon.cbotback.exchange.model.Trade;
-import com.sadoon.cbotback.exchange.structure.BrokerageMessageFactory;
+import com.sadoon.cbotback.exchange.structure.ExchangeMessageFactory;
 import com.sadoon.cbotback.exchange.structure.ExchangeWebSocket;
-import com.sadoon.cbotback.exchange.structure.WebSocketFunctions;
-import org.springframework.web.reactive.socket.WebSocketMessage;
-import reactor.core.publisher.BaseSubscriber;
+import com.sadoon.cbotback.exchange.structure.WebSocketMessageHandler;
+import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.core.io.buffer.PooledDataBuffer;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.core.publisher.Sinks;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
 public class AssetTracker {
     private ExchangeWebSocket socket;
-    private BrokerageMessageFactory messageFactory;
-    private WebSocketFunctions functions;
-    private Flux<Trade> tradeFeedIn;
-    private Sinks.Many<Mono<? extends Trade>> tradeFeedOut = Sinks.many().multicast().onBackpressureBuffer();
+    private ExchangeMessageFactory messageFactory;
+    private WebSocketMessageHandler messageHandler;
 
-    public AssetTracker(Flux<Trade> tradeFeedIn,
-                        ExchangeWebSocket socket,
-                        BrokerageMessageFactory messageFactory) {
-        this.tradeFeedIn = tradeFeedIn;
+    private List<String> pairs = new ArrayList<>();
+
+    public AssetTracker(ExchangeWebSocket socket,
+                        ExchangeMessageFactory messageFactory,
+                        WebSocketMessageHandler messageHandler) {
         this.socket = socket;
         this.messageFactory = messageFactory;
-        this.functions = new WebSocketFunctions();
-        processTrades();
+        this.messageHandler = messageHandler;
+        socket.execute(messageHandler);
     }
 
-    public Flux<Trade> getTrades() {
-        return tradeFeedOut
-                .asFlux()
-                .flatMap(Mono::flux);
+    public Flux<Trade> getTrades(Flux<Trade> tradeFeedIn) {
+        socket.execute(messageHandler);
+
+        return tradeFeedIn.doOnNext(trade -> {
+                    if (!pairs.contains(trade.getPair())) {
+                        pairs.add(trade.getPair());
+                    }
+                })
+                .zipWith(messageHandler
+                        .sendMessage(messageFactory.tickerSubscribe(pairs))
+                        .thenMany(messageHandler.getMessageFeed())
+                        .filter(messageFilter())
+                        .doOnDiscard(PooledDataBuffer.class, DataBufferUtils::release)
+                        .flatMap(message -> messageFactory.tickerMessage(message))
+                ).map(tuple -> tuple.getT1()
+                        .setCurrentPrice(new BigDecimal(tuple.getT2().getPrice(tuple.getT1().getType()))));
     }
 
-    public void processTrades() {
-        tradeFeedIn
-                .subscribe(trade ->
-                        socket.addSendFunction(functions.sendMessage(messageFactory.tickerSubscribe(List.of(trade.getPair()))))
-                                .addReceiveFunction(functions.receiveMessages(tickerSubscriber(trade), messageFilter())));
-    }
-
-
-    private BaseSubscriber<WebSocketMessage> tickerSubscriber(Trade trade) {
-        return new BaseSubscriber<>() {
-            @Override
-            protected void hookOnNext(WebSocketMessage message) {
-                requestUnbounded();
-
-                tradeFeedOut.tryEmitNext(
-                        messageFactory.tickerMessage(message.getPayloadAsText())
-                                .map(tickerMessage ->
-                                        trade.setCurrentPrice(new BigDecimal(tickerMessage.getPrice(trade.getType())))));
-            }
-        };
-    }
-
-    private Predicate<WebSocketMessage> messageFilter() {
+    private Predicate<String> messageFilter() {
         return message ->
                 !PayloadType.getType(message).equals(PayloadType.EVENT) &&
                         PayloadType.getType(message).equals(PayloadType.TICKER);

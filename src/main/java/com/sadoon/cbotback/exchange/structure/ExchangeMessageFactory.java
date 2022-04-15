@@ -5,7 +5,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 
-public interface BrokerageMessageFactory {
+public interface ExchangeMessageFactory {
 
     Mono<String> tickerSubscribe(List<String> pairs);
 

@@ -1,5 +1,6 @@
 package com.sadoon.cbotback.exchange.model;
 
+import com.sadoon.cbotback.exchange.meta.ExchangeName;
 import com.sadoon.cbotback.exchange.meta.TradeStatus;
 import com.sadoon.cbotback.strategy.StrategyType;
 
@@ -9,6 +10,7 @@ import java.util.List;
 
 public class Trade {
     private String id;
+    private ExchangeName exchange;
     private TradeStatus status;
     private String pair;
     private List<String> allNames = new ArrayList<>();
@@ -18,12 +20,21 @@ public class Trade {
     private Fees fees;
     private StrategyType type;
 
-    public String getId(){
+    public String getId() {
         return id;
     }
 
-    public Trade setID(String id){
+    public Trade setID(String id) {
         this.id = id;
+        return this;
+    }
+
+    public ExchangeName getExchange() {
+        return exchange;
+    }
+
+    public Trade setExchange(ExchangeName exchange) {
+        this.exchange = exchange;
         return this;
     }
 
@@ -54,7 +65,7 @@ public class Trade {
         return this;
     }
 
-    public Trade setAllNames(List<String> allNames){
+    public Trade setAllNames(List<String> allNames) {
         this.allNames = allNames;
         return this;
     }

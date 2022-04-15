@@ -1,9 +1,9 @@
 package com.sadoon.cbotback.exp;
 
 import com.sadoon.cbotback.brokerage.util.SignatureCreator;
-import com.sadoon.cbotback.exchange.meta.ExchangeType;
+import com.sadoon.cbotback.exchange.meta.ExchangeName;
 import com.sadoon.cbotback.security.credentials.CredentialManager;
-import com.sadoon.cbotback.security.credentials.SecurityCredentials;
+import com.sadoon.cbotback.security.credentials.SecurityCredential;
 import com.sadoon.cbotback.security.util.AESKeyUtil;
 import com.sadoon.cbotback.security.util.KeyStoreUtil;
 import com.sadoon.cbotback.tools.Mocks;
@@ -30,11 +30,11 @@ class CredentialManagerTest {
     @Mock
     private KeyStoreUtil keyStoreUtil;
 
-    private SecurityCredentials mockCredentials =
-            new SecurityCredentials(ExchangeType.KRAKEN.name(), "mockAccount", "mockPassword");
+    private SecurityCredential mockCredentials =
+            new SecurityCredential(ExchangeName.KRAKEN.name(), "mockAccount", "mockPassword");
 
-    private SecurityCredentials encryptedCredentials =
-            new SecurityCredentials(ExchangeType.KRAKEN.name(), "mockAccount", "mockEncrypted");
+    private SecurityCredential encryptedCredentials =
+            new SecurityCredential(ExchangeName.KRAKEN.name(), "mockAccount", "mockEncrypted");
 
     @InjectMocks
     private CredentialManager manager;

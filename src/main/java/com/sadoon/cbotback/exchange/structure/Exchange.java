@@ -1,32 +1,33 @@
 package com.sadoon.cbotback.exchange.structure;
 
 import com.sadoon.cbotback.asset.AssetTracker;
-import com.sadoon.cbotback.exchange.meta.ExchangeType;
+import com.sadoon.cbotback.exchange.meta.ExchangeName;
 import com.sadoon.cbotback.exchange.model.Trade;
 import com.sadoon.cbotback.executor.EntryScanner;
 import com.sadoon.cbotback.executor.PriceCalculator;
 import com.sadoon.cbotback.security.credentials.CredentialsService;
+import com.sadoon.cbotback.security.credentials.SecurityCredential;
 import com.sadoon.cbotback.user.models.User;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.GroupedFlux;
 import reactor.core.publisher.Sinks;
 
 public class Exchange {
-    private ExchangeType exchangeName;
+    private ExchangeName exchangeName;
     private CredentialsService credentialsService;
     private ExchangeWebSocket webSocket;
-    private BrokerageMessageFactory messageFactory;
+    private ExchangeMessageFactory messageFactory;
     private ExchangeWebClient webClient;
     private ExchangeResponseHandler responseHandler;
     private AssetTracker tracker;
     private Sinks.Many<GroupedFlux<String, Flux<Trade>>> userTradeFeeds
             = Sinks.many().multicast().onBackpressureBuffer();
 
-    public ExchangeType getExchangeName() {
+    public ExchangeName getExchangeName() {
         return exchangeName;
     }
 
-    public Exchange setExchangeName(ExchangeType exchangeName) {
+    public Exchange setExchangeName(ExchangeName exchangeName) {
         this.exchangeName = exchangeName;
         return this;
     }
@@ -49,11 +50,11 @@ public class Exchange {
         return this;
     }
 
-    public BrokerageMessageFactory getMessageFactory() {
+    public ExchangeMessageFactory getMessageFactory() {
         return messageFactory;
     }
 
-    public Exchange setMessageFactory(BrokerageMessageFactory messageFactory) {
+    public Exchange setMessageFactory(ExchangeMessageFactory messageFactory) {
         this.messageFactory = messageFactory;
         return this;
     }
@@ -97,13 +98,13 @@ public class Exchange {
                 .share();
     }
 
-    public Flux<Trade> getTradeFeed(User user) throws Exception {
+    public Flux<Trade> getTradeFeed(User user, SecurityCredential credential) {
         return new EntryScanner().tradeFeed(
                 new PriceCalculator().tradeFeed(
                         webClient.tradeVolumeTradeFeed(
-                                credentialsService.getCredentials(user.getUsername(), exchangeName.name()),
+                                credential,
                                 webClient.assetPairTradeFeed(
-                                        new AssetTracker(user.getTradeFeed(), webSocket, messageFactory)
-                                                .getTrades()))));
+                                        tracker.getTrades(user.getTradeFeed())
+                                                .map(trade -> trade.setExchange(exchangeName))))));
     }
 }

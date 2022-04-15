@@ -1,8 +1,6 @@
 package com.sadoon.cbotback.security.util;
 
 import com.sadoon.cbotback.AppProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import javax.crypto.SecretKey;
 import java.io.FileOutputStream;
@@ -14,7 +12,6 @@ import java.nio.file.Paths;
 import java.security.*;
 import java.security.cert.CertificateException;
 
-@Configuration
 public class KeyStoreUtil {
 
     private AppProperties appProps;
@@ -23,11 +20,11 @@ public class KeyStoreUtil {
     private char[] pwdArray;
     private Path keystoreFilePath;
 
-    public KeyStoreUtil(AppProperties appProps) {
+    public KeyStoreUtil(AppProperties appProps) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
         this.appProps = appProps;
+        setUpKeystore();
     }
 
-    @Bean
     void setUpKeystore() throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException {
         keystoreFilePath = getKeystorePath();
         keyStore = KeyStore.getInstance("PKCS12");
@@ -55,7 +52,6 @@ public class KeyStoreUtil {
         InputStream inputStream = Files.newInputStream(keystoreFilePath);
         keyStore.load(inputStream, pwdArray);
 
-        keyStore.aliases().asIterator().forEachRemaining(System.out::println);
         Key key = keyStore.getKey(alias, appProps.getKeystorePassword().toCharArray());
 
         inputStream.close();
@@ -64,7 +60,7 @@ public class KeyStoreUtil {
     }
 
     private Path getKeystorePath() throws IOException {
-        Path keystorePath = Paths.get("./keystore");
+        Path keystorePath = Paths.get("../keystore");
         if (!Files.isDirectory(keystorePath)) {
             Files.createDirectories(keystorePath);
         }

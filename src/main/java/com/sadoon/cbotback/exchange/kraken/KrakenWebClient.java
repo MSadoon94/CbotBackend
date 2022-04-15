@@ -1,23 +1,24 @@
 package com.sadoon.cbotback.exchange.kraken;
 
+import com.sadoon.cbotback.asset.AssetPair;
 import com.sadoon.cbotback.asset.AssetPairs;
+import com.sadoon.cbotback.brokerage.model.Balances;
 import com.sadoon.cbotback.brokerage.util.NonceCreator;
 import com.sadoon.cbotback.brokerage.util.SignatureCreator;
 import com.sadoon.cbotback.exceptions.exchange.ExchangeRequestException;
-import com.sadoon.cbotback.exchange.meta.ExchangeType;
+import com.sadoon.cbotback.exchange.meta.ExchangeName;
 import com.sadoon.cbotback.exchange.model.Fees;
 import com.sadoon.cbotback.exchange.model.Trade;
 import com.sadoon.cbotback.exchange.model.TradeVolume;
 import com.sadoon.cbotback.exchange.structure.ExchangeResponseHandler;
 import com.sadoon.cbotback.exchange.structure.ExchangeWebClient;
-import com.sadoon.cbotback.security.credentials.SecurityCredentials;
+import com.sadoon.cbotback.security.credentials.SecurityCredential;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,23 +45,34 @@ public class KrakenWebClient implements ExchangeWebClient {
 
     @Override
     public Flux<Trade> assetPairTradeFeed(Flux<Trade> tradeFeedIn) {
+
         return tradeFeedIn
                 .flatMap(trade ->
                         assetPairs(trade.getPair())
                                 .map(assetPairs -> assetPairs.getPairs().get(trade.getPair()))
-                                .map(pair -> trade.addPairNames(List.of(pair.getAltName(), pair.getWsName()))));
+                                .map(pair -> trade.addPairNames(getPairNames(pair))));
+    }
+
+    private List<String> getPairNames(AssetPair pair) {
+        int altNameLength = pair.getAltName().length();
+        return List.of(pair.getAltName(),
+                pair.getWsName(),
+                String.format("X%1sZ%2s", pair.getBase(), pair.getQuote()),
+                String.format("X%1sZ%2s",
+                        pair.getAltName().substring(0, altNameLength / 2),
+                        pair.getAltName().substring(altNameLength / 2))
+        );
     }
 
     @Override
-    public Flux<Trade> tradeVolumeTradeFeed(SecurityCredentials credentials, Flux<Trade> tradeFeedIn) {
+    public Flux<Trade> tradeVolumeTradeFeed(SecurityCredential credentials, Flux<Trade> tradeFeedIn) {
         return tradeFeedIn
                 .doOnNext(trade -> {
                     if (!tradeVolumePairs.contains(trade.getPair())) {
                         tradeVolumePairs.add(trade.getPair());
                     }
                 })
-                .zipWith(getFees(tradeVolume(credentials, tradeVolumePairs)))
-                .flatMap(tradeFeeTuple -> addFees(tradeFeeTuple.getT2(), tradeFeeTuple.getT1()));
+                .flatMap(trade -> addFees(getFees(tradeVolume(credentials, tradeVolumePairs)), trade));
     }
 
     private Flux<Map<String, Fees>> getFees(Mono<TradeVolume> tradeVolumeMono) {
@@ -70,36 +82,50 @@ public class KrakenWebClient implements ExchangeWebClient {
                 .flatMap(tradeVolume -> Mono.fromCallable(() ->
                                 responseHandler
                                         .getFees(tradeVolume))
-                        .flux()
                         .flatMapIterable(Function.identity())
-                        .map(fee -> Map.of(fee.getPair(), fee))
-                        .subscribeOn(Schedulers.boundedElastic()));
+                        .map(fee -> Map.of(fee.getPair(), fee)));
     }
 
 
-    private Mono<Trade> addFees(Map<String, Fees> fees, Trade trade) {
-        return Mono.fromCallable(() -> trade.setFees(fees.get(trade
-                        .getAllNames()
-                        .stream()
-                        .filter(fees::containsKey)
-                        .findFirst()
-                        .get())))
-                .subscribeOn(Schedulers.boundedElastic());
+    private Flux<Trade> addFees(Flux<Map<String, Fees>> feesFlux, Trade trade) {
+        return feesFlux
+                .map(fees -> trade.setFees(fees.get(
+                        trade
+                                .getAllNames()
+                                .stream()
+                                .filter(fees::containsKey)
+                                .findFirst()
+                                .get())));
+
     }
 
     @Override
     public Mono<AssetPairs> assetPairs(String pairs) {
         return client.get()
-                .uri(String.format("/0/public/AssetPairs?=%1s", pairs))
+                .uri(String.format("/0/public/AssetPairs?pair=%1s", pairs))
                 .retrieve()
                 .bodyToMono(AssetPairs.class)
                 .onErrorResume(error -> Mono.error(
-                        new ExchangeRequestException(ExchangeType.KRAKEN, error.getMessage())));
+                        new ExchangeRequestException(ExchangeName.KRAKEN, error.getMessage())));
     }
 
     @Override
-    public Mono<TradeVolume> tradeVolume(SecurityCredentials credentials, List<String> pairs) {
-        String endpoint = "/0/private/TradeVolume";
+    public Flux<Balances> balances(SecurityCredential credentials) {
+        String endpoint = "/0/private/Balance";
+        Map<String, String> bodyValues = Map.of("nonce", nonceCreator.createNonce());
+
+        return getHeaders(client.method(HttpMethod.POST), credentials, bodyValues, endpoint)
+                .bodyValue(formatBodyValues(bodyValues))
+                .retrieve()
+                .bodyToFlux(Balances.class)
+                .onErrorResume(error -> Mono.error(
+                        new ExchangeRequestException(ExchangeName.KRAKEN, error.getMessage())
+                ));
+    }
+
+    @Override
+    public Mono<TradeVolume> tradeVolume(SecurityCredential credentials, List<String> pairs) {
+        String endpoint = String.format("/0/private/TradeVolume?pair=%s", String.join(",", pairs));
         Map<String, String> bodyValues = tradeVolumeRequest(nonceCreator.createNonce(), pairs);
 
         return getHeaders(client.method(HttpMethod.POST), credentials, bodyValues, endpoint)
@@ -107,11 +133,11 @@ public class KrakenWebClient implements ExchangeWebClient {
                 .retrieve()
                 .bodyToMono(TradeVolume.class)
                 .onErrorResume(error -> Mono.error(
-                        new ExchangeRequestException(ExchangeType.KRAKEN, error.getMessage())));
+                        new ExchangeRequestException(ExchangeName.KRAKEN, error.getMessage())));
     }
 
     private WebClient.RequestBodySpec getHeaders(WebClient.RequestBodyUriSpec bodySpec,
-                                                 SecurityCredentials credentials,
+                                                 SecurityCredential credentials,
                                                  Map<String, String> bodyValues,
                                                  String endpoint) {
 
@@ -125,7 +151,7 @@ public class KrakenWebClient implements ExchangeWebClient {
                         ));
     }
 
-    private String getSignature(SecurityCredentials credentials,
+    private String getSignature(SecurityCredential credentials,
                                 Map<String, String> bodyValues,
                                 String endpoint) {
 

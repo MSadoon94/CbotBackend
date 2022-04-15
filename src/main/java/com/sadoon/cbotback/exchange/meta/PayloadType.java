@@ -19,4 +19,9 @@ public enum PayloadType {
                 .filter(type -> message.getPayloadAsText().contains(type.name().toLowerCase()))
                 .findFirst().orElse(PayloadType.UNKNOWN);
     }
+    public static PayloadType getType(String message){
+        return PayloadType.getStream()
+                .filter(type -> message.contains(type.name().toLowerCase()))
+                .findFirst().orElse(PayloadType.UNKNOWN);
+    }
 }

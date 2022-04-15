@@ -1,10 +1,12 @@
 package com.sadoon.cbotback.exchange.structure;
 
+import org.springframework.web.reactive.socket.WebSocketHandler;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import org.springframework.web.reactive.socket.WebSocketSession;
 import org.springframework.web.reactive.socket.client.WebSocketClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 
 import java.net.URI;
 import java.util.function.Function;
@@ -15,11 +17,11 @@ public class ExchangeWebSocket {
     private URI webSocketURI;
     private Flux<Function<WebSocketSession, Mono<Void>>> sendFunctions = Flux.just();
     private Flux<Function<WebSocketSession, Flux<WebSocketMessage>>> receiveFunctions = Flux.just();
+    private Sinks.Many<WebSocketMessage> messageSink = Sinks.many().multicast().onBackpressureBuffer();
 
     public ExchangeWebSocket(WebSocketClient client, URI webSocketURI) {
         this.client = client;
         this.webSocketURI = webSocketURI;
-        startClient();
     }
 
     public ExchangeWebSocket addSendFunction(Function<WebSocketSession, Mono<Void>> function) {
@@ -32,12 +34,27 @@ public class ExchangeWebSocket {
         return this;
     }
 
-    private void startClient() {
-        client.execute(webSocketURI, session -> sendFunctions.flatMap(function -> function.apply(session))
+    public Flux<WebSocketMessage> getMessageFeed(){
+        return messageSink
+                .asFlux()
+                .share();
+    }
+
+    public void startClient() {
+        client.execute(webSocketURI, session -> receiveFunctions.flatMap(function -> function.apply(session))
+                        .doOnNext(message -> System.out.println("WebSocketMessageFromExchangeWebSocket: " + message.getPayloadAsText()))
+                        .doOnNext(message -> messageSink.tryEmitNext(message))
                         .thenMany(
-                                receiveFunctions.flatMap(function -> function.apply(session)))
+                                sendFunctions.flatMap(function -> function.apply(session))
+                        )
                         .then())
                 .onErrorResume(Mono::error)
+                .log()
+                .subscribe();
+    }
+
+    public void execute(WebSocketHandler handler){
+        client.execute(webSocketURI, handler)
                 .subscribe();
     }
 }

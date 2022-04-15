@@ -1,21 +1,21 @@
 package com.sadoon.cbotback.user.models;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.sadoon.cbotback.card.models.Card;
-import com.sadoon.cbotback.exchange.meta.ExchangeType;
+import com.sadoon.cbotback.exchange.meta.ExchangeName;
 import com.sadoon.cbotback.exchange.meta.TradeStatus;
 import com.sadoon.cbotback.exchange.model.Trade;
 import com.sadoon.cbotback.refresh.models.RefreshToken;
-import com.sadoon.cbotback.security.credentials.SecurityCredentials;
+import com.sadoon.cbotback.security.credentials.SecurityCredential;
 import com.sadoon.cbotback.status.CbotStatus;
 import com.sadoon.cbotback.strategy.Strategy;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -40,15 +40,17 @@ public class User implements UserDetails {
 
     private Map<String, Strategy> strategies = new LinkedHashMap<>();
 
-    private Map<String, SecurityCredentials> credentials = new LinkedHashMap<>();
+    private List<String> activeStrategies = new ArrayList<>();
 
-    private List<ExchangeType> exchanges = new ArrayList<>();
+    private Map<String, SecurityCredential> encryptedCredentials = new LinkedHashMap<>();
+
+    private List<ExchangeName> exchanges = new ArrayList<>();
 
     private CbotStatus cbotStatus = new CbotStatus(false, List.of());
 
     private Map<String, Trade> trades = new LinkedHashMap<>();
 
-    @JsonIgnore
+    @Transient
     private Flux<Trade> tradeFeed;
 
     public User(String username, String password, GrantedAuthority authority) {
@@ -105,6 +107,16 @@ public class User implements UserDetails {
         return true;
     }
 
+    public void addActiveStrategy(String strategyName) {
+        if (!activeStrategies.contains(strategyName)) {
+            activeStrategies.add(strategyName);
+        }
+    }
+
+    public List<String> getActiveStrategies() {
+        return activeStrategies;
+    }
+
     public Map<String, Card> getCards() {
         return cards;
     }
@@ -129,19 +141,19 @@ public class User implements UserDetails {
         this.cbotStatus = cbotStatus;
     }
 
-    public void setCredential(String type, SecurityCredentials credential) {
-        credentials.put(type, credential);
+    public void addEncryptedCredential(String type, SecurityCredential credential) {
+        encryptedCredentials.put(type, credential);
     }
 
-    public SecurityCredentials getCredential(String type) {
-        return credentials.get(type);
+    public SecurityCredential getEncryptedCredential(String type) {
+        return encryptedCredentials.get(type);
     }
 
-    public List<ExchangeType> getExchanges() {
+    public List<ExchangeName> getExchanges() {
         return exchanges;
     }
 
-    public void addExchange(ExchangeType exchange) {
+    public void addExchange(ExchangeName exchange) {
         exchanges.add(exchange);
     }
 
@@ -153,15 +165,17 @@ public class User implements UserDetails {
         this.trades = trades;
     }
 
-    @JsonIgnore
-    public Flux<Trade> getTradeFeed(){
-        if(tradeFeed == null){
-            createTrades();
-        }
-        return tradeFeed;
+    public void addTrade(Trade trade) {
+        trades.put(trade.getId(), trade);
     }
 
-    @JsonIgnore
+    public Flux<Trade> getTradeFeed() {
+        if (tradeFeed == null) {
+            createTrades();
+        }
+        return tradeFeed.share();
+    }
+
     public void createTrades() {
         tradeFeed = Flux.fromStream(
                         strategies
@@ -169,19 +183,16 @@ public class User implements UserDetails {
                                 .stream())
                 .flatMap(strategy ->
                         Mono.fromCallable(() ->
-                                        new Trade()
-                                                .setStatus(getTradeStatusFromActiveStrategies(cbotStatus, strategy))
-                                                .setPair(strategy.getPair())
-                                                .setType(strategy.asStrategyType())
-                                                .setEntryPercentage(new BigDecimal(strategy.getEntry()))
-                                )
-                                .onErrorResume(Mono::error)
-                                .subscribeOn(Schedulers.boundedElastic()))
-            .takeWhile(trade -> cbotStatus.isActive());
+                                new Trade()
+                                        .setStatus(getTradeStatusFromActiveStrategies(strategy))
+                                        .setPair(strategy.getPair())
+                                        .setType(strategy.asStrategyType())
+                                        .setEntryPercentage(new BigDecimal(strategy.getEntry()))
+                        ));
     }
 
-    private TradeStatus getTradeStatusFromActiveStrategies(CbotStatus cbotStatus, Strategy strategy){
-        if(cbotStatus.activeStrategies().contains(strategy.getName())){
+    private TradeStatus getTradeStatusFromActiveStrategies(Strategy strategy) {
+        if (activeStrategies.contains(strategy.getName())) {
             return TradeStatus.SELECTED;
         } else {
             return TradeStatus.NOT_SELECTED;

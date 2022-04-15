@@ -7,15 +7,25 @@ import com.sadoon.cbotback.security.util.KeyStoreUtil;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.IOException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+
 @Configuration
 public class CredentialsConfig {
 
     @Bean
-    CredentialManager credentialManager(AppProperties props) {
+    KeyStoreUtil keyStoreUtil(AppProperties props) throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
+        return new KeyStoreUtil(props);
+    }
+
+    @Bean
+    CredentialManager credentialManager(KeyStoreUtil keyStoreUtil) {
         return new CredentialManager(
                 new AESKeyUtil(),
                 new SignatureCreator(),
-                new KeyStoreUtil(props)
-        );
+                keyStoreUtil
+                );
     }
 }

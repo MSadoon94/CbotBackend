@@ -1,6 +1,7 @@
 package com.sadoon.cbotback.security.credentials;
 
 import com.sadoon.cbotback.user.UserService;
+import com.sadoon.cbotback.user.models.User;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,28 +15,26 @@ public class CredentialsService {
         this.userService = userService;
     }
 
-    public void addCredentials(String username, SecurityCredentials credentials)
+    public void addCredentials(String username, SecurityCredential credential)
             throws Exception {
-
-        userService.getUserWithUsername(username)
-                .setCredential(
-                        credentials.type(),
-                        new SecurityCredentials(
-                                credentials.type(),
-                                credentials.account(),
-                                manager.addCredentials(username, credentials))
-                );
+        User user = userService.getUserWithUsername(username);
+        userService.cacheCredential(user, credential);
+        userService.addEncryptedCredential(user, new SecurityCredential(
+                credential.type(),
+                credential.account(),
+                manager.addCredentials(username, credential)));
     }
 
-    public SecurityCredentials getCredentials(String username, String type) throws Exception {
-        SecurityCredentials credentials =
-                userService.getUserWithUsername(username).getCredential(type);
+    public SecurityCredential getDecryptedCredentials(String username, String type) throws Exception {
+        SecurityCredential credentials =
+                userService.getUserWithUsername(username).getEncryptedCredential(type);
 
-        return new SecurityCredentials(
+        SecurityCredential returnedCredentials = new SecurityCredential(
                 type,
                 credentials.account(),
-                manager.decryptPassword(credentials, username)
-        );
+                manager.decryptPassword(credentials, username));
+
+        return returnedCredentials;
     }
 
 }

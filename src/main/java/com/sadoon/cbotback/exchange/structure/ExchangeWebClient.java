@@ -1,9 +1,10 @@
 package com.sadoon.cbotback.exchange.structure;
 
 import com.sadoon.cbotback.asset.AssetPairs;
+import com.sadoon.cbotback.brokerage.model.Balances;
 import com.sadoon.cbotback.exchange.model.Trade;
 import com.sadoon.cbotback.exchange.model.TradeVolume;
-import com.sadoon.cbotback.security.credentials.SecurityCredentials;
+import com.sadoon.cbotback.security.credentials.SecurityCredential;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -11,11 +12,13 @@ import java.util.List;
 
 public interface ExchangeWebClient {
 
-    Mono<TradeVolume> tradeVolume(SecurityCredentials credentials, List<String> pair);
+    Flux<Balances> balances(SecurityCredential credentials);
+
+    Mono<TradeVolume> tradeVolume(SecurityCredential credentials, List<String> pair);
 
     Mono<AssetPairs> assetPairs(String pairs);
 
     Flux<Trade> assetPairTradeFeed(Flux<Trade> tradeFeedIn);
 
-    Flux<Trade> tradeVolumeTradeFeed(SecurityCredentials credentials, Flux<Trade> tradeFeedIn);
+    Flux<Trade> tradeVolumeTradeFeed(SecurityCredential credentials, Flux<Trade> tradeFeedIn);
 }

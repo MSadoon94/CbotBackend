@@ -2,14 +2,14 @@ package com.sadoon.cbotback.exchange.kraken;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sadoon.cbotback.exchange.structure.BrokerageMessageFactory;
+import com.sadoon.cbotback.exchange.structure.ExchangeMessageFactory;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.util.List;
 import java.util.Map;
 
-public class KrakenMessageFactory implements BrokerageMessageFactory {
+public class KrakenMessageFactory implements ExchangeMessageFactory {
 
     private final ObjectMapper mapper;
 
@@ -40,7 +40,6 @@ public class KrakenMessageFactory implements BrokerageMessageFactory {
                                         "event", "subscribe",
                                         "pair", pairs.toArray(new String[]{}),
                                         "subscription", Map.of("name", "ticker")
-                                )))
-                .subscribeOn(Schedulers.boundedElastic());
+                                )));
     }
 }

@@ -5,11 +5,11 @@ import com.sadoon.cbotback.user.UserService;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Controller;
 
 import java.security.Principal;
 
-@RestController
+@Controller
 public class StatusController {
 
     private UserService userService;
@@ -20,7 +20,7 @@ public class StatusController {
 
     @SubscribeMapping("/cbot-status")
     public CbotStatus getStatus(Principal principal) throws UserNotFoundException {
-        return  userService.getUserWithUsername(principal.getName()).getCbotStatus();
+        return userService.getUserWithUsername(principal.getName()).getCbotStatus();
     }
 
     @MessageMapping("/cbot-status")

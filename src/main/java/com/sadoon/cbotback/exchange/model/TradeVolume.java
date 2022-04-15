@@ -3,7 +3,7 @@ package com.sadoon.cbotback.exchange.model;
 import com.fasterxml.jackson.annotation.*;
 import com.sadoon.cbotback.api.KrakenResponse;
 import com.sadoon.cbotback.exceptions.exchange.ExchangeRequestException;
-import com.sadoon.cbotback.exchange.meta.ExchangeType;
+import com.sadoon.cbotback.exchange.meta.ExchangeName;
 
 import java.util.*;
 
@@ -32,7 +32,7 @@ public class TradeVolume implements KrakenResponse {
     }
 
     @JsonIgnore
-    public Map<String, Object> getPropertiesByExchange(ExchangeType name) throws ExchangeRequestException {
+    public Map<String, Object> getPropertiesByExchange(ExchangeName name) throws ExchangeRequestException {
         checkErrors(errors);
         return (Map<String, Object>) properties.getOrDefault(name.getResponseKey(), properties);
     }

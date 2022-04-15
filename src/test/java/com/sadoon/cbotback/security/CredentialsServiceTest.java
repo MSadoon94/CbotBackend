@@ -1,9 +1,9 @@
 package com.sadoon.cbotback.security;
 
-import com.sadoon.cbotback.exchange.meta.ExchangeType;
+import com.sadoon.cbotback.exchange.meta.ExchangeName;
 import com.sadoon.cbotback.security.credentials.CredentialManager;
 import com.sadoon.cbotback.security.credentials.CredentialsService;
-import com.sadoon.cbotback.security.credentials.SecurityCredentials;
+import com.sadoon.cbotback.security.credentials.SecurityCredential;
 import com.sadoon.cbotback.tools.Mocks;
 import com.sadoon.cbotback.user.UserService;
 import com.sadoon.cbotback.user.models.User;
@@ -27,11 +27,11 @@ class CredentialsServiceTest {
     private UserService userService;
 
     private User mockUser = Mocks.user();
-    private SecurityCredentials unencrypted =
-            new SecurityCredentials(ExchangeType.KRAKEN.name(), "mockAccount", "mockPassword");
+    private SecurityCredential unencrypted =
+            new SecurityCredential(ExchangeName.KRAKEN.name(), "mockAccount", "mockPassword");
 
-    private SecurityCredentials encrypted = new SecurityCredentials(
-            ExchangeType.KRAKEN.name(), unencrypted.account(), "mockEncryptedPassword"
+    private SecurityCredential encrypted = new SecurityCredential(
+            ExchangeName.KRAKEN.name(), unencrypted.account(), "mockEncryptedPassword"
     );
 
     private CredentialsService service;
@@ -48,16 +48,16 @@ class CredentialsServiceTest {
 
         service.addCredentials(mockUser.getUsername(), unencrypted);
 
-        assertThat(mockUser.getCredential(ExchangeType.KRAKEN.name()), samePropertyValuesAs(encrypted));
+        assertThat(mockUser.getEncryptedCredential(ExchangeName.KRAKEN.name()), samePropertyValuesAs(encrypted));
     }
 
     @Test
     void shouldReturnDecryptedCredentials() throws Exception {
-        mockUser.setCredential(encrypted.type(), encrypted);
+        mockUser.addEncryptedCredential(encrypted.type(), encrypted);
         given(userService.getUserWithUsername(any())).willReturn(mockUser);
         given(manager.decryptPassword(any(), any())).willReturn(unencrypted.password());
 
-        assertThat(service.getCredentials(mockUser.getUsername(), unencrypted.type()), samePropertyValuesAs(unencrypted));
+        assertThat(service.getDecryptedCredentials(mockUser.getUsername(), unencrypted.type()), samePropertyValuesAs(unencrypted));
     }
 
 }

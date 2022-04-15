@@ -11,6 +11,7 @@ import com.sadoon.cbotback.brokerage.model.Brokerage;
 import com.sadoon.cbotback.brokerage.util.BrokerageDto;
 import com.sadoon.cbotback.card.models.Card;
 import com.sadoon.cbotback.card.models.CardApiRequest;
+import com.sadoon.cbotback.exchange.meta.ExchangeName;
 import com.sadoon.cbotback.exchange.meta.TradeStatus;
 import com.sadoon.cbotback.exchange.model.Fees;
 import com.sadoon.cbotback.exchange.model.TradeVolume;
@@ -44,6 +45,8 @@ import java.util.*;
 import java.util.function.Predicate;
 
 public class Mocks {
+
+    public static ObjectMapper mapper = new ObjectMapper();
 
     public static User user() {
         return new User("mockUser", "mockPassword", new SimpleGrantedAuthority("USER"));
@@ -207,6 +210,7 @@ public class Mocks {
     public static Strategy strategy() {
         Strategy strategy = new Strategy();
         strategy.setType(StrategyType.LONG.name());
+        strategy.setExchange(ExchangeName.KRAKEN.name());
         strategy.setName("mockStrategy");
         strategy.setBase("BTC");
         strategy.setQuote("USD");
@@ -276,6 +280,7 @@ public class Mocks {
     public static Trade trade(TradeStatus status, BigDecimal currentPrice, BigDecimal targetPrice){
         return new Trade()
                 .setStatus(status)
+                .setExchange(ExchangeName.KRAKEN)
                 .setPair(String.join("/", Mocks.assetPair().getBase(), Mocks.assetPair().getQuote()))
                 .setType(StrategyType.LONG)
                 .setFees(Mocks.fees())

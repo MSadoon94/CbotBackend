@@ -1,12 +1,13 @@
 package com.sadoon.cbotback.user;
 
 import com.sadoon.cbotback.exceptions.notfound.UserNotFoundException;
-import com.sadoon.cbotback.exchange.meta.ExchangeType;
+import com.sadoon.cbotback.exchange.meta.ExchangeName;
 import com.sadoon.cbotback.exchange.meta.TradeStatus;
 import com.sadoon.cbotback.exchange.model.Trade;
 import com.sadoon.cbotback.exchange.structure.Exchange;
 import com.sadoon.cbotback.exchange.structure.ExchangeSupplier;
 import com.sadoon.cbotback.refresh.models.RefreshToken;
+import com.sadoon.cbotback.security.credentials.SecurityCredential;
 import com.sadoon.cbotback.status.CbotStatus;
 import com.sadoon.cbotback.strategy.Strategy;
 import com.sadoon.cbotback.tools.Mocks;
@@ -29,9 +30,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.samePropertyValuesAs;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 
 @DataMongoTest
 @ExtendWith(MockitoExtension.class)
@@ -57,11 +57,17 @@ class UserServiceTest {
 
     private CbotStatus mockStatus = Mocks.cbotStatus();
 
+    private SecurityCredential mockCredentials = new SecurityCredential(
+            ExchangeName.KRAKEN.name(),
+            "mockAccount",
+            "mockPassword"
+    );
+
     @BeforeEach
     public void setup() {
         repo.deleteAll();
         mockUser.setCards(Mocks.cards());
-        mockUser.addExchange(ExchangeType.KRAKEN);
+        mockUser.addExchange(ExchangeName.KRAKEN);
 
         strategies.put(mockStrategy.getName(), mockStrategy);
 
@@ -106,10 +112,10 @@ class UserServiceTest {
     }
 
     @Test
-    void shouldReturnTradeFeedsGroupedByUserId() throws Exception {
+    void shouldReturnTradeFeedsGroupedByUserId() {
         Trade mockTrade = Mocks.trade(TradeStatus.SELECTED, BigDecimal.ONE, BigDecimal.ZERO);
         given(supplier.getExchange(any())).willReturn(mockExchange);
-        given(mockExchange.getTradeFeed(any())).willReturn(Flux.just(mockTrade));
+        given(mockExchange.getTradeFeed(any(), any())).willReturn(Flux.just(mockTrade));
         given(mockExchange.addUserTradeFeeds(any())).willReturn(mockExchange);
 
         StepVerifier.create(userService.getTradeFeeds(mockUser))
@@ -117,6 +123,14 @@ class UserServiceTest {
                 .consumeNextWith(tradeFeed -> assertThat(tradeFeed.key(), is(mockUser.getId())))
                 .thenCancel()
                 .verify();
+    }
+
+    @Test
+    void shouldAddEncryptedCredentialToUser() {
+        userService.addEncryptedCredential(mockUser, mockCredentials);
+        assertThat(repo.getUserByUsername(mockUser.getUsername()).getEncryptedCredential(mockCredentials.type()),
+                samePropertyValuesAs(mockCredentials)
+        );
     }
 
 }

@@ -4,7 +4,7 @@ import com.sadoon.cbotback.api.PublicRequestDto;
 import com.sadoon.cbotback.exceptions.GlobalExceptionHandler;
 import com.sadoon.cbotback.exceptions.exchange.ExchangeRequestException;
 import com.sadoon.cbotback.exchange.structure.Exchange;
-import com.sadoon.cbotback.exchange.meta.ExchangeType;
+import com.sadoon.cbotback.exchange.meta.ExchangeName;
 import com.sadoon.cbotback.exchange.kraken.KrakenWebClient;
 import com.sadoon.cbotback.tools.Mocks;
 import com.sadoon.cbotback.user.models.User;
@@ -74,7 +74,7 @@ class AssetControllerTest {
     @Test
     void shouldReturnErrorResponseForInvalidAssetPair() throws Exception {
         ExchangeRequestException exception =
-                new ExchangeRequestException(ExchangeType.KRAKEN, Arrays.toString(new String[]{"InvalidAssets"}));
+                new ExchangeRequestException(ExchangeName.KRAKEN, Arrays.toString(new String[]{"InvalidAssets"}));
 
         mockAssetPairs.setErrors(new String[]{"InvalidAssets"});
         given(webClient.assetPairs(any())).willReturn(Mono.just(mockAssetPairs));
