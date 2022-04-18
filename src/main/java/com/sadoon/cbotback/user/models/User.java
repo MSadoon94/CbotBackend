@@ -1,6 +1,5 @@
 package com.sadoon.cbotback.user.models;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.sadoon.cbotback.card.models.Card;
 import com.sadoon.cbotback.exchange.meta.ExchangeName;
 import com.sadoon.cbotback.exchange.meta.TradeStatus;

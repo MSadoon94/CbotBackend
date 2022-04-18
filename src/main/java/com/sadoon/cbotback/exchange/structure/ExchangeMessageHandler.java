@@ -8,7 +8,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
-public class WebSocketMessageHandler implements WebSocketHandler {
+public class ExchangeMessageHandler implements WebSocketHandler {
     private Sinks.Many<String> inputMessageFeed = Sinks.many().replay().all();
     private WebSocketSession session;
 
@@ -29,7 +29,6 @@ public class WebSocketMessageHandler implements WebSocketHandler {
     }
 
     public Mono<Void> sendMessage(Mono<String> messageMono) {
-
         return session.send(messageMono
                 .map(session::textMessage)
         );

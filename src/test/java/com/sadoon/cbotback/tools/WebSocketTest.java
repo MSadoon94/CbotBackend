@@ -16,6 +16,10 @@ import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 
+/*Modeled after example here:
+https://github.com/rstoyanchev/spring-websocket-portfolio/tree/master/src/test/java/org/springframework/samples/portfolio/web
+*/
+
 public class WebSocketTest {
     private TestMessageChannel inboundChannel;
     private TestMessageChannel outboundChannel;

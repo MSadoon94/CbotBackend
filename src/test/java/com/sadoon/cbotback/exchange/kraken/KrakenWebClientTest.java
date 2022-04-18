@@ -85,7 +85,7 @@ class KrakenWebClientTest {
         String signature = new SignatureCreator().signature(
                 mockNonce.concat(formattedVolumeRequest()),
                 credentials.password(),
-                "/0/private/TradeVolume"
+                String.format("/0/private/TradeVolume?pair=%s", String.join(",", pairs))
         );
 
         mockWebServer.enqueue(mockResponse(HttpStatus.OK, mockVolume));
@@ -120,16 +120,22 @@ class KrakenWebClientTest {
 
         StepVerifier.create(client.assetPairTradeFeed(tradeFeedIn))
                 .expectSubscription()
-                .consumeNextWith(trade -> {
-                    System.out.println(trade.getAllNames());
-                    assertThat(trade.getAllNames(),
-                            containsInAnyOrder(
-                                    mockTrade.getPair(),
-                                    Mocks.assetPair().getAltName(),
-                                    Mocks.assetPair().getWsName()));
-                })
+                .consumeNextWith(trade -> assertThat(trade.getAllNames(), containsInAnyOrder(mockNames(mockTrade))))
                 .thenCancel()
                 .verify();
+    }
+
+    private String[] mockNames(Trade mockTrade) {
+        int altNameLength = Mocks.assetPair().getAltName().length();
+        return new String[]{
+                mockTrade.getPair(),
+                Mocks.assetPair().getAltName(),
+                Mocks.assetPair().getWsName(),
+                String.format("X%1sZ%2s", Mocks.assetPair().getBase(), Mocks.assetPair().getQuote()),
+                String.format("X%1sZ%2s",
+                        Mocks.assetPair().getAltName().substring(0, altNameLength / 2),
+                        Mocks.assetPair().getAltName().substring(altNameLength / 2))
+        };
     }
 
     @Test

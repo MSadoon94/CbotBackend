@@ -11,6 +11,7 @@ import com.sadoon.cbotback.security.credentials.CredentialsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 
 import java.net.URI;
@@ -37,12 +38,12 @@ public class ExchangeSupplier {
     }
 
     @Bean
-    Exchange krakenExchange(ObjectMapper mapper, CredentialsService credentialsService) {
+    Exchange krakenExchange(ObjectMapper mapper, CredentialsService credentialsService, SimpMessagingTemplate simpMessagingTemplate) {
         KrakenResponseHandler responseHandler = new KrakenResponseHandler(mapper);
         ExchangeWebClient webClient
                 = new KrakenWebClient(responseHandler, new NonceCreator(), "https://api.kraken.com");
         ExchangeWebSocket webSocket = new ExchangeWebSocket(new ReactorNettyWebSocketClient(), URI.create("wss://ws.kraken.com"));
-        WebSocketMessageHandler messageHandler = new WebSocketMessageHandler();
+        ExchangeMessageProcessor messageProcessor = new ExchangeMessageProcessor(webSocket, new ExchangeMessageHandler(), simpMessagingTemplate);
         KrakenMessageFactory messageFactory = new KrakenMessageFactory(mapper);
 
         Exchange kraken = new Exchange()
@@ -50,7 +51,8 @@ public class ExchangeSupplier {
                 .setCredentialsService(credentialsService)
                 .setWebSocket(webSocket)
                 .setMessageFactory(messageFactory)
-                .setTracker(new AssetTracker(webSocket, messageFactory, messageHandler))
+                .setMessageProcessor(messageProcessor)
+                .setTracker(new AssetTracker(messageFactory, messageProcessor))
                 .setWebClient(webClient)
                 .setResponseHandler(responseHandler);
 

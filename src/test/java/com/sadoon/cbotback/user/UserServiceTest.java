@@ -115,8 +115,11 @@ class UserServiceTest {
     void shouldReturnTradeFeedsGroupedByUserId() {
         Trade mockTrade = Mocks.trade(TradeStatus.SELECTED, BigDecimal.ONE, BigDecimal.ZERO);
         given(supplier.getExchange(any())).willReturn(mockExchange);
+        given(mockExchange.getExchangeName()).willReturn(ExchangeName.KRAKEN);
         given(mockExchange.getTradeFeed(any(), any())).willReturn(Flux.just(mockTrade));
         given(mockExchange.addUserTradeFeeds(any())).willReturn(mockExchange);
+
+        userService.cacheCredential(mockUser, mockCredentials);
 
         StepVerifier.create(userService.getTradeFeeds(mockUser))
                 .expectSubscription()

@@ -9,6 +9,6 @@ public interface ExchangeMessageFactory {
 
     Mono<String> tickerSubscribe(List<String> pairs);
 
-    Mono<? extends TickerMessage> tickerMessage(String message);
+    <T extends TickerMessage> Mono<T> tickerMessage(String message);
 
 }

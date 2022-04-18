@@ -1,9 +1,6 @@
-package com.sadoon.cbotback.security;
+package com.sadoon.cbotback.security.credentials;
 
 import com.sadoon.cbotback.exchange.meta.ExchangeName;
-import com.sadoon.cbotback.security.credentials.CredentialController;
-import com.sadoon.cbotback.security.credentials.CredentialsService;
-import com.sadoon.cbotback.security.credentials.SecurityCredential;
 import com.sadoon.cbotback.tools.Mocks;
 import com.sadoon.cbotback.tools.TestMessageChannel;
 import com.sadoon.cbotback.tools.WebSocketTest;
@@ -22,7 +19,7 @@ import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.is;
 
 @ExtendWith(MockitoExtension.class)
-public class CredentialControllerTest {
+class CredentialControllerTest {
 
     @Mock
     private CredentialsService credentialsService;

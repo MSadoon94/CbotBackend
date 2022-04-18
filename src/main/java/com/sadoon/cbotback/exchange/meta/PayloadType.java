@@ -14,14 +14,15 @@ public enum PayloadType {
         return Arrays.stream(PayloadType.values());
     }
 
-    public static PayloadType getType(WebSocketMessage message){
+    public static PayloadType getType(WebSocketMessage message) {
         return PayloadType.getStream()
-                .filter(type -> message.getPayloadAsText().contains(type.name().toLowerCase()))
+                .filter(type -> message.getPayloadAsText().toUpperCase().contains(type.name()))
                 .findFirst().orElse(PayloadType.UNKNOWN);
     }
-    public static PayloadType getType(String message){
+
+    public static PayloadType getType(String message) {
         return PayloadType.getStream()
-                .filter(type -> message.contains(type.name().toLowerCase()))
+                .filter(type -> message.toUpperCase().contains(type.name()))
                 .findFirst().orElse(PayloadType.UNKNOWN);
     }
 }

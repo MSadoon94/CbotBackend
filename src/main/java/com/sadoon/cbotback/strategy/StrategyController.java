@@ -1,15 +1,12 @@
 package com.sadoon.cbotback.strategy;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.sadoon.cbotback.exceptions.notfound.UserNotFoundException;
 import com.sadoon.cbotback.user.UserService;
 import com.sadoon.cbotback.user.models.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
-import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,23 +47,21 @@ public class StrategyController {
     }
 
     @SubscribeMapping("/strategies/names")
-    public Message<List<String>> getStrategyNames(Principal principal) throws UserNotFoundException {
+    public List<String> getStrategyNames(Principal principal) throws UserNotFoundException {
 
-        return MessageBuilder.withPayload(userService.getUserWithUsername(principal.getName())
-                        .getStrategies()
-                        .keySet()
-                        .stream()
-                        .toList())
-                .build();
+        return userService.getUserWithUsername(principal.getName())
+                .getStrategies()
+                .keySet()
+                .stream()
+                .toList();
     }
 
     @MessageMapping("/strategies/active")
-    public Message<String> addActiveStrategy(Principal principal, String name) throws UserNotFoundException, JsonProcessingException {
+    public String addActiveStrategy(Principal principal, String name) throws UserNotFoundException {
         User user = userService.getUserWithUsername(principal.getName());
         user.addActiveStrategy(name);
         userService.replace(user);
-        return MessageBuilder.withPayload(name)
-                .build();
+        return name;
     }
 
 

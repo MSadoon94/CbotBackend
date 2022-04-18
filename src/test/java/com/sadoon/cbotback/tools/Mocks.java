@@ -11,11 +11,12 @@ import com.sadoon.cbotback.brokerage.model.Brokerage;
 import com.sadoon.cbotback.brokerage.util.BrokerageDto;
 import com.sadoon.cbotback.card.models.Card;
 import com.sadoon.cbotback.card.models.CardApiRequest;
+import com.sadoon.cbotback.exchange.kraken.KrakenTickerMessage;
 import com.sadoon.cbotback.exchange.meta.ExchangeName;
 import com.sadoon.cbotback.exchange.meta.TradeStatus;
 import com.sadoon.cbotback.exchange.model.Fees;
-import com.sadoon.cbotback.exchange.model.TradeVolume;
 import com.sadoon.cbotback.exchange.model.Trade;
+import com.sadoon.cbotback.exchange.model.TradeVolume;
 import com.sadoon.cbotback.refresh.models.RefreshResponse;
 import com.sadoon.cbotback.refresh.models.RefreshToken;
 import com.sadoon.cbotback.status.CbotStatus;
@@ -25,8 +26,6 @@ import com.sadoon.cbotback.user.models.LoginRequest;
 import com.sadoon.cbotback.user.models.LoginResponse;
 import com.sadoon.cbotback.user.models.SignUpRequest;
 import com.sadoon.cbotback.user.models.User;
-import com.sadoon.cbotback.exchange.kraken.KrakenTickerMessage;
-import com.sadoon.cbotback.exchange.meta.PayloadType;
 import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -42,7 +41,6 @@ import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
-import java.util.function.Predicate;
 
 public class Mocks {
 
@@ -127,7 +125,7 @@ public class Mocks {
         return assetPairs;
     }
 
-    public static AssetPair assetPair(){
+    public static AssetPair assetPair() {
         AssetPair pair = new AssetPair();
         pair.setBase("BTC");
         pair.setQuote("USD");
@@ -237,13 +235,7 @@ public class Mocks {
 
     }
 
-    public static Predicate<WebSocketMessage> mockTickerMessageFilter(){
-        return message ->
-                !PayloadType.getType(message).equals(PayloadType.EVENT) &&
-                        PayloadType.getType(message).equals(PayloadType.TICKER);
-    }
-
-    public static KrakenTickerMessage krakenTickerMessage(String[] mockValues){
+    public static KrakenTickerMessage krakenTickerMessage(String[] mockValues) {
         KrakenTickerMessage message = new KrakenTickerMessage();
         message.setPair("BTC/USD");
         message.setAsk(mockValues);
@@ -266,7 +258,7 @@ public class Mocks {
         return volume;
     }
 
-    public static Fees fees(){
+    public static Fees fees() {
         Fees fees = new Fees();
         fees.setFee("0.1000");
         fees.setMinFee("0.1000");
@@ -277,7 +269,7 @@ public class Mocks {
         return fees.setPair("BTC/USD");
     }
 
-    public static Trade trade(TradeStatus status, BigDecimal currentPrice, BigDecimal targetPrice){
+    public static Trade trade(TradeStatus status, BigDecimal currentPrice, BigDecimal targetPrice) {
         return new Trade()
                 .setStatus(status)
                 .setExchange(ExchangeName.KRAKEN)

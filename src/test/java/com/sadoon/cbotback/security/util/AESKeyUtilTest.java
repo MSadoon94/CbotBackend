@@ -1,6 +1,5 @@
-package com.sadoon.cbotback.security;
+package com.sadoon.cbotback.security.util;
 
-import com.sadoon.cbotback.security.util.AESKeyUtil;
 import org.junit.jupiter.api.Test;
 
 import javax.crypto.BadPaddingException;

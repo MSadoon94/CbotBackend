@@ -58,6 +58,9 @@ public class TradeControllerTest {
     void shouldSendTradeToSubscribersOnSubscribe() throws UserNotFoundException, JsonProcessingException {
         given(userService.getUserWithUsername(any())).willReturn(mockUser);
         given(userService.getTradeFeed(any())).willReturn(Flux.just(mockTrade));
+        given(userService.getTradeFeeds(any())).willReturn(
+                Flux.just(Flux.just(mockTrade))
+                        .groupBy(feed -> mockUser.getId()));
 
         webSocketTest.responseMessage(
                 webSocketTest.subscribeHeaderAccessor("/topic/trade-feed", auth),

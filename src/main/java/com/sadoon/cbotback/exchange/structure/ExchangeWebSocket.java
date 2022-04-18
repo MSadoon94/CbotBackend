@@ -34,27 +34,13 @@ public class ExchangeWebSocket {
         return this;
     }
 
-    public Flux<WebSocketMessage> getMessageFeed(){
+    public Flux<WebSocketMessage> getMessageFeed() {
         return messageSink
                 .asFlux()
                 .share();
     }
 
-    public void startClient() {
-        client.execute(webSocketURI, session -> receiveFunctions.flatMap(function -> function.apply(session))
-                        .doOnNext(message -> System.out.println("WebSocketMessageFromExchangeWebSocket: " + message.getPayloadAsText()))
-                        .doOnNext(message -> messageSink.tryEmitNext(message))
-                        .thenMany(
-                                sendFunctions.flatMap(function -> function.apply(session))
-                        )
-                        .then())
-                .onErrorResume(Mono::error)
-                .log()
-                .subscribe();
-    }
-
-    public void execute(WebSocketHandler handler){
-        client.execute(webSocketURI, handler)
-                .subscribe();
+    public Mono<Void> execute(WebSocketHandler handler) {
+        return client.execute(webSocketURI, handler);
     }
 }

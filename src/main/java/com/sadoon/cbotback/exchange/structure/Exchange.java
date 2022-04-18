@@ -19,6 +19,7 @@ public class Exchange {
     private ExchangeMessageFactory messageFactory;
     private ExchangeWebClient webClient;
     private ExchangeResponseHandler responseHandler;
+    private ExchangeMessageProcessor messageProcessor;
     private AssetTracker tracker;
     private Sinks.Many<GroupedFlux<String, Flux<Trade>>> userTradeFeeds
             = Sinks.many().multicast().onBackpressureBuffer();
@@ -77,6 +78,15 @@ public class Exchange {
         return this;
     }
 
+    public ExchangeMessageProcessor getMessageProcessor() {
+        return messageProcessor;
+    }
+
+    public Exchange setMessageProcessor(ExchangeMessageProcessor messageProcessor) {
+        this.messageProcessor = messageProcessor;
+        return this;
+    }
+
     public AssetTracker getTracker() {
         return tracker;
     }
@@ -104,7 +114,7 @@ public class Exchange {
                         webClient.tradeVolumeTradeFeed(
                                 credential,
                                 webClient.assetPairTradeFeed(
-                                        tracker.getTrades(user.getTradeFeed())
-                                                .map(trade -> trade.setExchange(exchangeName))))));
+                                        tracker.getTrades(user.getTradeFeed()
+                                                .map(trade -> trade.setExchange(exchangeName)))))));
     }
 }

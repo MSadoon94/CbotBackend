@@ -3,8 +3,8 @@ package com.sadoon.cbotback.exchange.structure;
 import com.sadoon.cbotback.exceptions.notfound.UserNotFoundException;
 import com.sadoon.cbotback.user.UserService;
 import com.sadoon.cbotback.user.models.User;
-import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.stereotype.Controller;
 
 import java.security.Principal;
@@ -20,8 +20,9 @@ public class TradeController {
         this.userService = userService;
     }
 
-    @MessageMapping("/trade-feed")
-    public void getTradeFeed(Principal principal) throws UserNotFoundException {
+
+    @SubscribeMapping("/trade-feed")
+    public void tradeFeed(Principal principal) throws UserNotFoundException {
         User user = userService.getUserWithUsername(principal.getName());
         userService.getTradeFeeds(userService.getUserWithUsername(principal.getName()))
                 .log()
@@ -37,8 +38,6 @@ public class TradeController {
                     );
 
                 });
-
     }
-
 
 }

@@ -1,9 +1,6 @@
-package com.sadoon.cbotback.security;
+package com.sadoon.cbotback.security.credentials;
 
 import com.sadoon.cbotback.exchange.meta.ExchangeName;
-import com.sadoon.cbotback.security.credentials.CredentialManager;
-import com.sadoon.cbotback.security.credentials.CredentialsService;
-import com.sadoon.cbotback.security.credentials.SecurityCredential;
 import com.sadoon.cbotback.tools.Mocks;
 import com.sadoon.cbotback.user.UserService;
 import com.sadoon.cbotback.user.models.User;
@@ -39,16 +36,6 @@ class CredentialsServiceTest {
     @BeforeEach
     public void setUp() {
         service = new CredentialsService(manager, userService);
-    }
-
-    @Test
-    void shouldAddEncryptedCredentialsToUserRepo() throws Exception {
-        given(userService.getUserWithUsername(any())).willReturn(mockUser);
-        given(manager.addCredentials(any(), any())).willReturn(encrypted.password());
-
-        service.addCredentials(mockUser.getUsername(), unencrypted);
-
-        assertThat(mockUser.getEncryptedCredential(ExchangeName.KRAKEN.name()), samePropertyValuesAs(encrypted));
     }
 
     @Test
