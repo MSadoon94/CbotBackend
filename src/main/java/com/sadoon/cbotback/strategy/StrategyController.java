@@ -6,6 +6,7 @@ import com.sadoon.cbotback.user.models.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,14 +22,18 @@ import java.util.Map;
 public class StrategyController {
 
     private UserService userService;
+    private SimpMessagingTemplate messagingTemplate;
 
-    public StrategyController(UserService userService) {
+    public StrategyController(UserService userService, SimpMessagingTemplate messagingTemplate) {
         this.userService = userService;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @PostMapping("/user/strategy")
     public ResponseEntity<HttpStatus> saveStrategy(@RequestBody Strategy strategy, Principal principal)
             throws UserNotFoundException {
+
+        messagingTemplate.convertAndSend("/topic/strategies/names", strategy.getName());
 
         userService.addStrategy(userService.getUserWithUsername(principal.getName()), strategy);
         return new ResponseEntity<>(HttpStatus.CREATED);

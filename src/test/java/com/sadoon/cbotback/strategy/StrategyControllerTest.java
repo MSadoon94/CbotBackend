@@ -15,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -43,6 +44,8 @@ class StrategyControllerTest {
     @Mock
     private UserService userService;
 
+    private SimpMessagingTemplate messagingTemplate = new SimpMessagingTemplate(new TestMessageChannel());
+
     @InjectMocks
     private StrategyController controller;
 
@@ -53,20 +56,21 @@ class StrategyControllerTest {
 
     private Strategy mockStrategy = Mocks.strategy();
 
+    private WebSocketTest webSocketTest;
+
     @BeforeEach
     void setUp() {
+        controller = new StrategyController(userService, messagingTemplate);
         mvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(GlobalExceptionHandler.class)
                 .build();
+        webSocketTest = new WebSocketTest(controller, messagingTemplate);
     }
-
 
     @Test
     void shouldReturnStrategyNamesOnSubscribe() throws UserNotFoundException {
         mockUser.setStrategies(Map.of(mockStrategy.getName(), mockStrategy));
         given(userService.getUserWithUsername(any())).willReturn(mockUser);
-        WebSocketTest webSocketTest
-                = new WebSocketTest(controller, new SimpMessagingTemplate(new TestMessageChannel()));
 
         webSocketTest.responseMessage(
                 webSocketTest.subscribeHeaderAccessor("/topic/strategies/names", auth)
@@ -86,9 +90,6 @@ class StrategyControllerTest {
     void shouldSendActiveStrategyUpdatesToBrokerOnIncomingMessage() throws UserNotFoundException, JsonProcessingException {
         mockUser.setStrategies(Map.of(mockStrategy.getName(), mockStrategy));
         given(userService.getUserWithUsername(any())).willReturn(mockUser);
-
-        WebSocketTest webSocketTest
-                = new WebSocketTest(controller, new SimpMessagingTemplate(new TestMessageChannel()));
 
         webSocketTest.responseMessage(
                 webSocketTest.sendHeaderAccessor("/app/strategies/active", auth),
@@ -132,6 +133,15 @@ class StrategyControllerTest {
         saveStrategy().andExpect(status().isNotFound());
         loadStrategies().andExpect(status().isNotFound());
         loadStrategy().andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldSendStrategyNameUpdateOnStrategyAddition() throws Exception {
+        saveStrategy()
+                .andExpect(status().isCreated());
+
+        Message<?> reply = webSocketTest.getBrokerMessagingChannel().getMessages().get(0);
+        assertThat(reply.getPayload(), is(mockStrategy.getName()));
     }
 
     private ResultActions saveStrategy() throws Exception {
