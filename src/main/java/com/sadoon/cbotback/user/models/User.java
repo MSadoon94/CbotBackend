@@ -39,8 +39,6 @@ public class User implements UserDetails {
 
     private Map<String, Strategy> strategies = new LinkedHashMap<>();
 
-    private List<String> activeStrategies = new ArrayList<>();
-
     private Map<String, SecurityCredential> encryptedCredentials = new LinkedHashMap<>();
 
     private List<ExchangeName> exchanges = new ArrayList<>();
@@ -104,16 +102,6 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
-    }
-
-    public void addActiveStrategy(String strategyName) {
-        if (!activeStrategies.contains(strategyName)) {
-            activeStrategies.add(strategyName);
-        }
-    }
-
-    public List<String> getActiveStrategies() {
-        return activeStrategies;
     }
 
     public Map<String, Card> getCards() {
@@ -191,7 +179,7 @@ public class User implements UserDetails {
     }
 
     private TradeStatus getTradeStatusFromActiveStrategies(Strategy strategy) {
-        if (activeStrategies.contains(strategy.getName())) {
+        if (strategy.isActive()) {
             return TradeStatus.SELECTED;
         } else {
             return TradeStatus.NOT_SELECTED;

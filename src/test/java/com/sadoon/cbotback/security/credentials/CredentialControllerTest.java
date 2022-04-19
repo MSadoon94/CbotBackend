@@ -15,7 +15,6 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.Authentication;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.is;
 
 @ExtendWith(MockitoExtension.class)
@@ -42,14 +41,14 @@ class CredentialControllerTest {
         WebSocketTest webSocketTest
                 = new WebSocketTest(controller, new SimpMessagingTemplate(new TestMessageChannel()));
 
-        webSocketTest.responseMessage(webSocketTest.sendHeaderAccessor(
+        webSocketTest.sendMessageToController(webSocketTest.sendHeaderAccessor(
                         "/app/add-credentials", auth),
                 Mocks.mapper.writeValueAsBytes(mockCredentials)
         );
 
         Message<?> reply = webSocketTest.getBrokerMessagingChannel().getMessages().get(0);
 
-        assertThat(reply.getPayload(), hasProperty("payload", is("Exchange added.")));
+        assertThat(reply.getPayload(), is("Exchange added."));
     }
 
 }

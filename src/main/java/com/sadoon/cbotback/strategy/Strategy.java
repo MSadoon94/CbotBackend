@@ -1,11 +1,13 @@
 package com.sadoon.cbotback.strategy;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.sadoon.cbotback.exceptions.notfound.StrategyTypeNotFoundException;
 
 import java.util.Arrays;
 
 public class Strategy {
+    private boolean isActive = false;
     private String name;
     private String type;
     private String exchange;
@@ -23,6 +25,16 @@ public class Strategy {
     @JsonIgnore
     public String getPair() {
         return String.format("%1s/%2s", base, quote);
+    }
+
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    @JsonSetter("isActive")
+    public void setActive(boolean active) {
+        isActive = active;
     }
 
     public void setName(String name) {

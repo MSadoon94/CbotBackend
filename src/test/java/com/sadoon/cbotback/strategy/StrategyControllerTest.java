@@ -15,7 +15,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -72,7 +71,7 @@ class StrategyControllerTest {
         mockUser.setStrategies(Map.of(mockStrategy.getName(), mockStrategy));
         given(userService.getUserWithUsername(any())).willReturn(mockUser);
 
-        webSocketTest.responseMessage(
+        webSocketTest.sendMessageToController(
                 webSocketTest.subscribeHeaderAccessor("/topic/strategies/names", auth)
         );
 
@@ -91,13 +90,16 @@ class StrategyControllerTest {
         mockUser.setStrategies(Map.of(mockStrategy.getName(), mockStrategy));
         given(userService.getUserWithUsername(any())).willReturn(mockUser);
 
-        webSocketTest.responseMessage(
-                webSocketTest.sendHeaderAccessor("/app/strategies/active", auth),
+        webSocketTest.sendMessageToController(
+                webSocketTest.sendHeaderAccessor(
+                        String.format("/app/strategies/%1s/%2s", mockStrategy.getName(), true),
+                        auth
+                ),
                 Mocks.mapper.writeValueAsBytes(mockStrategy.getName()));
 
         Message<?> reply = webSocketTest.getBrokerMessagingChannel().getMessages().get(0);
 
-        assertThat(reply.getPayload(), is(mockStrategy.getName()));
+        assertThat(reply.getPayload(), is(Map.of(mockStrategy.getName(), true)));
     }
 
     @Test

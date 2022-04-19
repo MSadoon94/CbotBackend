@@ -59,14 +59,13 @@ public class WebSocketTest {
         annotationMethodHandler.afterPropertiesSet();
     }
 
-    public Message<?> responseMessage(StompHeaderAccessor headers) {
+    public void sendMessageToController(StompHeaderAccessor headers) {
         Message<byte[]> message =
                 MessageBuilder.withPayload(new byte[0]).setHeaders(headers).build();
         annotationMethodHandler.handleMessage(message);
-        return outboundChannel.getMessages().get(0);
     }
 
-    public void responseMessage(StompHeaderAccessor headers, byte[] payload) {
+    public void sendMessageToController(StompHeaderAccessor headers, byte[] payload) {
         Message<byte[]> message =
                 MessageBuilder.withPayload(payload).setHeaders(headers).build();
         annotationMethodHandler.handleMessage(message);

@@ -48,7 +48,7 @@ class StatusControllerTest {
 
         WebSocketTest webSocketTest = new WebSocketTest(controller, new SimpMessagingTemplate(new TestMessageChannel()));
 
-        webSocketTest.responseMessage(webSocketTest.subscribeHeaderAccessor("/topic/cbot-status", auth));
+        webSocketTest.sendMessageToController(webSocketTest.subscribeHeaderAccessor("/topic/cbot-status", auth));
 
         Message<?> reply = webSocketTest.getOutboundChannel().getMessages().get(0);
 
@@ -66,7 +66,7 @@ class StatusControllerTest {
         given(userService.updateStatus(any(), any())).willReturn(mockUser);
         WebSocketTest webSocketTest = new WebSocketTest(controller, new SimpMessagingTemplate(new TestMessageChannel()));
 
-        webSocketTest.responseMessage(
+        webSocketTest.sendMessageToController(
                 webSocketTest.sendHeaderAccessor("/app/cbot-status", auth),
                 Mocks.mapper.writeValueAsBytes(Mocks.cbotStatus()));
 

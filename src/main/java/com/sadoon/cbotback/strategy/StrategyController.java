@@ -5,6 +5,7 @@ import com.sadoon.cbotback.user.UserService;
 import com.sadoon.cbotback.user.models.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
@@ -53,7 +54,6 @@ public class StrategyController {
 
     @SubscribeMapping("/strategies/names")
     public List<String> getStrategyNames(Principal principal) throws UserNotFoundException {
-
         return userService.getUserWithUsername(principal.getName())
                 .getStrategies()
                 .keySet()
@@ -61,13 +61,15 @@ public class StrategyController {
                 .toList();
     }
 
-    @MessageMapping("/strategies/active")
-    public String addActiveStrategy(Principal principal, String name) throws UserNotFoundException {
+    @MessageMapping("/strategies/{name}/{status}")
+    public Map<String, Boolean> addActiveStrategy(Principal principal,
+                                                  @DestinationVariable String name,
+                                                  @DestinationVariable("status") boolean isActive
+    ) throws UserNotFoundException {
         User user = userService.getUserWithUsername(principal.getName());
-        user.addActiveStrategy(name);
+        user.getStrategies().get(name)
+                .setActive(isActive);
         userService.replace(user);
-        return name;
+        return Map.of(name, isActive);
     }
-
-
 }

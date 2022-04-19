@@ -3,8 +3,11 @@ package com.sadoon.cbotback.exchange.structure;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sadoon.cbotback.exceptions.notfound.UserNotFoundException;
+import com.sadoon.cbotback.exchange.meta.ExchangeName;
 import com.sadoon.cbotback.exchange.meta.TradeStatus;
 import com.sadoon.cbotback.exchange.model.Trade;
+import com.sadoon.cbotback.strategy.Strategy;
+import com.sadoon.cbotback.strategy.StrategyType;
 import com.sadoon.cbotback.tools.Mocks;
 import com.sadoon.cbotback.tools.TestMessageChannel;
 import com.sadoon.cbotback.tools.WebSocketTest;
@@ -25,6 +28,7 @@ import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.samePropertyValuesAs;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
@@ -62,14 +66,36 @@ public class TradeControllerTest {
                 Flux.just(Flux.just(mockTrade))
                         .groupBy(feed -> mockUser.getId()));
 
-        webSocketTest.responseMessage(
-                webSocketTest.subscribeHeaderAccessor("/topic/trade-feed", auth),
+        webSocketTest.sendMessageToController(
+                webSocketTest.subscribeHeaderAccessor("/topic/trades", auth),
                 new ObjectMapper().writeValueAsBytes(mockTrade)
         );
 
         Message<?> reply = webSocketTest.getBrokerMessagingChannel().getMessages().get(0);
 
         assertThat(reply.getPayload(), is(mockTrade));
+    }
+
+    @Test
+    void shouldReturnTradeOnCreateTradeSuccess() throws UserNotFoundException {
+        Strategy mockStrategy = Mocks.strategy();
+        mockUser.setStrategies(Map.of(Mocks.strategy().getName(), mockStrategy));
+        Trade expectedTrade = new Trade()
+                .setExchange(ExchangeName.valueOf(mockStrategy.getExchange().toUpperCase()))
+                .setStatus(TradeStatus.CREATION)
+                .setPair(mockStrategy.getPair())
+                .setType(StrategyType.valueOf(mockStrategy.getType().toUpperCase()));
+
+        given(userService.getUserWithUsername(any())).willReturn(mockUser);
+
+        webSocketTest.sendMessageToController(
+                webSocketTest.sendHeaderAccessor(
+                        String.format("/app/%s/create-trade", mockStrategy.getName()), auth)
+        );
+
+        Message<?> reply = webSocketTest.getBrokerMessagingChannel().getMessages().get(0);
+
+        assertThat(reply.getPayload(), samePropertyValuesAs(expectedTrade));
     }
 
 }
