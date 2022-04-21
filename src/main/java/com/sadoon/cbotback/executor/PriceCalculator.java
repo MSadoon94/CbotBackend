@@ -8,6 +8,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.math.BigDecimal;
+import java.util.function.UnaryOperator;
 
 public class PriceCalculator {
 
@@ -17,6 +18,12 @@ public class PriceCalculator {
                         .fromCallable(() -> addTargetPrice(trade))
                         .subscribeOn(Schedulers.boundedElastic()));
     }
+
+    public UnaryOperator<Flux<Trade>> addTargetPrice = tradeFeedIn ->
+            tradeFeedIn
+                    .flatMap(trade -> Mono
+                            .fromCallable(() -> addTargetPrice(trade))
+                            .subscribeOn(Schedulers.boundedElastic()));
 
     private Trade addTargetPrice(Trade trade) throws OutOfBoundsException {
         BigDecimal target = BigDecimal.ZERO;

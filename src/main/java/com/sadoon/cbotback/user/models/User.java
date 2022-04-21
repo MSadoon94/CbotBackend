@@ -15,6 +15,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -45,7 +46,13 @@ public class User implements UserDetails {
 
     private CbotStatus cbotStatus = new CbotStatus(false, List.of());
 
-    private Map<String, Trade> trades = new LinkedHashMap<>();
+    private Map<UUID, Trade> trades = new LinkedHashMap<>();
+
+    @Transient
+    private Sinks.Many<Trade> tradeFeed2 = Sinks.many().multicast().onBackpressureBuffer();
+
+    @Transient
+    private Sinks.Many<ExchangeName> exchangeFeed = Sinks.many().multicast().onBackpressureBuffer();
 
     @Transient
     private Flux<Trade> tradeFeed;
@@ -141,19 +148,35 @@ public class User implements UserDetails {
     }
 
     public void addExchange(ExchangeName exchange) {
-        exchanges.add(exchange);
+        if (!exchanges.contains(exchange)) {
+            exchanges.add(exchange);
+            exchangeFeed.tryEmitNext(exchange);
+        }
     }
 
-    public Map<String, Trade> getTrades() {
+    public Map<UUID, Trade> getTrades() {
         return trades;
     }
 
-    public void setTrades(Map<String, Trade> trades) {
+    public void setTrades(Map<UUID, Trade> trades) {
         this.trades = trades;
     }
 
     public void addTrade(Trade trade) {
         trades.put(trade.getId(), trade);
+        tradeFeed2.tryEmitNext(trade);
+    }
+
+    public Flux<Trade> getTradeFeed2() {
+        return tradeFeed2
+                .asFlux()
+                .share();
+    }
+
+    public Flux<ExchangeName> getExchangeFeed() {
+        return exchangeFeed
+                .asFlux()
+                .share();
     }
 
     public Flux<Trade> getTradeFeed() {

@@ -46,7 +46,7 @@ class EntryScannerTest {
 
         StepVerifier.create(scanner.tradeFeed(tradeFeedIn))
                 .expectSubscription()
-                .consumeNextWith(trade -> assertThat(trade.getId(), is(targetId)))
+                .consumeNextWith(trade -> assertThat(trade.getLabel(), is(targetId)))
                 .thenCancel()
                 .verify();
     }

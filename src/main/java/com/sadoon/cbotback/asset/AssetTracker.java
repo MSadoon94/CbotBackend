@@ -38,6 +38,16 @@ public class AssetTracker {
                         .setCurrentPrice(new BigDecimal(tuple.getT1())));
     }
 
+    public Function<Flux<Trade>, Flux<Trade>> addCurrentPrice = (Flux<Trade> tradeFeedIn) ->
+            tradeFeedIn
+                    .doOnNext(this::addPairs)
+                    .map(this::getUpdateParams)
+                    .flatMap(this::tickerMessageFeed)
+                    .zipWith(tradeFeedIn)
+                    .map(tuple -> tuple.getT2()
+                            .setCurrentPrice(new BigDecimal(tuple.getT1())));
+
+
     private Map<String, String> getUpdateParams(Trade trade) {
         return Map.of(
                 "Pair", trade.getPair(),

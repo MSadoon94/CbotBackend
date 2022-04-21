@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 public class KrakenWebClient implements ExchangeWebClient {
     private WebClient client;
@@ -73,6 +74,26 @@ public class KrakenWebClient implements ExchangeWebClient {
                     }
                 })
                 .flatMap(trade -> addFees(getFees(tradeVolume(credentials, tradeVolumePairs)), trade));
+    }
+
+    @Override
+    public UnaryOperator<Flux<Trade>> addAllPairNames() {
+        return tradeFeedIn -> tradeFeedIn
+                .flatMap(trade ->
+                        assetPairs(trade.getPair())
+                                .map(assetPairs -> assetPairs.getPairs().get(trade.getPair()))
+                                .map(pair -> trade.addPairNames(getPairNames(pair))));
+    }
+
+    @Override
+    public UnaryOperator<Flux<Trade>> addFees(SecurityCredential credential) {
+        return tradeFeedIn -> tradeFeedIn
+                .doOnNext(trade -> {
+                    if (!tradeVolumePairs.contains(trade.getPair())) {
+                        tradeVolumePairs.add(trade.getPair());
+                    }
+                })
+                .flatMap(trade -> addFees(getFees(tradeVolume(credential, tradeVolumePairs)), trade));
     }
 
     private Flux<Map<String, Fees>> getFees(Mono<TradeVolume> tradeVolumeMono) {

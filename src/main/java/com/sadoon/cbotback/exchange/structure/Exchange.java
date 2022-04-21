@@ -18,11 +18,18 @@ public class Exchange {
     private ExchangeWebSocket webSocket;
     private ExchangeMessageFactory messageFactory;
     private ExchangeWebClient webClient;
+    private final PriceCalculator priceCalculator;
+    private final EntryScanner entryScanner;
     private ExchangeResponseHandler responseHandler;
     private ExchangeMessageProcessor messageProcessor;
     private AssetTracker tracker;
     private Sinks.Many<GroupedFlux<String, Flux<Trade>>> userTradeFeeds
             = Sinks.many().multicast().onBackpressureBuffer();
+
+    public Exchange() {
+        priceCalculator = new PriceCalculator();
+        entryScanner = new EntryScanner();
+    }
 
     public ExchangeName getExchangeName() {
         return exchangeName;
@@ -67,6 +74,14 @@ public class Exchange {
     public Exchange setWebClient(ExchangeWebClient webClient) {
         this.webClient = webClient;
         return this;
+    }
+
+    public PriceCalculator getPriceCalculator() {
+        return priceCalculator;
+    }
+
+    public EntryScanner getEntryScanner() {
+        return entryScanner;
     }
 
     public ExchangeResponseHandler getResponseHandler() {

@@ -7,9 +7,12 @@ import com.sadoon.cbotback.strategy.StrategyType;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class Trade {
-    private String id;
+    private UUID id = UUID.randomUUID();
+    private String strategyName;
+    private String label;
     private ExchangeName exchange;
     private TradeStatus status;
     private String pair;
@@ -20,12 +23,30 @@ public class Trade {
     private Fees fees;
     private StrategyType type;
 
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
-    public Trade setID(String id) {
+    public Trade setId(UUID id) {
         this.id = id;
+        return this;
+    }
+
+    public String getStrategyName() {
+        return strategyName;
+    }
+
+    public Trade setStrategyName(String strategyName) {
+        this.strategyName = strategyName;
+        return this;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public Trade setID(String id) {
+        this.label = id;
         return this;
     }
 

@@ -5,6 +5,7 @@ import com.sadoon.cbotback.exceptions.notfound.UserNotFoundException;
 import com.sadoon.cbotback.exchange.meta.ExchangeName;
 import com.sadoon.cbotback.exchange.model.Trade;
 import com.sadoon.cbotback.exchange.structure.ExchangeSupplier;
+import com.sadoon.cbotback.exp.TradeListener;
 import com.sadoon.cbotback.security.credentials.SecurityCredential;
 import com.sadoon.cbotback.status.CbotStatus;
 import com.sadoon.cbotback.strategy.Strategy;
@@ -15,8 +16,10 @@ import reactor.core.publisher.GroupedFlux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 @Service
@@ -77,6 +80,10 @@ public class UserService {
                 .flatMap(Function.identity());
     }
 
+    public SecurityCredential getCredential(User user, String type) {
+        return cachedCredentials.get(user.getId()).get(type);
+    }
+
     public void deleteAll() {
         repo.deleteAll();
     }
@@ -106,8 +113,8 @@ public class UserService {
     }
 
     public void addTrade(User user, Trade trade) {
-        Map<String, Trade> trades = user.getTrades();
-        trades.put(trade.getPair(), trade);
+        Map<UUID, Trade> trades = user.getTrades();
+        trades.put(trade.getId(), trade);
         user.setTrades(trades);
         replace(user);
     }
@@ -115,6 +122,14 @@ public class UserService {
     public void addEncryptedCredential(User user, SecurityCredential credential) {
         user.addEncryptedCredential(credential.type(), credential);
         replace(user);
+        if (Arrays.stream(ExchangeName.values())
+                .anyMatch(name -> name == ExchangeName.valueOf(credential.type()))) {
+            new TradeListener(
+                    this,
+                    exchangeSupplier.getExchange(ExchangeName.valueOf(credential.type())),
+                    user
+            ).start();
+        }
     }
 
     public void cacheCredential(User user, SecurityCredential credential) {

@@ -8,7 +8,6 @@ import com.sadoon.cbotback.strategy.Strategy;
 import com.sadoon.cbotback.strategy.StrategyType;
 import com.sadoon.cbotback.user.UserService;
 import com.sadoon.cbotback.user.models.User;
-import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
@@ -39,25 +38,27 @@ public class TradeController {
                     userService.addTrade(user, trade);
 
                     messagingTemplate.convertAndSend(
-                            "/topic/trade-feed",
+                            "/topic/trades",
                             trade
                     );
 
                 });
     }
 
-    @MessageMapping("/{name}/create-trade")
-    public Trade createTrade(@DestinationVariable("name") String strategyName, Principal principal) throws UserNotFoundException {
+    @MessageMapping("/create-trade")
+    public Trade createTrade(String strategyName, Principal principal) throws UserNotFoundException {
         User user = userService.getUserWithUsername(principal.getName());
 
         Strategy strategy = user.getStrategies()
                 .get(strategyName);
 
         Trade trade = new Trade()
+                .setStrategyName(strategyName)
                 .setExchange(ExchangeName.valueOf(strategy.getExchange().toUpperCase()))
                 .setStatus(TradeStatus.CREATION)
                 .setPair(strategy.getPair())
                 .setType(StrategyType.valueOf(strategy.getType().toUpperCase()));
+
         userService.addTrade(user, trade);
 
         return trade;

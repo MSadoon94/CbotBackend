@@ -33,12 +33,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
-public class TradeControllerTest {
+class TradeControllerTest {
 
     @Mock
     private UserService userService;
     private SimpMessagingTemplate messagingTemplate = new SimpMessagingTemplate(new TestMessageChannel());
-
 
     private User mockUser = Mocks.user();
     private final Authentication auth = Mocks.auth(mockUser);
@@ -55,7 +54,7 @@ public class TradeControllerTest {
         webSocketTest = new WebSocketTest(tradeController, messagingTemplate);
         mockTrade = Mocks.trade(TradeStatus.SELECTED, BigDecimal.ONE, BigDecimal.TEN)
                 .setID("KRAKEN1BTC/USD100Long");
-        mockUser.setTrades(Map.of(mockTrade.getPair(), mockTrade));
+        mockUser.setTrades(Map.of(mockTrade.getId(), mockTrade));
     }
 
     @Test

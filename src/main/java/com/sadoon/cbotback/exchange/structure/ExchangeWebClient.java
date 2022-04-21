@@ -9,6 +9,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.function.UnaryOperator;
 
 public interface ExchangeWebClient {
 
@@ -21,4 +22,8 @@ public interface ExchangeWebClient {
     Flux<Trade> assetPairTradeFeed(Flux<Trade> tradeFeedIn);
 
     Flux<Trade> tradeVolumeTradeFeed(SecurityCredential credentials, Flux<Trade> tradeFeedIn);
+
+    UnaryOperator<Flux<Trade>> addAllPairNames();
+
+    UnaryOperator<Flux<Trade>> addFees(SecurityCredential credential);
 }
