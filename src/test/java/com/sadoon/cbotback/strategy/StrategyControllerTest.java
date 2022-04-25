@@ -26,6 +26,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -72,7 +73,7 @@ class StrategyControllerTest {
         given(userService.getUserWithUsername(any())).willReturn(mockUser);
 
         webSocketTest.sendMessageToController(
-                webSocketTest.subscribeHeaderAccessor("/topic/strategies/names", auth)
+                webSocketTest.subscribeHeaderAccessor("/topic/strategies/details", auth)
         );
 
         Message<?> reply = webSocketTest.getOutboundChannel().getMessages().get(0);
@@ -98,12 +99,15 @@ class StrategyControllerTest {
                 Mocks.mapper.writeValueAsBytes(mockStrategy.getName()));
 
         Message<?> reply = webSocketTest.getBrokerMessagingChannel().getMessages().get(0);
+        List<Map<String, String>> details = (List<Map<String, String>>) reply.getPayload();
 
-        assertThat(reply.getPayload(), is(Map.of(mockStrategy.getName(), true)));
+        assertThat(details.get(0).get("name"), is(mockStrategy.getName()));
+        assertThat(details.get(0).get("isActive"), is("true"));
     }
 
     @Test
     void shouldReturnCreatedStatusOnSaveStrategySuccess() throws Exception {
+        given(userService.getUserWithUsername(any())).willReturn(mockUser);
         saveStrategy()
                 .andExpect(status().isCreated());
     }
@@ -138,12 +142,17 @@ class StrategyControllerTest {
     }
 
     @Test
-    void shouldSendStrategyNameUpdateOnStrategyAddition() throws Exception {
+    void shouldSendStrategyDetailUpdateOnStrategyAddition() throws Exception {
+        mockUser.setStrategies(Map.of(mockStrategy.getName(), mockStrategy));
+        given(userService.getUserWithUsername(any())).willReturn(mockUser);
         saveStrategy()
                 .andExpect(status().isCreated());
 
         Message<?> reply = webSocketTest.getBrokerMessagingChannel().getMessages().get(0);
-        assertThat(reply.getPayload(), is(mockStrategy.getName()));
+        List<Map<String, String>> details = (List<Map<String, String>>) reply.getPayload();
+
+        assertThat(details.get(0).get("name"), is(mockStrategy.getName()));
+        assertThat(details.get(0).get("isActive"), is("false"));
     }
 
     private ResultActions saveStrategy() throws Exception {

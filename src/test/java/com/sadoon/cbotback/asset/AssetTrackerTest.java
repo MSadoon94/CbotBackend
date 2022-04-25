@@ -2,11 +2,11 @@ package com.sadoon.cbotback.asset;
 
 import com.sadoon.cbotback.exchange.meta.ExchangeName;
 import com.sadoon.cbotback.exchange.model.TickerMessage;
-import com.sadoon.cbotback.exchange.model.Trade;
 import com.sadoon.cbotback.exchange.structure.ExchangeMessageFactory;
 import com.sadoon.cbotback.exchange.structure.ExchangeMessageProcessor;
 import com.sadoon.cbotback.strategy.StrategyType;
 import com.sadoon.cbotback.tools.Mocks;
+import com.sadoon.cbotback.trade.Trade;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,7 +45,7 @@ class AssetTrackerTest {
 
     @Test
     void shouldReturnTradeWithCurrentPriceAdded() {
-        StepVerifier.create(tracker.getTrades(tradeFlux), StepVerifierOptions.create().checkUnderRequesting(true))
+        StepVerifier.create(tracker.addCurrentPrice.apply(tradeFlux), StepVerifierOptions.create().checkUnderRequesting(true))
                 .consumeNextWith(trade ->
                         assertThat(trade.getCurrentPrice(),
                                 is(new BigDecimal(tickerMessage.getPrice(StrategyType.LONG)))))

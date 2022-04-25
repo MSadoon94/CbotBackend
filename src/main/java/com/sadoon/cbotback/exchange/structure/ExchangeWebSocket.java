@@ -12,7 +12,7 @@ import java.net.URI;
 import java.util.function.Function;
 
 public class ExchangeWebSocket {
-
+    private boolean isSocketAlive = false;
     private WebSocketClient client;
     private URI webSocketURI;
     private Flux<Function<WebSocketSession, Mono<Void>>> sendFunctions = Flux.just();
@@ -22,6 +22,10 @@ public class ExchangeWebSocket {
     public ExchangeWebSocket(WebSocketClient client, URI webSocketURI) {
         this.client = client;
         this.webSocketURI = webSocketURI;
+    }
+
+    public boolean isSocketAlive() {
+        return isSocketAlive;
     }
 
     public ExchangeWebSocket addSendFunction(Function<WebSocketSession, Mono<Void>> function) {
@@ -40,7 +44,10 @@ public class ExchangeWebSocket {
                 .share();
     }
 
-    public Mono<Void> execute(WebSocketHandler handler) {
-        return client.execute(webSocketURI, handler);
+    public void execute(WebSocketHandler handler) {
+        client.execute(webSocketURI, handler)
+                .doFirst(() -> isSocketAlive = true)
+                .doOnTerminate(() -> isSocketAlive = false)
+                .subscribe();
     }
 }

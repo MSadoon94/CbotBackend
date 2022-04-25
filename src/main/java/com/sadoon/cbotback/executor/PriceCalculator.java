@@ -1,7 +1,7 @@
 package com.sadoon.cbotback.executor;
 
 import com.sadoon.cbotback.exceptions.outofbounds.OutOfBoundsException;
-import com.sadoon.cbotback.exchange.model.Trade;
+import com.sadoon.cbotback.trade.Trade;
 import com.sadoon.cbotback.strategy.StrategyType;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -11,13 +11,6 @@ import java.math.BigDecimal;
 import java.util.function.UnaryOperator;
 
 public class PriceCalculator {
-
-    public Flux<Trade> tradeFeed(Flux<Trade> tradeFeedIn) {
-        return tradeFeedIn
-                .flatMap(trade -> Mono
-                        .fromCallable(() -> addTargetPrice(trade))
-                        .subscribeOn(Schedulers.boundedElastic()));
-    }
 
     public UnaryOperator<Flux<Trade>> addTargetPrice = tradeFeedIn ->
             tradeFeedIn

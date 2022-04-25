@@ -1,16 +1,17 @@
 package com.sadoon.cbotback.exchange.structure;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.Configuration;
 import com.sadoon.cbotback.exceptions.notfound.UserNotFoundException;
 import com.sadoon.cbotback.exchange.meta.ExchangeName;
 import com.sadoon.cbotback.exchange.meta.TradeStatus;
-import com.sadoon.cbotback.exchange.model.Trade;
 import com.sadoon.cbotback.strategy.Strategy;
 import com.sadoon.cbotback.strategy.StrategyType;
 import com.sadoon.cbotback.tools.Mocks;
 import com.sadoon.cbotback.tools.TestMessageChannel;
 import com.sadoon.cbotback.tools.WebSocketTest;
+import com.sadoon.cbotback.trade.Trade;
+import com.sadoon.cbotback.trade.TradeController;
 import com.sadoon.cbotback.user.UserService;
 import com.sadoon.cbotback.user.models.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +25,7 @@ import org.springframework.security.core.Authentication;
 import reactor.core.publisher.Flux;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -53,21 +55,38 @@ class TradeControllerTest {
         tradeController = new TradeController(messagingTemplate, userService);
         webSocketTest = new WebSocketTest(tradeController, messagingTemplate);
         mockTrade = Mocks.trade(TradeStatus.SELECTED, BigDecimal.ONE, BigDecimal.TEN)
-                .setID("KRAKEN1BTC/USD100Long");
+                .setLabel("KRAKEN1BTC/USD100Long");
         mockUser.setTrades(Map.of(mockTrade.getId(), mockTrade));
     }
 
     @Test
-    void shouldSendTradeToSubscribersOnSubscribe() throws UserNotFoundException, JsonProcessingException {
+    void shouldSendTradesToSubscribersOnSubscribe() throws UserNotFoundException {
         given(userService.getUserWithUsername(any())).willReturn(mockUser);
-        given(userService.getTradeFeed(any())).willReturn(Flux.just(mockTrade));
-        given(userService.getTradeFeeds(any())).willReturn(
-                Flux.just(Flux.just(mockTrade))
-                        .groupBy(feed -> mockUser.getId()));
+        given(userService.getUpdatedTrades()).willReturn(Flux.just(mockTrade.setStatus(TradeStatus.SELECTED)));
 
         webSocketTest.sendMessageToController(
-                webSocketTest.subscribeHeaderAccessor("/topic/trades", auth),
-                new ObjectMapper().writeValueAsBytes(mockTrade)
+                webSocketTest.subscribeHeaderAccessor("/topic/trades", auth)
+        );
+
+        Message<?> reply = webSocketTest.getOutboundChannel().getMessages().get(0);
+        String responseJson = new String((byte[]) reply.getPayload(), StandardCharsets.UTF_8);
+
+        Map<String, Object> trades =
+                (Map<String, Object>) Configuration.defaultConfiguration().jsonProvider().parse(responseJson);
+        Trade trade = Mocks.mapper.convertValue(trades.get(mockTrade.getId().toString()), Trade.class);
+
+
+        assertThat(trade, samePropertyValuesAs(mockTrade, "fees", "id"));
+        assertThat(trade.getFees(), samePropertyValuesAs(mockTrade.getFees(), "pair"));
+    }
+
+    @Test
+    void shouldSendTradeOnTradeUpdate() throws UserNotFoundException {
+        given(userService.getUserWithUsername(any())).willReturn(mockUser);
+        given(userService.getUpdatedTrades()).willReturn(Flux.just(mockTrade.setStatus(TradeStatus.SELECTED)));
+
+        webSocketTest.sendMessageToController(
+                webSocketTest.subscribeHeaderAccessor("/topic/trades", auth)
         );
 
         Message<?> reply = webSocketTest.getBrokerMessagingChannel().getMessages().get(0);
@@ -76,10 +95,11 @@ class TradeControllerTest {
     }
 
     @Test
-    void shouldReturnTradeOnCreateTradeSuccess() throws UserNotFoundException {
+    void shouldReturnTradeOnCreateTradeSuccess() throws UserNotFoundException, JsonProcessingException {
         Strategy mockStrategy = Mocks.strategy();
         mockUser.setStrategies(Map.of(Mocks.strategy().getName(), mockStrategy));
         Trade expectedTrade = new Trade()
+                .setStrategyName(mockStrategy.getName())
                 .setExchange(ExchangeName.valueOf(mockStrategy.getExchange().toUpperCase()))
                 .setStatus(TradeStatus.CREATION)
                 .setPair(mockStrategy.getPair())
@@ -89,12 +109,13 @@ class TradeControllerTest {
 
         webSocketTest.sendMessageToController(
                 webSocketTest.sendHeaderAccessor(
-                        String.format("/app/%s/create-trade", mockStrategy.getName()), auth)
+                        String.format("/app/create-trade", mockStrategy.getName()), auth),
+                Mocks.mapper.writeValueAsBytes(mockStrategy.getName())
         );
 
         Message<?> reply = webSocketTest.getBrokerMessagingChannel().getMessages().get(0);
 
-        assertThat(reply.getPayload(), samePropertyValuesAs(expectedTrade));
+        assertThat(reply.getPayload(), samePropertyValuesAs(expectedTrade, "id"));
     }
 
 }

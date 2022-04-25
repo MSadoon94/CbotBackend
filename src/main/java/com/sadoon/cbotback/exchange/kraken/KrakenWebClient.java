@@ -8,7 +8,7 @@ import com.sadoon.cbotback.brokerage.util.SignatureCreator;
 import com.sadoon.cbotback.exceptions.exchange.ExchangeRequestException;
 import com.sadoon.cbotback.exchange.meta.ExchangeName;
 import com.sadoon.cbotback.exchange.model.Fees;
-import com.sadoon.cbotback.exchange.model.Trade;
+import com.sadoon.cbotback.trade.Trade;
 import com.sadoon.cbotback.exchange.model.TradeVolume;
 import com.sadoon.cbotback.exchange.structure.ExchangeResponseHandler;
 import com.sadoon.cbotback.exchange.structure.ExchangeWebClient;
@@ -44,16 +44,6 @@ public class KrakenWebClient implements ExchangeWebClient {
                 .build();
     }
 
-    @Override
-    public Flux<Trade> assetPairTradeFeed(Flux<Trade> tradeFeedIn) {
-
-        return tradeFeedIn
-                .flatMap(trade ->
-                        assetPairs(trade.getPair())
-                                .map(assetPairs -> assetPairs.getPairs().get(trade.getPair()))
-                                .map(pair -> trade.addPairNames(getPairNames(pair))));
-    }
-
     private List<String> getPairNames(AssetPair pair) {
         int altNameLength = pair.getAltName().length();
         return List.of(pair.getAltName(),
@@ -63,17 +53,6 @@ public class KrakenWebClient implements ExchangeWebClient {
                         pair.getAltName().substring(0, altNameLength / 2),
                         pair.getAltName().substring(altNameLength / 2))
         );
-    }
-
-    @Override
-    public Flux<Trade> tradeVolumeTradeFeed(SecurityCredential credentials, Flux<Trade> tradeFeedIn) {
-        return tradeFeedIn
-                .doOnNext(trade -> {
-                    if (!tradeVolumePairs.contains(trade.getPair())) {
-                        tradeVolumePairs.add(trade.getPair());
-                    }
-                })
-                .flatMap(trade -> addFees(getFees(tradeVolume(credentials, tradeVolumePairs)), trade));
     }
 
     @Override

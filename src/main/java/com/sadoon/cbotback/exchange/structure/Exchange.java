@@ -2,15 +2,9 @@ package com.sadoon.cbotback.exchange.structure;
 
 import com.sadoon.cbotback.asset.AssetTracker;
 import com.sadoon.cbotback.exchange.meta.ExchangeName;
-import com.sadoon.cbotback.exchange.model.Trade;
 import com.sadoon.cbotback.executor.EntryScanner;
 import com.sadoon.cbotback.executor.PriceCalculator;
 import com.sadoon.cbotback.security.credentials.CredentialsService;
-import com.sadoon.cbotback.security.credentials.SecurityCredential;
-import com.sadoon.cbotback.user.models.User;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.GroupedFlux;
-import reactor.core.publisher.Sinks;
 
 public class Exchange {
     private ExchangeName exchangeName;
@@ -23,8 +17,6 @@ public class Exchange {
     private ExchangeResponseHandler responseHandler;
     private ExchangeMessageProcessor messageProcessor;
     private AssetTracker tracker;
-    private Sinks.Many<GroupedFlux<String, Flux<Trade>>> userTradeFeeds
-            = Sinks.many().multicast().onBackpressureBuffer();
 
     public Exchange() {
         priceCalculator = new PriceCalculator();
@@ -112,24 +104,4 @@ public class Exchange {
         return this;
     }
 
-    public Exchange addUserTradeFeeds(GroupedFlux<String, Flux<Trade>> tradeFeed) {
-        userTradeFeeds.tryEmitNext(tradeFeed);
-        return this;
-    }
-
-    public Flux<GroupedFlux<String, Flux<Trade>>> getUserTradeFeed() {
-        return userTradeFeeds
-                .asFlux()
-                .share();
-    }
-
-    public Flux<Trade> getTradeFeed(User user, SecurityCredential credential) {
-        return new EntryScanner().tradeFeed(
-                new PriceCalculator().tradeFeed(
-                        webClient.tradeVolumeTradeFeed(
-                                credential,
-                                webClient.assetPairTradeFeed(
-                                        tracker.getTrades(user.getTradeFeed()
-                                                .map(trade -> trade.setExchange(exchangeName)))))));
-    }
 }

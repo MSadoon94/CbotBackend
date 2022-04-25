@@ -9,11 +9,11 @@ import com.sadoon.cbotback.brokerage.util.SignatureCreator;
 import com.sadoon.cbotback.exceptions.exchange.ExchangeRequestException;
 import com.sadoon.cbotback.exchange.meta.ExchangeName;
 import com.sadoon.cbotback.exchange.meta.TradeStatus;
-import com.sadoon.cbotback.exchange.model.Trade;
 import com.sadoon.cbotback.exchange.model.TradeVolume;
 import com.sadoon.cbotback.exchange.structure.ExchangeResponseHandler;
 import com.sadoon.cbotback.security.credentials.SecurityCredential;
 import com.sadoon.cbotback.tools.Mocks;
+import com.sadoon.cbotback.trade.Trade;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
@@ -118,7 +118,7 @@ class KrakenWebClientTest {
                 Mocks.assetPairs()
         ));
 
-        StepVerifier.create(client.assetPairTradeFeed(tradeFeedIn))
+        StepVerifier.create(client.addAllPairNames().apply(tradeFeedIn))
                 .expectSubscription()
                 .consumeNextWith(trade -> assertThat(trade.getAllNames(), containsInAnyOrder(mockNames(mockTrade))))
                 .thenCancel()
@@ -150,7 +150,7 @@ class KrakenWebClientTest {
                 mockVolume
         ));
 
-        StepVerifier.create(client.tradeVolumeTradeFeed(credentials, tradeFeedIn))
+        StepVerifier.create(client.addFees(credentials).apply(tradeFeedIn))
                 .expectSubscription()
                 .consumeNextWith(trade -> assertThat(trade.getFees(), samePropertyValuesAs(Mocks.fees())))
                 .thenCancel()

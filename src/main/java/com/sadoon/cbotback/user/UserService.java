@@ -3,35 +3,35 @@ package com.sadoon.cbotback.user;
 import com.sadoon.cbotback.card.models.Card;
 import com.sadoon.cbotback.exceptions.notfound.UserNotFoundException;
 import com.sadoon.cbotback.exchange.meta.ExchangeName;
-import com.sadoon.cbotback.exchange.model.Trade;
 import com.sadoon.cbotback.exchange.structure.ExchangeSupplier;
-import com.sadoon.cbotback.exp.TradeListener;
 import com.sadoon.cbotback.security.credentials.SecurityCredential;
 import com.sadoon.cbotback.status.CbotStatus;
 import com.sadoon.cbotback.strategy.Strategy;
+import com.sadoon.cbotback.trade.Trade;
+import com.sadoon.cbotback.trade.TradeListener;
 import com.sadoon.cbotback.user.models.User;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.GroupedFlux;
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
+import reactor.core.publisher.Sinks;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.UUID;
-import java.util.function.Function;
 
 @Service
 public class UserService {
 
     private UserRepository repo;
     private ExchangeSupplier exchangeSupplier;
+    private TradeListener tradeListener;
     private Map<String, Map<String, SecurityCredential>> cachedCredentials = new LinkedHashMap<>();
+    private Sinks.Many<Trade> tradeFeed = Sinks.many().multicast().onBackpressureBuffer();
+    private Sinks.Many<Trade> updatedTrades = Sinks.many().multicast().onBackpressureBuffer();
 
-    public UserService(UserRepository repo, ExchangeSupplier exchangeSupplier) {
+    public UserService(UserRepository repo, ExchangeSupplier exchangeSupplier, TradeListener tradeListener) {
         this.repo = repo;
         this.exchangeSupplier = exchangeSupplier;
+        this.tradeListener = tradeListener;
     }
 
     public User getUserWithUsername(String username) throws UserNotFoundException {
@@ -55,29 +55,9 @@ public class UserService {
         return replace(user);
     }
 
-    public Flux<GroupedFlux<String, Flux<Trade>>> getTradeFeeds(User user) {
-        return Flux.fromIterable(user.getExchanges())
-                .map(exchangeSupplier::getExchange)
-                .flatMap(exchange -> Mono.fromCallable(() ->
-                                exchange.getTradeFeed(
-                                        user,
-                                        cachedCredentials.get(user.getId())
-                                                .get(exchange.getExchangeName().name())))
-                        .flux()
-                        .groupBy(feed -> user.getId())
-                        .subscribeOn(Schedulers.boundedElastic())
-                        .doOnNext(exchange::addUserTradeFeeds));
-    }
-
-    public Flux<Trade> getTradeFeed(User user) {
-        return Flux.fromIterable(user.getExchanges())
-                .map(exchangeSupplier::getExchange)
-                .flatMap(exchange -> Mono.fromCallable(() ->
-                        exchange.getTradeFeed(
-                                user,
-                                cachedCredentials.get(user.getId())
-                                        .get(exchange.getExchangeName().name()))))
-                .flatMap(Function.identity());
+    public Flux<Trade> getUpdatedTrades() {
+        return updatedTrades
+                .asFlux();
     }
 
     public SecurityCredential getCredential(User user, String type) {
@@ -113,23 +93,21 @@ public class UserService {
     }
 
     public void addTrade(User user, Trade trade) {
-        Map<UUID, Trade> trades = user.getTrades();
-        trades.put(trade.getId(), trade);
-        user.setTrades(trades);
+        user.addTrade(trade);
         replace(user);
+        tradeFeed.tryEmitNext(trade);
+    }
+
+    public void updateTrade(User user, Trade trade) {
+        user.addTrade(trade);
+        replace(user);
+        updatedTrades.tryEmitNext(trade);
     }
 
     public void addEncryptedCredential(User user, SecurityCredential credential) {
         user.addEncryptedCredential(credential.type(), credential);
         replace(user);
-        if (Arrays.stream(ExchangeName.values())
-                .anyMatch(name -> name == ExchangeName.valueOf(credential.type()))) {
-            new TradeListener(
-                    this,
-                    exchangeSupplier.getExchange(ExchangeName.valueOf(credential.type())),
-                    user
-            ).start();
-        }
+        startTradeListener(user, credential);
     }
 
     public void cacheCredential(User user, SecurityCredential credential) {
@@ -139,5 +117,18 @@ public class UserService {
         }
         credentials.put(credential.type(), credential);
         cachedCredentials.put(user.getId(), credentials);
+    }
+
+    private void startTradeListener(User user, SecurityCredential credential) {
+        if (Arrays.stream(ExchangeName.values())
+                .anyMatch(name -> name == ExchangeName.valueOf(credential.type()))) {
+            tradeListener
+                    .start(
+                            tradeFeed.asFlux(),
+                            cachedCredentials.get(user.getId()),
+                            exchangeSupplier.getExchange(ExchangeName.valueOf(credential.type())))
+                    .subscribe(trade -> updateTrade(user, trade));
+
+        }
     }
 }

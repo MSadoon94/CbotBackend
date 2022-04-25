@@ -32,14 +32,16 @@ public class KrakenMessageFactory implements ExchangeMessageFactory {
                 .share()
                 .subscribeOn(Schedulers.boundedElastic());
     }
+
     @Override
-    public Mono<String> tickerSubscribe(List<String> pairs){
+    public Mono<String> tickerSubscribe(List<String> pairs) {
         return Mono.fromCallable(() ->
-                        mapper.writeValueAsString(
-                                Map.of(
-                                        "event", "subscribe",
-                                        "pair", pairs.toArray(new String[]{}),
-                                        "subscription", Map.of("name", "ticker")
-                                )));
+                mapper.writeValueAsString(
+                        Map.of(
+                                "event", "subscribe",
+                                "pair", pairs.toArray(new String[]{}),
+                                "subscription", Map.of("name", "ticker")
+                        ))
+        );
     }
 }

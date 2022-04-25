@@ -57,8 +57,7 @@ public class ExchangeSupplier {
                 .setResponseHandler(responseHandler);
 
         exchangeRegistry.put(ExchangeName.KRAKEN, kraken);
-        kraken.getUserTradeFeed()
-                .subscribe();
+
         return kraken;
     }
 }

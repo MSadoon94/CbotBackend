@@ -2,10 +2,10 @@ package com.sadoon.cbotback.asset;
 
 import com.sadoon.cbotback.exchange.meta.PayloadType;
 import com.sadoon.cbotback.exchange.model.TickerMessage;
-import com.sadoon.cbotback.exchange.model.Trade;
 import com.sadoon.cbotback.exchange.structure.ExchangeMessageFactory;
 import com.sadoon.cbotback.exchange.structure.ExchangeMessageProcessor;
 import com.sadoon.cbotback.strategy.StrategyType;
+import com.sadoon.cbotback.trade.Trade;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.PooledDataBuffer;
 import reactor.core.publisher.Flux;
@@ -19,23 +19,13 @@ import java.util.function.Predicate;
 
 public class AssetTracker {
     private ExchangeMessageFactory messageFactory;
-    private ExchangeMessageProcessor messageHandler;
+    private ExchangeMessageProcessor messageProcessor;
     private List<String> pairs = new ArrayList<>();
 
     public AssetTracker(ExchangeMessageFactory messageFactory,
                         ExchangeMessageProcessor messageProcessor) {
         this.messageFactory = messageFactory;
-        this.messageHandler = messageProcessor;
-    }
-
-    public Flux<Trade> getTrades(Flux<Trade> tradeFeedIn) {
-        return tradeFeedIn
-                .doOnNext(this::addPairs)
-                .map(this::getUpdateParams)
-                .flatMap(this::tickerMessageFeed)
-                .zipWith(tradeFeedIn)
-                .map(tuple -> tuple.getT2()
-                        .setCurrentPrice(new BigDecimal(tuple.getT1())));
+        this.messageProcessor = messageProcessor;
     }
 
     public Function<Flux<Trade>, Flux<Trade>> addCurrentPrice = (Flux<Trade> tradeFeedIn) ->
@@ -69,9 +59,9 @@ public class AssetTracker {
                         updateParams.get("Exchange").toLowerCase(),
                         updateParams.get("Pair").toLowerCase().replace("/", ""));
 
-        return messageHandler.sendMessage(messageFactory.tickerSubscribe(pairs))
+        return messageProcessor.sendMessage(messageFactory.tickerSubscribe(pairs))
                 .thenMany(
-                        messageHandler.convertAndSendUpdates(toPayload(type), destination));
+                        messageProcessor.convertAndSendUpdates(toPayload(type), destination));
     }
 
     private Function<Flux<String>, Flux<String>> toPayload(StrategyType type) {

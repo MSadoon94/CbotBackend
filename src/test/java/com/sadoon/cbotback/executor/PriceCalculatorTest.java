@@ -2,7 +2,7 @@ package com.sadoon.cbotback.executor;
 
 import com.sadoon.cbotback.exceptions.outofbounds.OutOfBoundsException;
 import com.sadoon.cbotback.exchange.meta.TradeStatus;
-import com.sadoon.cbotback.exchange.model.Trade;
+import com.sadoon.cbotback.trade.Trade;
 import com.sadoon.cbotback.strategy.Strategy;
 import com.sadoon.cbotback.strategy.StrategyType;
 import com.sadoon.cbotback.tools.Mocks;
@@ -52,7 +52,7 @@ class PriceCalculatorTest {
                                         .multiply(new BigDecimal(Mocks.krakenTickerMessage(mockValues).getBid())))
                         .subtract(new BigDecimal(Mocks.fees().getFee()));
 
-        StepVerifier.create(calculator.tradeFeed(tradeFeedIn))
+        StepVerifier.create(calculator.addTargetPrice.apply(tradeFeedIn))
                 .expectSubscription()
                 .consumeNextWith(trade -> assertThat(trade.getTargetPrice(), is(solution)))
                 .thenCancel()
@@ -74,7 +74,7 @@ class PriceCalculatorTest {
                                         .multiply(new BigDecimal(Mocks.krakenTickerMessage(mockValues).getAsk())))
                         .add(new BigDecimal(Mocks.fees().getFee()));
 
-        StepVerifier.create(calculator.tradeFeed(tradeFeedIn))
+        StepVerifier.create(calculator.addTargetPrice.apply(tradeFeedIn))
                 .expectSubscription()
                 .consumeNextWith(trade -> assertThat(trade.getTargetPrice(), is(solution)))
                 .thenCancel()
@@ -88,7 +88,7 @@ class PriceCalculatorTest {
 
         Flux<Trade> tradeFeedIn = Flux.just(mockTrade);
 
-        StepVerifier.create(calculator.tradeFeed(tradeFeedIn))
+        StepVerifier.create(calculator.addTargetPrice.apply(tradeFeedIn))
                 .expectSubscription()
                 .expectErrorSatisfies(error -> {
                     assertThat(error, isA(OutOfBoundsException.class));

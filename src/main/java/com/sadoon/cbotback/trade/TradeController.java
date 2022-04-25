@@ -1,9 +1,8 @@
-package com.sadoon.cbotback.exchange.structure;
+package com.sadoon.cbotback.trade;
 
 import com.sadoon.cbotback.exceptions.notfound.UserNotFoundException;
 import com.sadoon.cbotback.exchange.meta.ExchangeName;
 import com.sadoon.cbotback.exchange.meta.TradeStatus;
-import com.sadoon.cbotback.exchange.model.Trade;
 import com.sadoon.cbotback.strategy.Strategy;
 import com.sadoon.cbotback.strategy.StrategyType;
 import com.sadoon.cbotback.user.UserService;
@@ -14,35 +13,32 @@ import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.stereotype.Controller;
 
 import java.security.Principal;
+import java.util.Map;
+import java.util.UUID;
 
 @Controller
 public class TradeController {
-    private SimpMessagingTemplate messagingTemplate;
-    private UserService userService;
 
-    public TradeController(SimpMessagingTemplate messagingTemplate,
-                           UserService userService) {
-        this.messagingTemplate = messagingTemplate;
+    private UserService userService;
+    private SimpMessagingTemplate messagingTemplate;
+
+    public TradeController(SimpMessagingTemplate messagingTemplate, UserService userService) {
         this.userService = userService;
+        this.messagingTemplate = messagingTemplate;
     }
 
 
     @SubscribeMapping("/trades")
-    public void tradeFeed(Principal principal) throws UserNotFoundException {
-        User user = userService.getUserWithUsername(principal.getName());
-        userService.getTradeFeeds(user)
-                .thenMany(userService.getTradeFeed(user)
-                )
-                .subscribe(trade -> {
-
-                    userService.addTrade(user, trade);
-
-                    messagingTemplate.convertAndSend(
-                            "/topic/trades",
-                            trade
-                    );
-
-                });
+    public Map<UUID, Trade> tradeFeed(Principal principal) throws UserNotFoundException {
+        userService.getUpdatedTrades()
+                .subscribe(trade ->
+                        messagingTemplate.convertAndSend(
+                                String.format("/topic/%s/update", trade.getId().toString()),
+                                trade
+                        )
+                );
+        return userService.getUserWithUsername(principal.getName())
+                .getTrades();
     }
 
     @MessageMapping("/create-trade")

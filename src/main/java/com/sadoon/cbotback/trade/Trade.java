@@ -1,7 +1,8 @@
-package com.sadoon.cbotback.exchange.model;
+package com.sadoon.cbotback.trade;
 
 import com.sadoon.cbotback.exchange.meta.ExchangeName;
 import com.sadoon.cbotback.exchange.meta.TradeStatus;
+import com.sadoon.cbotback.exchange.model.Fees;
 import com.sadoon.cbotback.strategy.StrategyType;
 
 import java.math.BigDecimal;
@@ -45,8 +46,8 @@ public class Trade {
         return label;
     }
 
-    public Trade setID(String id) {
-        this.label = id;
+    public Trade setLabel(String label) {
+        this.label = label;
         return this;
     }
 

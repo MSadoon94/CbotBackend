@@ -37,8 +37,8 @@ public class StrategyController {
         userService.addStrategy(userService.getUserWithUsername(principal.getName()), strategy);
 
         messagingTemplate.convertAndSend(
-                "/topic/strategies/names",
-                getStrategyNames(principal)
+                "/topic/strategies/details",
+                getStrategyDetails(principal)
         );
 
         return new ResponseEntity<>(HttpStatus.CREATED);
@@ -56,8 +56,8 @@ public class StrategyController {
         return ResponseEntity.ok(user.getStrategies().get(strategy));
     }
 
-    @SubscribeMapping("/strategies/names")
-    public List<Map<String, String>> getStrategyNames(Principal principal) throws UserNotFoundException {
+    @SubscribeMapping("/strategies/details")
+    public List<Map<String, String>> getStrategyDetails(Principal principal) throws UserNotFoundException {
 
 
         return userService.getUserWithUsername(principal.getName())
@@ -81,8 +81,8 @@ public class StrategyController {
                 .setActive(isActive);
         userService.replace(user);
         messagingTemplate.convertAndSend(
-                "/topic/strategies/names",
-                getStrategyNames(principal)
+                "/topic/strategies/details",
+                getStrategyDetails(principal)
         );
 
         return Map.of(name, isActive);

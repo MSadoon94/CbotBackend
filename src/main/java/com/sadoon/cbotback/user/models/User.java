@@ -2,22 +2,16 @@ package com.sadoon.cbotback.user.models;
 
 import com.sadoon.cbotback.card.models.Card;
 import com.sadoon.cbotback.exchange.meta.ExchangeName;
-import com.sadoon.cbotback.exchange.meta.TradeStatus;
-import com.sadoon.cbotback.exchange.model.Trade;
 import com.sadoon.cbotback.refresh.models.RefreshToken;
 import com.sadoon.cbotback.security.credentials.SecurityCredential;
 import com.sadoon.cbotback.status.CbotStatus;
 import com.sadoon.cbotback.strategy.Strategy;
+import com.sadoon.cbotback.trade.Trade;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.core.publisher.Sinks;
 
-import java.math.BigDecimal;
 import java.util.*;
 
 @Document
@@ -47,15 +41,6 @@ public class User implements UserDetails {
     private CbotStatus cbotStatus = new CbotStatus(false, List.of());
 
     private Map<UUID, Trade> trades = new LinkedHashMap<>();
-
-    @Transient
-    private Sinks.Many<Trade> tradeFeed2 = Sinks.many().multicast().onBackpressureBuffer();
-
-    @Transient
-    private Sinks.Many<ExchangeName> exchangeFeed = Sinks.many().multicast().onBackpressureBuffer();
-
-    @Transient
-    private Flux<Trade> tradeFeed;
 
     public User(String username, String password, GrantedAuthority authority) {
         this.username = username;
@@ -150,7 +135,6 @@ public class User implements UserDetails {
     public void addExchange(ExchangeName exchange) {
         if (!exchanges.contains(exchange)) {
             exchanges.add(exchange);
-            exchangeFeed.tryEmitNext(exchange);
         }
     }
 
@@ -164,48 +148,5 @@ public class User implements UserDetails {
 
     public void addTrade(Trade trade) {
         trades.put(trade.getId(), trade);
-        tradeFeed2.tryEmitNext(trade);
-    }
-
-    public Flux<Trade> getTradeFeed2() {
-        return tradeFeed2
-                .asFlux()
-                .share();
-    }
-
-    public Flux<ExchangeName> getExchangeFeed() {
-        return exchangeFeed
-                .asFlux()
-                .share();
-    }
-
-    public Flux<Trade> getTradeFeed() {
-        if (tradeFeed == null) {
-            createTrades();
-        }
-        return tradeFeed.share();
-    }
-
-    public void createTrades() {
-        tradeFeed = Flux.fromStream(
-                        strategies
-                                .values()
-                                .stream())
-                .flatMap(strategy ->
-                        Mono.fromCallable(() ->
-                                new Trade()
-                                        .setStatus(getTradeStatusFromActiveStrategies(strategy))
-                                        .setPair(strategy.getPair())
-                                        .setType(strategy.asStrategyType())
-                                        .setEntryPercentage(new BigDecimal(strategy.getEntry()))
-                        ));
-    }
-
-    private TradeStatus getTradeStatusFromActiveStrategies(Strategy strategy) {
-        if (strategy.isActive()) {
-            return TradeStatus.SELECTED;
-        } else {
-            return TradeStatus.NOT_SELECTED;
-        }
     }
 }

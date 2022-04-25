@@ -1,15 +1,13 @@
 package com.sadoon.cbotback.executor;
 
 import com.sadoon.cbotback.exchange.meta.TradeStatus;
-import com.sadoon.cbotback.exchange.model.Trade;
 import com.sadoon.cbotback.strategy.StrategyType;
 import com.sadoon.cbotback.tools.Mocks;
+import com.sadoon.cbotback.trade.Trade;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.slf4j.Logger;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -22,17 +20,14 @@ import static org.hamcrest.Matchers.is;
 class EntryScannerTest {
 
     private EntryScanner scanner;
-    @MockBean
-    private Logger logger;
 
     @BeforeEach
     public void setUp() {
-
         scanner = new EntryScanner();
     }
 
     @Test
-    void shouldCreateTradeId(){
+    void shouldCreateTradeId() {
         Trade targetValue = Mocks.trade(TradeStatus.SELECTED, BigDecimal.ONE, BigDecimal.ONE);
         Flux<Trade> tradeFeedIn = Flux.just(targetValue);
 
@@ -44,7 +39,7 @@ class EntryScannerTest {
                 targetValue.getType().name()
         );
 
-        StepVerifier.create(scanner.tradeFeed(tradeFeedIn))
+        StepVerifier.create(scanner.findEntry.apply(tradeFeedIn))
                 .expectSubscription()
                 .consumeNextWith(trade -> assertThat(trade.getLabel(), is(targetId)))
                 .thenCancel()
@@ -58,7 +53,7 @@ class EntryScannerTest {
         Trade greaterValue = Mocks.trade(TradeStatus.SELECTED, BigDecimal.TEN, BigDecimal.ONE);
         Flux<Trade> tradeFeedIn = Flux.just(lesserValue, targetValue, greaterValue);
 
-        StepVerifier.create(scanner.tradeFeed(tradeFeedIn))
+        StepVerifier.create(scanner.findEntry.apply(tradeFeedIn))
                 .expectSubscription()
                 .consumeNextWith(trade -> tradeAssert(trade, lesserValue.getCurrentPrice(), lesserValue.getStatus()))
                 .consumeNextWith(trade -> tradeAssert(trade, targetValue.getCurrentPrice(), targetValue.getStatus()))
@@ -66,7 +61,6 @@ class EntryScannerTest {
                 .thenCancel()
                 .verify();
     }
-
 
 
     @Test
@@ -76,7 +70,7 @@ class EntryScannerTest {
         Trade greaterValue = Mocks.trade(TradeStatus.SELECTED, BigDecimal.TEN, BigDecimal.ONE).setType(StrategyType.SHORT);
         Flux<Trade> tradeFeedIn = Flux.just(lesserValue, targetValue, greaterValue);
 
-        StepVerifier.create(scanner.tradeFeed(tradeFeedIn))
+        StepVerifier.create(scanner.findEntry.apply(tradeFeedIn))
                 .expectSubscription()
                 .consumeNextWith(trade -> tradeAssert(trade, lesserValue.getCurrentPrice(), lesserValue.getStatus()))
                 .consumeNextWith(trade -> tradeAssert(trade, targetValue.getCurrentPrice(), targetValue.getStatus()))
@@ -85,7 +79,7 @@ class EntryScannerTest {
                 .verify();
     }
 
-    private void tradeAssert(Trade trade, BigDecimal expectedPrice, TradeStatus expectedStatus){
+    private void tradeAssert(Trade trade, BigDecimal expectedPrice, TradeStatus expectedStatus) {
         assertThat(trade.getCurrentPrice(), is(expectedPrice));
         assertThat(trade.getStatus(), is(expectedStatus));
     }

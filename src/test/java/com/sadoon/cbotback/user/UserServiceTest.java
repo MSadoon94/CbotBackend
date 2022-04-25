@@ -3,7 +3,6 @@ package com.sadoon.cbotback.user;
 import com.sadoon.cbotback.exceptions.notfound.UserNotFoundException;
 import com.sadoon.cbotback.exchange.meta.ExchangeName;
 import com.sadoon.cbotback.exchange.meta.TradeStatus;
-import com.sadoon.cbotback.exchange.model.Trade;
 import com.sadoon.cbotback.exchange.structure.Exchange;
 import com.sadoon.cbotback.exchange.structure.ExchangeSupplier;
 import com.sadoon.cbotback.refresh.models.RefreshToken;
@@ -11,6 +10,7 @@ import com.sadoon.cbotback.security.credentials.SecurityCredential;
 import com.sadoon.cbotback.status.CbotStatus;
 import com.sadoon.cbotback.strategy.Strategy;
 import com.sadoon.cbotback.tools.Mocks;
+import com.sadoon.cbotback.trade.TradeListener;
 import com.sadoon.cbotback.user.models.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,14 +20,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import reactor.core.publisher.Flux;
-import reactor.test.StepVerifier;
 
 import java.math.BigDecimal;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.samePropertyValuesAs;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -40,7 +38,8 @@ class UserServiceTest {
     @Autowired
     private UserRepository repo;
 
-
+    @Mock
+    TradeListener tradeListener;
     @Mock
     private Exchange mockExchange;
 
@@ -65,6 +64,7 @@ class UserServiceTest {
 
     @BeforeEach
     public void setup() {
+
         repo.deleteAll();
         mockUser.setCards(Mocks.cards());
         mockUser.addExchange(ExchangeName.KRAKEN);
@@ -74,7 +74,7 @@ class UserServiceTest {
         mockUser.setStrategies(strategies);
 
         repo.save(mockUser);
-        userService = new UserService(repo, supplier);
+        userService = new UserService(repo, supplier, tradeListener);
     }
 
     @Test
@@ -112,28 +112,12 @@ class UserServiceTest {
     }
 
     @Test
-    void shouldReturnTradeFeedsGroupedByUserId() {
-        Trade mockTrade = Mocks.trade(TradeStatus.SELECTED, BigDecimal.ONE, BigDecimal.ZERO);
-        given(supplier.getExchange(any())).willReturn(mockExchange);
-        given(mockExchange.getExchangeName()).willReturn(ExchangeName.KRAKEN);
-        given(mockExchange.getTradeFeed(any(), any())).willReturn(Flux.just(mockTrade));
-        given(mockExchange.addUserTradeFeeds(any())).willReturn(mockExchange);
-
-        userService.cacheCredential(mockUser, mockCredentials);
-
-        StepVerifier.create(userService.getTradeFeeds(mockUser))
-                .expectSubscription()
-                .consumeNextWith(tradeFeed -> assertThat(tradeFeed.key(), is(mockUser.getId())))
-                .thenCancel()
-                .verify();
-    }
-
-    @Test
     void shouldAddEncryptedCredentialToUser() {
+        given(tradeListener.start(any(), any(), any()))
+                .willReturn(Flux.just(Mocks.trade(TradeStatus.CREATION, BigDecimal.ONE, BigDecimal.TEN)));
         userService.addEncryptedCredential(mockUser, mockCredentials);
         assertThat(repo.getUserByUsername(mockUser.getUsername()).getEncryptedCredential(mockCredentials.type()),
                 samePropertyValuesAs(mockCredentials)
         );
     }
-
 }
