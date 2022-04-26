@@ -7,11 +7,14 @@ import com.sadoon.cbotback.exchange.structure.ExchangeMessageProcessor;
 import com.sadoon.cbotback.strategy.StrategyType;
 import com.sadoon.cbotback.tools.Mocks;
 import com.sadoon.cbotback.trade.Trade;
+import com.sadoon.cbotback.user.UserService;
+import com.sadoon.cbotback.user.models.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.Authentication;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -31,6 +34,11 @@ class AssetTrackerTest {
     private ExchangeMessageFactory mockMessageFactory;
     @Mock
     private ExchangeMessageProcessor mockMessageHandler;
+    @Mock
+    private UserService userService;
+
+    private User mockUser;
+    private Authentication auth;
 
     private Flux<Trade> tradeFlux;
     private TickerMessage tickerMessage;
@@ -39,13 +47,15 @@ class AssetTrackerTest {
 
     @BeforeEach
     public void setup() {
+        mockUser = Mocks.user();
+        auth = Mocks.auth(mockUser);
         tracker = new AssetTracker(mockMessageFactory, mockMessageHandler);
         setUpMocks();
     }
 
     @Test
     void shouldReturnTradeWithCurrentPriceAdded() {
-        StepVerifier.create(tracker.addCurrentPrice.apply(tradeFlux), StepVerifierOptions.create().checkUnderRequesting(true))
+        StepVerifier.create(tracker.addCurrentPrice(userService, mockUser).apply(tradeFlux), StepVerifierOptions.create().checkUnderRequesting(true))
                 .consumeNextWith(trade ->
                         assertThat(trade.getCurrentPrice(),
                                 is(new BigDecimal(tickerMessage.getPrice(StrategyType.LONG)))))

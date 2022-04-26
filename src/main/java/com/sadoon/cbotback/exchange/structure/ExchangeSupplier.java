@@ -7,6 +7,8 @@ import com.sadoon.cbotback.exchange.kraken.KrakenMessageFactory;
 import com.sadoon.cbotback.exchange.kraken.KrakenResponseHandler;
 import com.sadoon.cbotback.exchange.kraken.KrakenWebClient;
 import com.sadoon.cbotback.exchange.meta.ExchangeName;
+import com.sadoon.cbotback.executor.EntryScanner;
+import com.sadoon.cbotback.executor.PriceCalculator;
 import com.sadoon.cbotback.security.credentials.CredentialsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -54,7 +56,9 @@ public class ExchangeSupplier {
                 .setMessageProcessor(messageProcessor)
                 .setTracker(new AssetTracker(messageFactory, messageProcessor))
                 .setWebClient(webClient)
-                .setResponseHandler(responseHandler);
+                .setResponseHandler(responseHandler)
+                .setEntryScanner(new EntryScanner())
+                .setPriceCalculator(new PriceCalculator());
 
         exchangeRegistry.put(ExchangeName.KRAKEN, kraken);
 

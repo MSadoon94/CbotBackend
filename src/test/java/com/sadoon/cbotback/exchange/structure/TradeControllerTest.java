@@ -12,6 +12,7 @@ import com.sadoon.cbotback.tools.TestMessageChannel;
 import com.sadoon.cbotback.tools.WebSocketTest;
 import com.sadoon.cbotback.trade.Trade;
 import com.sadoon.cbotback.trade.TradeController;
+import com.sadoon.cbotback.trade.TradeListener;
 import com.sadoon.cbotback.user.UserService;
 import com.sadoon.cbotback.user.models.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +30,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.samePropertyValuesAs;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -39,7 +39,10 @@ class TradeControllerTest {
 
     @Mock
     private UserService userService;
-    private SimpMessagingTemplate messagingTemplate = new SimpMessagingTemplate(new TestMessageChannel());
+    @Mock
+    private TradeListener tradeListener;
+    @Mock
+    private ExchangeSupplier exchangeSupplier;
 
     private User mockUser = Mocks.user();
     private final Authentication auth = Mocks.auth(mockUser);
@@ -52,8 +55,8 @@ class TradeControllerTest {
 
     @BeforeEach
     void setUp() {
-        tradeController = new TradeController(messagingTemplate, userService);
-        webSocketTest = new WebSocketTest(tradeController, messagingTemplate);
+        tradeController = new TradeController(tradeListener, exchangeSupplier, userService);
+        webSocketTest = new WebSocketTest(tradeController, new SimpMessagingTemplate(new TestMessageChannel()));
         mockTrade = Mocks.trade(TradeStatus.SELECTED, BigDecimal.ONE, BigDecimal.TEN)
                 .setLabel("KRAKEN1BTC/USD100Long");
         mockUser.setTrades(Map.of(mockTrade.getId(), mockTrade));
@@ -62,7 +65,6 @@ class TradeControllerTest {
     @Test
     void shouldSendTradesToSubscribersOnSubscribe() throws UserNotFoundException {
         given(userService.getUserWithUsername(any())).willReturn(mockUser);
-        given(userService.getUpdatedTrades()).willReturn(Flux.just(mockTrade.setStatus(TradeStatus.SELECTED)));
 
         webSocketTest.sendMessageToController(
                 webSocketTest.subscribeHeaderAccessor("/topic/trades", auth)
@@ -81,21 +83,8 @@ class TradeControllerTest {
     }
 
     @Test
-    void shouldSendTradeOnTradeUpdate() throws UserNotFoundException {
-        given(userService.getUserWithUsername(any())).willReturn(mockUser);
-        given(userService.getUpdatedTrades()).willReturn(Flux.just(mockTrade.setStatus(TradeStatus.SELECTED)));
-
-        webSocketTest.sendMessageToController(
-                webSocketTest.subscribeHeaderAccessor("/topic/trades", auth)
-        );
-
-        Message<?> reply = webSocketTest.getBrokerMessagingChannel().getMessages().get(0);
-
-        assertThat(reply.getPayload(), is(mockTrade));
-    }
-
-    @Test
     void shouldReturnTradeOnCreateTradeSuccess() throws UserNotFoundException, JsonProcessingException {
+        given(tradeListener.start(any(), any())).willReturn(Flux.empty());
         Strategy mockStrategy = Mocks.strategy();
         mockUser.setStrategies(Map.of(Mocks.strategy().getName(), mockStrategy));
         Trade expectedTrade = new Trade()
@@ -103,7 +92,8 @@ class TradeControllerTest {
                 .setExchange(ExchangeName.valueOf(mockStrategy.getExchange().toUpperCase()))
                 .setStatus(TradeStatus.CREATION)
                 .setPair(mockStrategy.getPair())
-                .setType(StrategyType.valueOf(mockStrategy.getType().toUpperCase()));
+                .setType(StrategyType.valueOf(mockStrategy.getType().toUpperCase()))
+                .setEntryPercentage(BigDecimal.TEN.movePointLeft(2));
 
         given(userService.getUserWithUsername(any())).willReturn(mockUser);
 

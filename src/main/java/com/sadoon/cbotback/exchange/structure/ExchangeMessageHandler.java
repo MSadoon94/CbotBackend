@@ -10,7 +10,7 @@ import reactor.core.publisher.Sinks;
 
 public class ExchangeMessageHandler implements WebSocketHandler {
     private Sinks.Many<Mono<String>> outputMessageFeed = Sinks.many().multicast().onBackpressureBuffer();
-    private Sinks.Many<String> inputMessageFeed = Sinks.many().replay().all();
+    private Sinks.Many<String> inputMessageFeed = Sinks.many().multicast().onBackpressureBuffer();
 
     @Override
     public Mono<Void> handle(WebSocketSession session) {

@@ -6,6 +6,8 @@ import com.sadoon.cbotback.exchange.structure.ExchangeMessageFactory;
 import com.sadoon.cbotback.exchange.structure.ExchangeMessageProcessor;
 import com.sadoon.cbotback.strategy.StrategyType;
 import com.sadoon.cbotback.trade.Trade;
+import com.sadoon.cbotback.user.UserService;
+import com.sadoon.cbotback.user.models.User;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.PooledDataBuffer;
 import reactor.core.publisher.Flux;
@@ -28,14 +30,16 @@ public class AssetTracker {
         this.messageProcessor = messageProcessor;
     }
 
-    public Function<Flux<Trade>, Flux<Trade>> addCurrentPrice = (Flux<Trade> tradeFeedIn) ->
-            tradeFeedIn
-                    .doOnNext(this::addPairs)
-                    .map(this::getUpdateParams)
-                    .flatMap(this::tickerMessageFeed)
-                    .zipWith(tradeFeedIn)
-                    .map(tuple -> tuple.getT2()
-                            .setCurrentPrice(new BigDecimal(tuple.getT1())));
+    public Function<Flux<Trade>, Flux<Trade>> addCurrentPrice(UserService userService, User user) {
+        return tradeFeedIn -> tradeFeedIn
+                .doOnNext(this::addPairs)
+                .map(this::getUpdateParams)
+                .flatMap(this::tickerMessageFeed)
+                .zipWith(tradeFeedIn)
+                .map(tuple -> tuple.getT2()
+                        .setCurrentPrice(new BigDecimal(tuple.getT1())))
+                .doOnNext(trade -> userService.updateTrade(user, trade));
+    }
 
 
     private Map<String, String> getUpdateParams(Trade trade) {

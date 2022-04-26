@@ -39,12 +39,7 @@ class UserServiceTest {
     private UserRepository repo;
 
     @Mock
-    TradeListener tradeListener;
-    @Mock
     private Exchange mockExchange;
-
-    @Mock
-    private ExchangeSupplier supplier;
 
     private User mockUser = Mocks.user();
     private UserService userService;
@@ -64,7 +59,6 @@ class UserServiceTest {
 
     @BeforeEach
     public void setup() {
-
         repo.deleteAll();
         mockUser.setCards(Mocks.cards());
         mockUser.addExchange(ExchangeName.KRAKEN);
@@ -74,7 +68,7 @@ class UserServiceTest {
         mockUser.setStrategies(strategies);
 
         repo.save(mockUser);
-        userService = new UserService(repo, supplier, tradeListener);
+        userService = new UserService(repo);
     }
 
     @Test
@@ -113,8 +107,7 @@ class UserServiceTest {
 
     @Test
     void shouldAddEncryptedCredentialToUser() {
-        given(tradeListener.start(any(), any(), any()))
-                .willReturn(Flux.just(Mocks.trade(TradeStatus.CREATION, BigDecimal.ONE, BigDecimal.TEN)));
+
         userService.addEncryptedCredential(mockUser, mockCredentials);
         assertThat(repo.getUserByUsername(mockUser.getUsername()).getEncryptedCredential(mockCredentials.type()),
                 samePropertyValuesAs(mockCredentials)

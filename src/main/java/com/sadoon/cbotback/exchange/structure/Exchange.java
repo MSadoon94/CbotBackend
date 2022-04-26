@@ -12,15 +12,20 @@ public class Exchange {
     private ExchangeWebSocket webSocket;
     private ExchangeMessageFactory messageFactory;
     private ExchangeWebClient webClient;
-    private final PriceCalculator priceCalculator;
-    private final EntryScanner entryScanner;
+    private PriceCalculator priceCalculator;
+    private EntryScanner entryScanner;
     private ExchangeResponseHandler responseHandler;
     private ExchangeMessageProcessor messageProcessor;
     private AssetTracker tracker;
 
-    public Exchange() {
-        priceCalculator = new PriceCalculator();
-        entryScanner = new EntryScanner();
+    public Exchange setPriceCalculator(PriceCalculator priceCalculator) {
+        this.priceCalculator = priceCalculator;
+        return this;
+    }
+
+    public Exchange setEntryScanner(EntryScanner entryScanner) {
+        this.entryScanner = entryScanner;
+        return this;
     }
 
     public ExchangeName getExchangeName() {
