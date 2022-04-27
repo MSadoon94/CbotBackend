@@ -9,6 +9,7 @@ import com.sadoon.cbotback.strategy.StrategyType;
 import com.sadoon.cbotback.user.UserService;
 import com.sadoon.cbotback.user.models.User;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.stereotype.Controller;
 
@@ -39,25 +40,46 @@ public class TradeController {
     }
 
     @MessageMapping("/create-trade")
-    public Trade createTrade(String strategyName, Principal principal) throws UserNotFoundException {
+    @SendTo("/topic/trades")
+    public Map<UUID, Trade> createTrade(Map<String, String> strategyDetails, Principal principal) throws UserNotFoundException {
         User user = userService.getUserWithUsername(principal.getName());
-        Strategy strategy = user.getStrategies()
-                .get(strategyName);
+        Strategy strategy = modifyStrategy(user, strategyDetails);
         ExchangeName exchangeName = ExchangeName.valueOf(strategy.getExchange().toUpperCase());
+        if(strategy.isActive() && !isAlreadyCreated(strategy, user)){
+            addTrade(strategy, exchangeName, user);
+        }
+
+        return user.getTrades();
+    }
+
+    private Strategy modifyStrategy(User user, Map<String, String> strategyDetails){
+        Strategy strategy = user.getStrategies()
+                .get(strategyDetails.get("name"));
+        strategy.setActive(Boolean.parseBoolean(strategyDetails.get("isActive")));
+        userService.addStrategy(user, strategy);
+        return strategy;
+    }
+
+    private boolean isAlreadyCreated(Strategy strategy, User user){
+        return user.getTrades()
+                .values()
+                .stream()
+                .anyMatch(trade -> trade.getStrategyName().equals(strategy.getName()));
+    }
+
+    private void addTrade(Strategy strategy, ExchangeName exchangeName, User user){
 
         Trade trade = new Trade()
-                .setStrategyName(strategyName)
+                .setStrategyName(strategy.getName())
                 .setExchange(exchangeName)
                 .setStatus(TradeStatus.CREATION)
                 .setPair(strategy.getPair())
                 .setType(StrategyType.valueOf(strategy.getType().toUpperCase()))
                 .setEntryPercentage(new BigDecimal(strategy.getEntry()).movePointLeft(2));
 
-        userService.addTrade(user, trade);
         tradeListener.start(user, exchangeSupplier.getExchange(exchangeName))
                 .subscribe();
-
-        return trade;
+        userService.addTrade(user, trade);
     }
 
 }

@@ -11,7 +11,6 @@ import java.util.function.UnaryOperator;
 
 public class EntryScanner {
 
-
     public UnaryOperator<Flux<Trade>> findEntry(UserService userService, User user) {
         return tradeFeedIn -> tradeFeedIn
                 .map(trade -> trade.setLabel(
