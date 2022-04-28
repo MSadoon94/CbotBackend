@@ -12,7 +12,6 @@ import com.sadoon.cbotback.executor.PriceCalculator;
 import com.sadoon.cbotback.security.credentials.CredentialsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 
@@ -21,7 +20,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Configuration
-@Lazy
 public class ExchangeSupplier {
 
     private Map<ExchangeName, Exchange> exchangeRegistry = new LinkedHashMap<>();

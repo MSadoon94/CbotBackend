@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sadoon.cbotback.api.PublicRequestDto;
 import com.sadoon.cbotback.asset.AssetPair;
-import com.sadoon.cbotback.asset.AssetPairRequest;
+import com.sadoon.cbotback.asset.AssetPairMessage;
 import com.sadoon.cbotback.asset.AssetPairs;
 import com.sadoon.cbotback.brokerage.model.Balances;
 import com.sadoon.cbotback.brokerage.model.Brokerage;
@@ -111,8 +111,8 @@ public class Mocks {
         return brokerage;
     }
 
-    public static AssetPairRequest assetPairRequest() {
-        AssetPairRequest request = new AssetPairRequest();
+    public static AssetPairMessage assetPairMessage() {
+        AssetPairMessage request = new AssetPairMessage();
         request.setAssets("BTCUSD");
         request.setExchange("kraken");
         return request;

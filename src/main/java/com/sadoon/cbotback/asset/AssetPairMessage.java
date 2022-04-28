@@ -2,7 +2,7 @@ package com.sadoon.cbotback.asset;
 
 import com.sadoon.cbotback.api.ApiRequest;
 
-public class AssetPairRequest implements ApiRequest {
+public class AssetPairMessage implements ApiRequest {
     private String assets;
     private String exchange;
 
