@@ -1,6 +1,7 @@
 package com.sadoon.cbotback.security.credentials;
 
 import com.sadoon.cbotback.exchange.meta.ExchangeName;
+import com.sadoon.cbotback.update.UserUpdater;
 import com.sadoon.cbotback.tools.Mocks;
 import com.sadoon.cbotback.tools.TestMessageChannel;
 import com.sadoon.cbotback.tools.WebSocketTest;
@@ -20,6 +21,8 @@ import static org.hamcrest.Matchers.is;
 @ExtendWith(MockitoExtension.class)
 class CredentialControllerTest {
 
+    @Mock
+    private UserUpdater userUpdater;
     @Mock
     private CredentialsService credentialsService;
 

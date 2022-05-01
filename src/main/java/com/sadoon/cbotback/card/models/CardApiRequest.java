@@ -6,7 +6,7 @@ public class CardApiRequest implements BrokerageApiRequest {
     private String cardName;
     private String account;
     private String password;
-    private String brokerage;
+    private String exchange;
 
     public CardApiRequest() {
     }
@@ -41,11 +41,11 @@ public class CardApiRequest implements BrokerageApiRequest {
     }
 
     public String getExchange() {
-        return brokerage;
+        return exchange;
     }
 
-    public void setBrokerage(String brokerage) {
-        this.brokerage = brokerage;
+    public void setExchange(String exchange) {
+        this.exchange = exchange;
     }
 
 }

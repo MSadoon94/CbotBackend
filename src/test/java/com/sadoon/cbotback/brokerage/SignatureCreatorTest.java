@@ -30,7 +30,7 @@ class SignatureCreatorTest {
 
 
     private BrokerageDto getDto(CardApiRequest request){
-        request.setBrokerage("kraken");
+        request.setExchange("kraken");
         BrokerageDto brokerageDTO = new BrokerageDto(request, "add-order");
         brokerageDTO.setBrokerage(mockBrokerage());
         brokerageDTO.setNonce(NONCE);

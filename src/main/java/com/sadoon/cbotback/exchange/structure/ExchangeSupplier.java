@@ -10,6 +10,7 @@ import com.sadoon.cbotback.exchange.meta.ExchangeName;
 import com.sadoon.cbotback.executor.EntryScanner;
 import com.sadoon.cbotback.executor.PriceCalculator;
 import com.sadoon.cbotback.security.credentials.CredentialsService;
+import com.sadoon.cbotback.util.ExchangeProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -21,8 +22,13 @@ import java.util.Map;
 
 @Configuration
 public class ExchangeSupplier {
+    private ExchangeProperties exchangeProperties;
 
     private Map<ExchangeName, Exchange> exchangeRegistry = new LinkedHashMap<>();
+
+    public ExchangeSupplier(ExchangeProperties exchangeProperties) {
+        this.exchangeProperties = exchangeProperties;
+    }
 
     @Bean
     ObjectMapper mapper() {
@@ -40,9 +46,13 @@ public class ExchangeSupplier {
     @Bean
     Exchange krakenExchange(ObjectMapper mapper, CredentialsService credentialsService, SimpMessagingTemplate simpMessagingTemplate) {
         KrakenResponseHandler responseHandler = new KrakenResponseHandler(mapper);
-        ExchangeWebClient webClient
-                = new KrakenWebClient(responseHandler, new NonceCreator(), "https://api.kraken.com");
-        ExchangeWebSocket webSocket = new ExchangeWebSocket(new ReactorNettyWebSocketClient(), URI.create("wss://ws.kraken.com"));
+        ExchangeWebClient webClient = new KrakenWebClient(
+                responseHandler,
+                new NonceCreator(),
+                exchangeProperties.getUrls().get(ExchangeName.KRAKEN.name().toLowerCase()));
+        ExchangeWebSocket webSocket = new ExchangeWebSocket(
+                new ReactorNettyWebSocketClient(),
+                URI.create(exchangeProperties.getWebsockets().get(ExchangeName.KRAKEN.name().toLowerCase())));
         ExchangeMessageProcessor messageProcessor = new ExchangeMessageProcessor(webSocket, new ExchangeMessageHandler(), simpMessagingTemplate);
         KrakenMessageFactory messageFactory = new KrakenMessageFactory(mapper);
 

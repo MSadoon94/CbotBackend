@@ -107,7 +107,7 @@ class CardControllerTest {
         given(cardService.newCard(any())).willReturn(Mocks.card());
 
         cardRequest.setCardName("mockCard3");
-        cardRequest.setBrokerage("kraken");
+        cardRequest.setExchange("kraken");
 
         saveCard()
                 .andExpect(status().isCreated());

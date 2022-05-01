@@ -72,7 +72,7 @@ class BrokerageServiceTest {
 
     @Test
     void shouldThrowBrokerageNotFoundException() {
-        request.setBrokerage("InvalidBrokerage");
+        request.setExchange("InvalidBrokerage");
         assertThrows(BrokerageNotFoundException.class, () -> {
             brokerageService.createBrokerageDto(request, requestType);
         });

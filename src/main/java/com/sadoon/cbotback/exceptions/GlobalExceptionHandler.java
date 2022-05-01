@@ -27,8 +27,8 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.security.GeneralSecurityException;
-import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 
 
 @ControllerAdvice
@@ -122,13 +122,17 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @MessageExceptionHandler(value = ExchangeRequestException.class)
     protected String handleExchangeRequestExceptionAsMessage(ExchangeRequestException ex,
-                                                             SimpMessagingTemplate messagingTemplate,
-                                                             Principal principal
+                                                             SimpMessagingTemplate messagingTemplate
     ) {
         if (ex.getMessage().contains("EAPI:Invalid key")) {
+            String message =
+                    String.format("%1s credentials rejected, please enter correct credentials.", ex.getExchange());
             messagingTemplate.convertAndSend(
                     "/topic/rejected-credentials",
-                    String.format("%1s credentials rejected, please enter correct credentials.", ex.getExchange()));
+                    Map.of(
+                            "exchange", ex.getExchange(),
+                            "message", message
+                    ));
         }
         return String.format("Error: %s", ex.getMessage());
     }

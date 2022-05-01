@@ -80,7 +80,7 @@ public class Mocks {
     public static CardApiRequest cardRequest(String brokerage) {
         CardApiRequest request = new CardApiRequest("mockAccount", "mockPassword");
         request.setCardName("mockName");
-        request.setBrokerage(brokerage);
+        request.setExchange(brokerage);
         return request;
     }
 
