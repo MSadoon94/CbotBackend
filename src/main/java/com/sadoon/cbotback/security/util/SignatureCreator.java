@@ -1,4 +1,4 @@
-package com.sadoon.cbotback.brokerage.util;
+package com.sadoon.cbotback.security.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,12 +16,7 @@ public class SignatureCreator {
 
     private static final Logger logger = LoggerFactory.getLogger(SignatureCreator.class);
 
-    public String requestWrapper(BrokerageDto request){
-        String update = request.getNonce() + formattedBody(request);
-        return signature(update, request.getPassword(), request.getEndpoint());
-    }
-
-    public String signature(String update, String initKey, String macUpdate){
+    public String signature(String update, String initKey, String macUpdate) {
         String signature = "";
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -35,17 +30,11 @@ public class SignatureCreator {
         return signature;
     }
 
-    private Mac getPrimedHmac(String initKey, String macUpdate) throws NoSuchAlgorithmException, InvalidKeyException{
+    private Mac getPrimedHmac(String initKey, String macUpdate) throws NoSuchAlgorithmException, InvalidKeyException {
         Mac hmac = Mac.getInstance("HmacSHA512");
         hmac.init(new SecretKeySpec(Base64.getDecoder().decode(
                 initKey.replaceAll("[=]", "").trim()), "HmacSHA512"));
         hmac.update(macUpdate.getBytes());
         return hmac;
-    }
-
-    private String formattedBody(BrokerageDto request) {
-        String bodyValues = request.getBodyValues().toString();
-        bodyValues = bodyValues.replaceAll("[{}\\[\\],]", "").trim();
-        return bodyValues.replaceAll("[\\s]", "&");
     }
 }

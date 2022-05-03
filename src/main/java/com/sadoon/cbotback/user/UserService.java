@@ -1,6 +1,6 @@
 package com.sadoon.cbotback.user;
 
-import com.sadoon.cbotback.card.models.Card;
+import com.sadoon.cbotback.exchange.model.Exchange;
 import com.sadoon.cbotback.exceptions.notfound.UserNotFoundException;
 import com.sadoon.cbotback.exchange.meta.ExchangeName;
 import com.sadoon.cbotback.security.credentials.SecurityCredential;
@@ -63,13 +63,6 @@ public class UserService {
     public User replace(User user) {
         repo.deleteById(user.getId());
         return repo.save(user);
-    }
-
-    public void addCard(User user, Card card) {
-        Map<String, Card> cards = user.getCards();
-        cards.put(card.getCardName(), card);
-        user.setCards(cards);
-        replace(user);
     }
 
     public void addStrategy(User user, Strategy strategy) {

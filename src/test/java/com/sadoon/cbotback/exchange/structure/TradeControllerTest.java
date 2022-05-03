@@ -23,11 +23,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.Authentication;
-import reactor.core.publisher.Flux;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.samePropertyValuesAs;
@@ -84,28 +86,35 @@ class TradeControllerTest {
 
     @Test
     void shouldReturnTradeOnCreateTradeSuccess() throws UserNotFoundException, JsonProcessingException {
-        given(tradeListener.start(any(), any())).willReturn(Flux.empty());
         Strategy mockStrategy = Mocks.strategy();
-        mockUser.setStrategies(Map.of(Mocks.strategy().getName(), mockStrategy));
-        Trade expectedTrade = new Trade()
-                .setStrategyName(mockStrategy.getName())
-                .setExchange(ExchangeName.valueOf(mockStrategy.getExchange().toUpperCase()))
-                .setStatus(TradeStatus.CREATION)
-                .setPair(mockStrategy.getPair())
-                .setType(StrategyType.valueOf(mockStrategy.getType().toUpperCase()))
-                .setEntryPercentage(BigDecimal.TEN.movePointLeft(2));
 
+        mockUser.setStrategies(Map.of(Mocks.strategy().getName(), mockStrategy));
+        Trade expectedTrade = expectedTrade(mockStrategy);
         given(userService.getUserWithUsername(any())).willReturn(mockUser);
 
         webSocketTest.sendMessageToController(
                 webSocketTest.sendHeaderAccessor(
                         String.format("/app/create-trade", mockStrategy.getName()), auth),
-                Mocks.mapper.writeValueAsBytes(mockStrategy.getName())
+                Mocks.mapper.writeValueAsBytes(Map.of("name", mockStrategy.getName()))
         );
 
         Message<?> reply = webSocketTest.getBrokerMessagingChannel().getMessages().get(0);
+        Map<UUID, Trade> result = (Map<UUID, Trade>) reply.getPayload();
+        assertThat(result.get(mockTrade.getId()), samePropertyValuesAs(expectedTrade, "id", "fees"));
+    }
 
-        assertThat(reply.getPayload(), samePropertyValuesAs(expectedTrade, "id"));
+    private Trade expectedTrade(Strategy mockStrategy) {
+        List<String> allNames = new ArrayList<>(List.of("BTC/USD", "XBTUSD"));
+        return new Trade()
+                .setStatus(TradeStatus.SELECTED)
+                .setLabel("KRAKEN1BTC/USD100Long")
+                .setTargetPrice(BigDecimal.TEN)
+                .setExchange(ExchangeName.valueOf(mockStrategy.getExchange().toUpperCase()))
+                .setAllNames(allNames)
+                .setCurrentPrice(BigDecimal.ONE)
+                .setPair(mockStrategy.getPair())
+                .setType(StrategyType.valueOf(mockStrategy.getType().toUpperCase()))
+                .setEntryPercentage(BigDecimal.TEN);
     }
 
 }

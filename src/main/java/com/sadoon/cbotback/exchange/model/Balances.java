@@ -1,4 +1,4 @@
-package com.sadoon.cbotback.brokerage.model;
+package com.sadoon.cbotback.exchange.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sadoon.cbotback.api.KrakenResponse;

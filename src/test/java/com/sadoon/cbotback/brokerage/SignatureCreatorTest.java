@@ -1,12 +1,9 @@
 package com.sadoon.cbotback.brokerage;
 
-import com.sadoon.cbotback.brokerage.model.Brokerage;
-import com.sadoon.cbotback.brokerage.util.BrokerageDto;
-import com.sadoon.cbotback.brokerage.util.SignatureCreator;
-import com.sadoon.cbotback.card.models.CardApiRequest;
+import com.sadoon.cbotback.security.util.SignatureCreator;
 import org.junit.jupiter.api.Test;
-
-import java.util.Map;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -19,43 +16,34 @@ class SignatureCreatorTest {
     private final String ENDPOINT = "/0/private/AddOrder";
     private final String NONCE = "1616492376594";
     private final String SECRET_KEY = "kQH5HW/8p1uGOVjbgWA7FunAmGO8lsSUXN==su3eow76sz84Q18fWxnyRzBHCd3pd5nE9qa99HAZtuZuj6F1huXg==";
+    private MultiValueMap<String, String> bodyValues = new LinkedMultiValueMap<>();
 
 
     @Test
-    void shouldGenerateSignatureThatMatchesApiSignConstant(){
+    void shouldGenerateSignatureThatMatchesApiSignConstant() {
+        setBodyValues();
+
         assertThat(new SignatureCreator()
-                        .requestWrapper(getDto(new CardApiRequest("Account", SECRET_KEY))),
-                is(API_SIGN));
+                .signature(
+                        NONCE.concat(formattedBody()),
+                        SECRET_KEY,
+                        ENDPOINT
+                ), is(API_SIGN));
     }
 
-
-    private BrokerageDto getDto(CardApiRequest request){
-        request.setExchange("kraken");
-        BrokerageDto brokerageDTO = new BrokerageDto(request, "add-order");
-        brokerageDTO.setBrokerage(mockBrokerage());
-        brokerageDTO.setNonce(NONCE);
-        addBodyValues(brokerageDTO);
-        return brokerageDTO;
-    }
-
-    private void addBodyValues(BrokerageDto brokerageDTO) {
+    private void setBodyValues() {
         String[] keys = {"ordertype", "pair", "price", "type", "volume"};
         String[] values = {"limit", "XBTUSD", "37500", "buy", "1.25"};
-
+        bodyValues.set("nonce", NONCE);
         for (int i = 0; i < keys.length; i++) {
-            brokerageDTO.addBodyValue(keys[i], values[i]);
+            bodyValues.add(keys[i], values[i]);
         }
     }
 
-    //This method is used instead of the static mock method in "Mocks" due to the specificity needed in this test.
-    private Brokerage mockBrokerage() {
-        Brokerage mockBrokerage = new Brokerage();
-        mockBrokerage.setUrl("https://api.kraken.com");
-        mockBrokerage.setName("kraken");
-        mockBrokerage.setEndpoints(Map.of("add-order", "/0/private/AddOrder"));
-        mockBrokerage.setSuccessKey("result");
-        mockBrokerage.setMethods(Map.of("add-order", "POST"));
-        return mockBrokerage;
+    private String formattedBody() {
+        String bodyValuesAsText = bodyValues.toString();
+        bodyValuesAsText = bodyValuesAsText.replaceAll("[{}\\[\\],]", "").trim();
+        return bodyValuesAsText.replaceAll("[\\s]", "&");
     }
 
 

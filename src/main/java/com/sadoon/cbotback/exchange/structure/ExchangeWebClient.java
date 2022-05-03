@@ -1,7 +1,7 @@
 package com.sadoon.cbotback.exchange.structure;
 
 import com.sadoon.cbotback.asset.AssetPairs;
-import com.sadoon.cbotback.brokerage.model.Balances;
+import com.sadoon.cbotback.exchange.model.Balances;
 import com.sadoon.cbotback.exchange.model.TradeVolume;
 import com.sadoon.cbotback.security.credentials.SecurityCredential;
 import com.sadoon.cbotback.trade.Trade;

@@ -51,7 +51,7 @@ class CredentialControllerTest {
 
         Message<?> reply = webSocketTest.getBrokerMessagingChannel().getMessages().get(0);
 
-        assertThat(reply.getPayload(), is("Exchange added."));
+        assertThat(reply.getPayload(), is("KRAKEN added successfully."));
     }
 
 }

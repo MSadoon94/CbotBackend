@@ -6,7 +6,7 @@ import com.sadoon.cbotback.executor.EntryScanner;
 import com.sadoon.cbotback.executor.PriceCalculator;
 import com.sadoon.cbotback.security.credentials.CredentialsService;
 
-public class Exchange {
+public class ExchangeUtil {
     private ExchangeName exchangeName;
     private CredentialsService credentialsService;
     private ExchangeWebSocket webSocket;
@@ -18,12 +18,12 @@ public class Exchange {
     private ExchangeMessageProcessor messageProcessor;
     private AssetTracker tracker;
 
-    public Exchange setPriceCalculator(PriceCalculator priceCalculator) {
+    public ExchangeUtil setPriceCalculator(PriceCalculator priceCalculator) {
         this.priceCalculator = priceCalculator;
         return this;
     }
 
-    public Exchange setEntryScanner(EntryScanner entryScanner) {
+    public ExchangeUtil setEntryScanner(EntryScanner entryScanner) {
         this.entryScanner = entryScanner;
         return this;
     }
@@ -32,7 +32,7 @@ public class Exchange {
         return exchangeName;
     }
 
-    public Exchange setExchangeName(ExchangeName exchangeName) {
+    public ExchangeUtil setExchangeName(ExchangeName exchangeName) {
         this.exchangeName = exchangeName;
         return this;
     }
@@ -41,7 +41,7 @@ public class Exchange {
         return credentialsService;
     }
 
-    public Exchange setCredentialsService(CredentialsService credentialsService) {
+    public ExchangeUtil setCredentialsService(CredentialsService credentialsService) {
         this.credentialsService = credentialsService;
         return this;
     }
@@ -50,7 +50,7 @@ public class Exchange {
         return webSocket;
     }
 
-    public Exchange setWebSocket(ExchangeWebSocket webSocket) {
+    public ExchangeUtil setWebSocket(ExchangeWebSocket webSocket) {
         this.webSocket = webSocket;
         return this;
     }
@@ -59,7 +59,7 @@ public class Exchange {
         return messageFactory;
     }
 
-    public Exchange setMessageFactory(ExchangeMessageFactory messageFactory) {
+    public ExchangeUtil setMessageFactory(ExchangeMessageFactory messageFactory) {
         this.messageFactory = messageFactory;
         return this;
     }
@@ -68,7 +68,7 @@ public class Exchange {
         return webClient;
     }
 
-    public Exchange setWebClient(ExchangeWebClient webClient) {
+    public ExchangeUtil setWebClient(ExchangeWebClient webClient) {
         this.webClient = webClient;
         return this;
     }
@@ -85,7 +85,7 @@ public class Exchange {
         return responseHandler;
     }
 
-    public Exchange setResponseHandler(ExchangeResponseHandler responseHandler) {
+    public ExchangeUtil setResponseHandler(ExchangeResponseHandler responseHandler) {
         this.responseHandler = responseHandler;
         return this;
     }
@@ -94,7 +94,7 @@ public class Exchange {
         return messageProcessor;
     }
 
-    public Exchange setMessageProcessor(ExchangeMessageProcessor messageProcessor) {
+    public ExchangeUtil setMessageProcessor(ExchangeMessageProcessor messageProcessor) {
         this.messageProcessor = messageProcessor;
         return this;
     }
@@ -103,7 +103,7 @@ public class Exchange {
         return tracker;
     }
 
-    public Exchange setTracker(AssetTracker tracker) {
+    public ExchangeUtil setTracker(AssetTracker tracker) {
         this.tracker = tracker;
 
         return this;

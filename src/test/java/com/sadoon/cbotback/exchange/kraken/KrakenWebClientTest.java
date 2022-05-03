@@ -3,9 +3,9 @@ package com.sadoon.cbotback.exchange.kraken;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sadoon.cbotback.api.KrakenResponse;
-import com.sadoon.cbotback.brokerage.model.Balances;
-import com.sadoon.cbotback.brokerage.util.NonceCreator;
-import com.sadoon.cbotback.brokerage.util.SignatureCreator;
+import com.sadoon.cbotback.exchange.model.Balances;
+import com.sadoon.cbotback.security.util.NonceCreator;
+import com.sadoon.cbotback.security.util.SignatureCreator;
 import com.sadoon.cbotback.exceptions.exchange.ExchangeRequestException;
 import com.sadoon.cbotback.exchange.meta.ExchangeName;
 import com.sadoon.cbotback.exchange.meta.TradeStatus;
@@ -24,6 +24,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -204,9 +205,9 @@ class KrakenWebClientTest {
 
         StepVerifier.create(client.balances(credentials))
                 .expectErrorSatisfies(error -> {
-                    assertThat(error, isA(ExchangeRequestException.class));
+                    assertThat(error, isA(WebClientResponseException.class));
                     assertThat(error.getMessage(),
-                            containsString("KRAKEN responded with: 400 Bad Request from POST"));
+                            containsString("400 Bad Request from POST"));
                 })
                 .verify();
     }

@@ -1,7 +1,7 @@
 package com.sadoon.cbotback.trade;
 
 import com.sadoon.cbotback.exchange.meta.TradeStatus;
-import com.sadoon.cbotback.exchange.structure.Exchange;
+import com.sadoon.cbotback.exchange.structure.ExchangeUtil;
 import com.sadoon.cbotback.user.UserService;
 import com.sadoon.cbotback.user.models.User;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -20,17 +20,17 @@ public class TradeListener {
     }
 
     public Flux<Trade> start(User user,
-                             Exchange exchange) {
+                             ExchangeUtil exchangeUtil) {
         handleTradeUpdates(user);
         return userService.userTradeFeed(user)
                 .filter(trade -> trade.getStatus() == TradeStatus.CREATION)
-                .filter(trade -> exchange.getExchangeName() == trade.getExchange())
-                .transform(exchange.getTracker().addCurrentPrice(userService, user)
-                        .andThen(exchange.getWebClient().addAllPairNames())
-                        .andThen(exchange.getWebClient().addFees(
-                                userService.getCredential(user, exchange.getExchangeName().name())))
-                        .andThen(exchange.getPriceCalculator().addTargetPrice)
-                        .andThen(exchange.getEntryScanner().findEntry(userService, user)))
+                .filter(trade -> exchangeUtil.getExchangeName() == trade.getExchange())
+                .transform(exchangeUtil.getTracker().addCurrentPrice(userService, user)
+                        .andThen(exchangeUtil.getWebClient().addAllPairNames())
+                        .andThen(exchangeUtil.getWebClient().addFees(
+                                userService.getCredential(user, exchangeUtil.getExchangeName().name())))
+                        .andThen(exchangeUtil.getPriceCalculator().addTargetPrice)
+                        .andThen(exchangeUtil.getEntryScanner().findEntry(userService, user)))
                 .onErrorResume(Mono::error);
     }
 

@@ -1,7 +1,7 @@
 package com.sadoon.cbotback.asset;
 
 import com.sadoon.cbotback.exchange.meta.ExchangeName;
-import com.sadoon.cbotback.exchange.structure.Exchange;
+import com.sadoon.cbotback.exchange.structure.ExchangeUtil;
 import com.sadoon.cbotback.exchange.structure.ExchangeSupplier;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -23,20 +23,20 @@ public class AssetController {
 
     @MessageMapping("/asset-pairs")
     public AssetPairs assetPairs(@Payload AssetPairMessage message) {
-        Exchange exchange = exchangeSupplier.getExchange(
+        ExchangeUtil exchangeUtil = exchangeSupplier.getExchange(
                 ExchangeName.valueOf(message.getExchange().toUpperCase()));
-        if ((pairCache == null) || (hasBeenValidated(message.getAssets()))) {
+        if ((pairCache == null) || (hasNotBeenValidated(message.getAssets()))) {
             pairs.add(message.getAssets());
-            pairCache = exchange.getWebClient()
+            pairCache = exchangeUtil.getWebClient()
                     .assetPairs(String.join(",", pairs))
                     .block();
         }
         return pairCache;
     }
 
-    private boolean hasBeenValidated(String pair) {
+    private boolean hasNotBeenValidated(String pair) {
         if (pairCache.getPairs() == null) {
-            return false;
+            return true;
         } else {
             return !pairCache.getPairs().containsKey(pair);
         }

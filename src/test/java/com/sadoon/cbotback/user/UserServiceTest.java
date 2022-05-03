@@ -2,15 +2,12 @@ package com.sadoon.cbotback.user;
 
 import com.sadoon.cbotback.exceptions.notfound.UserNotFoundException;
 import com.sadoon.cbotback.exchange.meta.ExchangeName;
-import com.sadoon.cbotback.exchange.meta.TradeStatus;
-import com.sadoon.cbotback.exchange.structure.Exchange;
-import com.sadoon.cbotback.exchange.structure.ExchangeSupplier;
+import com.sadoon.cbotback.exchange.structure.ExchangeUtil;
 import com.sadoon.cbotback.refresh.models.RefreshToken;
 import com.sadoon.cbotback.security.credentials.SecurityCredential;
 import com.sadoon.cbotback.status.CbotStatus;
 import com.sadoon.cbotback.strategy.Strategy;
 import com.sadoon.cbotback.tools.Mocks;
-import com.sadoon.cbotback.trade.TradeListener;
 import com.sadoon.cbotback.user.models.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,9 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
-import reactor.core.publisher.Flux;
 
-import java.math.BigDecimal;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -29,7 +24,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.samePropertyValuesAs;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
 
 @DataMongoTest
 @ExtendWith(MockitoExtension.class)
@@ -39,7 +33,7 @@ class UserServiceTest {
     private UserRepository repo;
 
     @Mock
-    private Exchange mockExchange;
+    private ExchangeUtil mockExchangeUtil;
 
     private User mockUser = Mocks.user();
     private UserService userService;
@@ -69,13 +63,6 @@ class UserServiceTest {
 
         repo.save(mockUser);
         userService = new UserService(repo);
-    }
-
-    @Test
-    void shouldAddCardToUser() {
-        userService.addCard(mockUser, Mocks.card());
-        assertThat(repo.getUserByUsername(mockUser.getUsername()).getCards().get(Mocks.card().getCardName()),
-                samePropertyValuesAs(Mocks.card(), "balances"));
     }
 
     @Test

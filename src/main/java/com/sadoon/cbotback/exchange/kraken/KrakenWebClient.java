@@ -2,9 +2,9 @@ package com.sadoon.cbotback.exchange.kraken;
 
 import com.sadoon.cbotback.asset.AssetPair;
 import com.sadoon.cbotback.asset.AssetPairs;
-import com.sadoon.cbotback.brokerage.model.Balances;
-import com.sadoon.cbotback.brokerage.util.NonceCreator;
-import com.sadoon.cbotback.brokerage.util.SignatureCreator;
+import com.sadoon.cbotback.exchange.model.Balances;
+import com.sadoon.cbotback.security.util.NonceCreator;
+import com.sadoon.cbotback.security.util.SignatureCreator;
 import com.sadoon.cbotback.exceptions.exchange.ExchangeRequestException;
 import com.sadoon.cbotback.exchange.meta.ExchangeName;
 import com.sadoon.cbotback.exchange.model.Fees;
@@ -118,9 +118,7 @@ public class KrakenWebClient implements ExchangeWebClient {
                 .bodyValue(formatBodyValues(bodyValues))
                 .retrieve()
                 .bodyToFlux(Balances.class)
-                .onErrorResume(error -> Mono.error(
-                        new ExchangeRequestException(ExchangeName.KRAKEN, error.getMessage())
-                ));
+                .flatMap(balances -> Mono.fromCallable(() -> balances.checkErrors(balances, balances.getErrors())));
     }
 
     @Override

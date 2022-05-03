@@ -9,6 +9,13 @@ public interface KrakenResponse {
 
     String[] getErrors();
 
+    default <T extends KrakenResponse> T checkErrors(T response, String[] errors) throws ExchangeRequestException {
+        if (Arrays.stream(errors).findFirst().isPresent()) {
+            throw new ExchangeRequestException(ExchangeName.KRAKEN, Arrays.toString(errors));
+        }
+        return response;
+    }
+
     default void checkErrors(String[] errors) throws ExchangeRequestException {
         if (Arrays.stream(errors).findFirst().isPresent()) {
             throw new ExchangeRequestException(ExchangeName.KRAKEN, Arrays.toString(errors));

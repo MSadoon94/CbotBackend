@@ -1,6 +1,6 @@
 package com.sadoon.cbotback.user.models;
 
-import com.sadoon.cbotback.card.models.Card;
+import com.sadoon.cbotback.exchange.model.Exchange;
 import com.sadoon.cbotback.exchange.meta.ExchangeName;
 import com.sadoon.cbotback.refresh.models.RefreshToken;
 import com.sadoon.cbotback.security.credentials.SecurityCredential;
@@ -30,7 +30,7 @@ public class User implements UserDetails {
 
     private List<GrantedAuthority> authorities = new ArrayList<>();
 
-    private Map<String, Card> cards = new LinkedHashMap<>();
+    private Map<String, Exchange> cards = new LinkedHashMap<>();
 
     private Map<String, Strategy> strategies = new LinkedHashMap<>();
 
@@ -96,11 +96,11 @@ public class User implements UserDetails {
         return true;
     }
 
-    public Map<String, Card> getCards() {
+    public Map<String, Exchange> getCards() {
         return cards;
     }
 
-    public void setCards(Map<String, Card> cards) {
+    public void setCards(Map<String, Exchange> cards) {
         this.cards = cards;
     }
 

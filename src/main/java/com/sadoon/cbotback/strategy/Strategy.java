@@ -27,7 +27,6 @@ public class Strategy {
         return String.format("%1s/%2s", base, quote);
     }
 
-
     public boolean isActive() {
         return isActive;
     }

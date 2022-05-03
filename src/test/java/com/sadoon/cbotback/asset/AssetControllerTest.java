@@ -1,7 +1,7 @@
 package com.sadoon.cbotback.asset;
 
 import com.sadoon.cbotback.exchange.kraken.KrakenWebClient;
-import com.sadoon.cbotback.exchange.structure.Exchange;
+import com.sadoon.cbotback.exchange.structure.ExchangeUtil;
 import com.sadoon.cbotback.exchange.structure.ExchangeSupplier;
 import com.sadoon.cbotback.tools.Mocks;
 import com.sadoon.cbotback.tools.TestMessageChannel;
@@ -33,7 +33,7 @@ class AssetControllerTest {
 
     private WebSocketTest webSocketTest;
 
-    private Exchange exchange;
+    private ExchangeUtil exchangeUtil;
 
     private AssetController controller;
 
@@ -45,9 +45,9 @@ class AssetControllerTest {
 
     @BeforeEach
     void setUp() {
-        exchange = new Exchange()
+        exchangeUtil = new ExchangeUtil()
                 .setWebClient(webClient);
-        given(supplier.getExchange(any())).willReturn(exchange);
+        given(supplier.getExchange(any())).willReturn(exchangeUtil);
         controller = new AssetController(supplier);
         webSocketTest = new WebSocketTest(controller, new SimpMessagingTemplate(new TestMessageChannel()));
     }

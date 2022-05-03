@@ -2,18 +2,14 @@ package com.sadoon.cbotback.tools;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sadoon.cbotback.api.PublicRequestDto;
 import com.sadoon.cbotback.asset.AssetPair;
 import com.sadoon.cbotback.asset.AssetPairMessage;
 import com.sadoon.cbotback.asset.AssetPairs;
-import com.sadoon.cbotback.brokerage.model.Balances;
-import com.sadoon.cbotback.brokerage.model.Brokerage;
-import com.sadoon.cbotback.brokerage.util.BrokerageDto;
-import com.sadoon.cbotback.card.models.Card;
-import com.sadoon.cbotback.card.models.CardApiRequest;
 import com.sadoon.cbotback.exchange.kraken.KrakenTickerMessage;
 import com.sadoon.cbotback.exchange.meta.ExchangeName;
 import com.sadoon.cbotback.exchange.meta.TradeStatus;
+import com.sadoon.cbotback.exchange.model.Balances;
+import com.sadoon.cbotback.exchange.model.Exchange;
 import com.sadoon.cbotback.exchange.model.Fees;
 import com.sadoon.cbotback.exchange.model.TradeVolume;
 import com.sadoon.cbotback.refresh.models.RefreshResponse;
@@ -56,59 +52,21 @@ public class Mocks {
         return balances;
     }
 
-    public static Map<String, Card> cards() {
-        Map<String, Card> cards = new LinkedHashMap<>();
+    public static Map<String, Exchange> cards() {
+        Map<String, Exchange> cards = new LinkedHashMap<>();
         cards.put(
-                "mockCard1",
-                new Card("mockCard1", "mockPassword", balances("USD", "100"))
+                "exchange1",
+                new Exchange("exchange1", balances("USD", "100"))
         );
         cards.put(
-                "mockCard2",
-                new Card("mockCard2", "mockPassword", balances("USD", "50"))
+                "exchange2",
+                new Exchange("exchange2", balances("USD", "50"))
         );
         return cards;
     }
 
-    public static Card card() {
-        return new Card(
-                "mockName",
-                "mockPassword",
-                balances("USD", "150")
-        );
-    }
-
-    public static CardApiRequest cardRequest(String brokerage) {
-        CardApiRequest request = new CardApiRequest("mockAccount", "mockPassword");
-        request.setCardName("mockName");
-        request.setExchange(brokerage);
-        return request;
-    }
-
     public static Authentication auth(User mockUser) {
         return new UsernamePasswordAuthenticationToken(mockUser, "mockPassword", mockUser.getAuthorities());
-    }
-
-    public static <T> PublicRequestDto<T> publicRequestDto(T request, String type, String brokerageUrl) {
-        PublicRequestDto<T> dto = new PublicRequestDto<>(request, type);
-        dto.setBrokerage(brokerage(brokerageUrl));
-        return dto;
-    }
-
-    public static BrokerageDto brokerageDTO(String requestType, String url) {
-        BrokerageDto dto = new BrokerageDto(cardRequest(brokerage(url).getName()), requestType);
-        dto.setBrokerage(brokerage(url));
-        dto.setNonce("mockNonce");
-        return dto;
-    }
-
-    public static Brokerage brokerage(String url) {
-        Brokerage brokerage = new Brokerage();
-        brokerage.setName("mockkraken");
-        brokerage.setUrl(url);
-        brokerage.setEndpoints(Map.of("balance", "/mockBalance"));
-        brokerage.setMethods(Map.of("balance", "POST"));
-        brokerage.setSuccessKey("result");
-        return brokerage;
     }
 
     public static AssetPairMessage assetPairMessage() {

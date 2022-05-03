@@ -1,8 +1,9 @@
 package com.sadoon.cbotback.update;
 
-import com.sadoon.cbotback.brokerage.model.Balances;
+import com.sadoon.cbotback.exchange.model.Balances;
 import com.sadoon.cbotback.exchange.meta.ExchangeName;
-import com.sadoon.cbotback.exchange.structure.Exchange;
+import com.sadoon.cbotback.exchange.model.Exchange;
+import com.sadoon.cbotback.exchange.structure.ExchangeUtil;
 import com.sadoon.cbotback.exchange.structure.ExchangeSupplier;
 import com.sadoon.cbotback.user.UserService;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -11,6 +12,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.security.Principal;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -29,16 +31,20 @@ public class UserUpdater {
     }
 
     public void addBalanceUpdates(ExchangeName exchangeName, Principal principal, Flux<Long> interval) {
-        Exchange exchange = exchangeSupplier.getExchange(exchangeName);
-        getBalances(exchange, exchangeName, principal)
-                .subscribe(sendBalancesUpdate(exchangeName));
+        ExchangeUtil exchangeUtil = exchangeSupplier.getExchange(exchangeName);
+        sendInitialBalance(exchangeUtil, exchangeName, principal);
         interval
-                .flatMap(time -> getBalances(exchange, exchangeName, principal))
-                .subscribe(sendBalancesUpdate(exchangeName));
+                .flatMap(time -> getBalances(exchangeUtil, exchangeName, principal))
+                .subscribe(sendBalancesUpdate(exchangeName), sendRejectedMessage(exchangeName));
     }
 
-    private Flux<Balances> getBalances(Exchange exchange, ExchangeName exchangeName, Principal principal) {
-        return Mono.fromCallable(() -> exchange.getWebClient()
+    private void sendInitialBalance(ExchangeUtil exchangeUtil, ExchangeName exchangeName, Principal principal){
+        getBalances(exchangeUtil, exchangeName, principal)
+                .subscribe(sendBalancesUpdate(exchangeName), sendRejectedMessage(exchangeName));
+    }
+
+    private Flux<Balances> getBalances(ExchangeUtil exchangeUtil, ExchangeName exchangeName, Principal principal) {
+        return Mono.fromCallable(() -> exchangeUtil.getWebClient()
                         .balances(userService.getCredential(
                                 userService.getUserWithUsername(principal.getName()),
                                 exchangeName.name())))
@@ -50,6 +56,14 @@ public class UserUpdater {
         return balances ->
                 messagingTemplate.convertAndSend(
                         "/topic/balance",
-                        new BalanceUpdate(exchangeName.name(), balances));
+                        new Exchange(exchangeName.name(), balances));
+    }
+    private Consumer<Throwable> sendRejectedMessage(ExchangeName exchangeName){
+        return error -> messagingTemplate.convertAndSend(
+                "/topic/rejected-credentials",
+                Map.of(
+                        "exchange", exchangeName,
+                        "message", error.getMessage())
+        );
     }
 }
