@@ -30,7 +30,7 @@ public class RequestFilter extends OncePerRequestFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(RequestFilter.class);
 
-    private String url;
+    private AppProperties props;
 
     private final MongoUserDetailsService userDetailsService;
 
@@ -43,7 +43,7 @@ public class RequestFilter extends OncePerRequestFilter {
     public RequestFilter(AppProperties props, MongoUserDetailsService userDetailsService, JwtService jwtService) {
         this.userDetailsService = userDetailsService;
         this.jwtService = jwtService;
-        this.url = props.getCorsExclusion();
+        this.props = props;
     }
 
     @Override
@@ -60,7 +60,7 @@ public class RequestFilter extends OncePerRequestFilter {
 
         try {
             chain.doFilter(request, response);
-        } catch (Exception ex){
+        } catch (Exception ex) {
             logger.error("Spring Security Filter Chain Exception:", ex);
             resolver.resolveException(
                     request,
@@ -111,8 +111,9 @@ public class RequestFilter extends OncePerRequestFilter {
     }
 
     private boolean isPublicEndpoint(HttpServletRequest request) {
-        return request.getRequestURL().toString().equals(url + "/sign-up")
-                || request.getRequestURL().toString().equals(url + "/login");
+        return Arrays.stream(props.getEndpointExclusions())
+                .anyMatch(endpoint ->
+                        request.getRequestURL().toString().equals(props.getCorsExclusion().concat(endpoint)));
     }
 
     private void handleRequestsWithExpiredJwt(HttpServletRequest request, ExpiredJwtException exception) {
@@ -120,7 +121,7 @@ public class RequestFilter extends OncePerRequestFilter {
         String requestUrl = request.getRequestURL().toString();
 
         if (refreshToken != null && refreshToken.equals("true")
-                && requestUrl.equals(url + "/refresh-jwt")) {
+                && requestUrl.equals(props.getCorsExclusion() + "/refresh-jwt")) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(exception.getClaims().getSubject());
             setSecurityContext(userDetails, request);
         } else throw exception;

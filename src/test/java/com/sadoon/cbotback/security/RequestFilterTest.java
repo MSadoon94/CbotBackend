@@ -56,6 +56,7 @@ class RequestFilterTest {
     @BeforeEach
     public void setUp() {
         when(props.getCorsExclusion()).thenReturn("http://localhost:3000/api");
+        when(props.getEndpointExclusions()).thenReturn(new String[]{"/login", "/sign-up"});
 
         filter = new RequestFilter(props, mockUserDetailsService, mockJwtService);
         setMocks();
@@ -134,7 +135,7 @@ class RequestFilterTest {
     }
 
     @Test
-    void shouldAllowRefreshTokenRequestsForValidJwt() throws ServletException, IOException {
+    void shouldAllowRefreshTokenRequestsForValidJwt() {
         when(mockJwtService.extractUsername(any())).thenThrow(mockExpiredException);
         when(mockUserDetailsService.loadUserByUsername(any())).thenReturn(mockUser);
         setRefreshTokenRequest();

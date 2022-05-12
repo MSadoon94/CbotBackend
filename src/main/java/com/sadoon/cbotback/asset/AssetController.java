@@ -25,6 +25,9 @@ public class AssetController {
     public AssetPairs assetPairs(@Payload AssetPairMessage message) {
         ExchangeUtil exchangeUtil = exchangeSupplier.getExchange(
                 ExchangeName.valueOf(message.getExchange().toUpperCase()));
+        if(pairs.size() >= 250){
+            pairs = new ArrayList<>();
+        }
         if ((pairCache == null) || (hasNotBeenValidated(message.getAssets()))) {
             pairs.add(message.getAssets());
             pairCache = exchangeUtil.getWebClient()
@@ -38,7 +41,7 @@ public class AssetController {
         if (pairCache.getPairs() == null) {
             return true;
         } else {
-            return !pairCache.getPairs().containsKey(pair);
+            return pairs.stream().noneMatch(entry -> entry.equals(pair));
         }
     }
 }

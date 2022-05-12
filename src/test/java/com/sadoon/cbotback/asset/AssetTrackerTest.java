@@ -49,13 +49,13 @@ class AssetTrackerTest {
     public void setup() {
         mockUser = Mocks.user();
         auth = Mocks.auth(mockUser);
-        tracker = new AssetTracker(mockMessageFactory, mockMessageHandler);
+        tracker = new AssetTracker(userService, mockMessageFactory, mockMessageHandler);
         setUpMocks();
     }
 
     @Test
     void shouldReturnTradeWithCurrentPriceAdded() {
-        StepVerifier.create(tracker.addCurrentPrice(userService, mockUser).apply(tradeFlux), StepVerifierOptions.create().checkUnderRequesting(true))
+        StepVerifier.create(tracker.addCurrentPrice(mockUser).apply(tradeFlux), StepVerifierOptions.create().checkUnderRequesting(true))
                 .consumeNextWith(trade ->
                         assertThat(trade.getCurrentPrice(),
                                 is(new BigDecimal(tickerMessage.getPrice(StrategyType.LONG)))))

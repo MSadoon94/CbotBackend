@@ -1,6 +1,5 @@
 package com.sadoon.cbotback.user;
 
-import com.sadoon.cbotback.exchange.model.Exchange;
 import com.sadoon.cbotback.exceptions.notfound.UserNotFoundException;
 import com.sadoon.cbotback.exchange.meta.ExchangeName;
 import com.sadoon.cbotback.security.credentials.SecurityCredential;
@@ -17,7 +16,6 @@ import java.util.Map;
 
 @Service
 public class UserService {
-
     private UserRepository repo;
     private Map<String, Map<String, SecurityCredential>> cachedCredentials = new LinkedHashMap<>();
     private Sinks.Many<Trade> tradeFeed = Sinks.many().multicast().onBackpressureBuffer();

@@ -6,30 +6,34 @@ import org.springframework.web.reactive.socket.WebSocketHandler;
 import org.springframework.web.reactive.socket.WebSocketSession;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.SignalType;
 import reactor.core.publisher.Sinks;
+import reactor.util.concurrent.Queues;
 
 public class ExchangeMessageHandler implements WebSocketHandler {
-    private Sinks.Many<Mono<String>> outputMessageFeed = Sinks.many().multicast().onBackpressureBuffer();
-    private Sinks.Many<String> inputMessageFeed = Sinks.many().multicast().onBackpressureBuffer();
+    private Sinks.Many<Mono<String>> outputMessageFeed =
+            Sinks.many().multicast().onBackpressureBuffer(Queues.SMALL_BUFFER_SIZE, false);
+    private Sinks.Many<String> inputMessageFeed =
+            Sinks.many().multicast().onBackpressureBuffer(Queues.SMALL_BUFFER_SIZE, false);
+    private Sinks.Many<SignalType> inputTerminationSignals =
+            Sinks.many().multicast().onBackpressureBuffer(Queues.SMALL_BUFFER_SIZE, false);
 
     @Override
     public Mono<Void> handle(WebSocketSession session) {
-        Mono<Void> input = session.receive()
+        Flux<Sinks.EmitResult> input = session.receive()
                 .map(message -> {
                     String payload = message.retain().getPayloadAsText();
                     message.release();
                     return inputMessageFeed.tryEmitNext(payload);
                 })
-                .doOnDiscard(PooledDataBuffer.class, DataBufferUtils::release)
-                .then();
+                .doFinally(inputTerminationSignals::tryEmitNext)
+                .doOnDiscard(PooledDataBuffer.class, DataBufferUtils::release);
 
-        Mono<Void> output = outputMessageFeed
+        Flux<Object> output = outputMessageFeed
                 .asFlux()
                 .flatMap(message -> session.send(message
-                        .map(session::textMessage)))
-                .then();
-
-        return Mono.zip(output, input).then();
+                        .map(session::textMessage)));
+        return Mono.when(output, input);
     }
 
     public Sinks.EmitResult sendMessage(Mono<String> messageMono) {
@@ -40,5 +44,10 @@ public class ExchangeMessageHandler implements WebSocketHandler {
         return inputMessageFeed
                 .asFlux()
                 .doOnDiscard(PooledDataBuffer.class, DataBufferUtils::release);
+    }
+
+    public Flux<SignalType> getInputTerminationSignals() {
+        return inputTerminationSignals
+                .asFlux();
     }
 }

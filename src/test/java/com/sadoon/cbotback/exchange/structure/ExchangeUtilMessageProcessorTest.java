@@ -11,11 +11,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.SignalType;
 import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
 
+import java.net.URI;
 import java.util.List;
 import java.util.function.Function;
 
@@ -29,9 +32,9 @@ import static org.mockito.BDDMockito.given;
 class ExchangeUtilMessageProcessorTest {
 
     @Mock
-    private ExchangeWebSocket socket;
-    @Mock
     private ExchangeMessageHandler messageHandler;
+    @Mock
+    private ReactorNettyWebSocketClient webSocketClient;
 
     private SimpMessagingTemplate messagingTemplate = new SimpMessagingTemplate(new TestMessageChannel());
 
@@ -43,9 +46,10 @@ class ExchangeUtilMessageProcessorTest {
 
     @BeforeEach
     public void setUp() {
-        processor = new ExchangeMessageProcessor(socket, messageHandler, messagingTemplate);
+        given(webSocketClient.execute(any(), any())).willReturn(Mono.empty());
+        given(messageHandler.getInputTerminationSignals()).willReturn(Flux.just(SignalType.REQUEST));
+        processor = new ExchangeMessageProcessor(webSocketClient, URI.create(""), messageHandler, messagingTemplate);
         webSocketTest = new WebSocketTest(processor, messagingTemplate);
-
     }
 
     private Function<Flux<String>, Flux<String>> toUpperCase = (messageFeed) -> messageFeed.map(String::toUpperCase);

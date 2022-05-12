@@ -20,25 +20,34 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class AssetTracker {
+    private UserService userService;
     private ExchangeMessageFactory messageFactory;
     private ExchangeMessageProcessor messageProcessor;
     private List<String> pairs = new ArrayList<>();
 
-    public AssetTracker(ExchangeMessageFactory messageFactory,
+    public AssetTracker(UserService userService,
+                        ExchangeMessageFactory messageFactory,
                         ExchangeMessageProcessor messageProcessor) {
+        this.userService = userService;
         this.messageFactory = messageFactory;
         this.messageProcessor = messageProcessor;
     }
 
-    public Function<Flux<Trade>, Flux<Trade>> addCurrentPrice(UserService userService, User user) {
+    public Function<Flux<Trade>, Flux<Trade>> addCurrentPrice(User user) {
         return tradeFeedIn -> tradeFeedIn
-                .doOnNext(this::addPairs)
-                .map(this::getUpdateParams)
-                .flatMap(this::tickerMessageFeed)
+                .doOnNext(trade -> {
+                    addPairs(trade);
+                    subscribeTradeToPriceChanges(trade, user);
+                })
+                .flatMap(trade -> tickerMessageFeed(getUpdateParams(trade)))
                 .zipWith(tradeFeedIn)
                 .map(tuple -> tuple.getT2()
-                        .setCurrentPrice(new BigDecimal(tuple.getT1())))
-                .doOnNext(trade -> userService.updateTrade(user, trade));
+                        .setCurrentPrice(new BigDecimal(tuple.getT1())));
+    }
+
+    private void subscribeTradeToPriceChanges(Trade trade, User user) {
+        tickerMessageFeed(getUpdateParams(trade))
+                .subscribe(price -> userService.updateTrade(user, trade.setCurrentPrice(new BigDecimal(price))));
     }
 
 
@@ -73,7 +82,7 @@ public class AssetTracker {
                 messageFeed.map(message -> message.getPrice(type)));
     }
 
-    private Function<Flux<String>, Flux<TickerMessage>> toTickerMessage = (messageFeed) ->
+    private Function<Flux<String>, Flux<TickerMessage>> toTickerMessage = messageFeed ->
             messageFeed
                     .filter(messageFilter())
                     .doOnDiscard(PooledDataBuffer.class, DataBufferUtils::release)

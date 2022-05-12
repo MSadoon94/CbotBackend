@@ -9,6 +9,8 @@ import com.sadoon.cbotback.user.models.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
@@ -24,6 +26,8 @@ import static org.hamcrest.Matchers.is;
 class EntryScannerTest {
     @Mock
     private UserService userService;
+    @Captor
+    private ArgumentCaptor<Trade> tradeCaptor;
     private User mockUser;
     private Authentication auth;
 
@@ -37,7 +41,7 @@ class EntryScannerTest {
     }
 
     @Test
-    void shouldCreateTradeId() {
+    void shouldCreateTradeLabel() {
         Trade targetValue = Mocks.trade(TradeStatus.SELECTED, BigDecimal.ONE, BigDecimal.ONE);
         Flux<Trade> tradeFeedIn = Flux.just(targetValue);
 
@@ -57,41 +61,27 @@ class EntryScannerTest {
     }
 
     @Test
-    void shouldReturnTradeFeedWithLongTradesThatHaveStatusSet() {
-        Trade lesserValue = Mocks.trade(TradeStatus.SELECTED, BigDecimal.ZERO, BigDecimal.ONE);
-        Trade targetValue = Mocks.trade(TradeStatus.SELECTED, BigDecimal.ONE, BigDecimal.ONE);
-        Trade greaterValue = Mocks.trade(TradeStatus.SELECTED, BigDecimal.TEN, BigDecimal.ONE);
-        Flux<Trade> tradeFeedIn = Flux.just(lesserValue, targetValue, greaterValue);
+    void shouldSpecifyIfLongTradesAreWithinRangeOfTarget() {
+        Trade lesserValue = Mocks.trade(TradeStatus.ENTRY_SEARCHING, BigDecimal.ZERO, BigDecimal.ONE);
+        Trade targetValue = Mocks.trade(TradeStatus.ENTRY_SEARCHING, BigDecimal.ONE, BigDecimal.ONE);
+        Trade greaterValue = Mocks.trade(TradeStatus.ENTRY_SEARCHING, BigDecimal.TEN, BigDecimal.ONE);
 
-        StepVerifier.create(scanner.findEntry(userService, mockUser).apply(tradeFeedIn))
-                .expectSubscription()
-                .consumeNextWith(trade -> tradeAssert(trade, lesserValue.getCurrentPrice(), TradeStatus.ENTRY_FOUND))
-                .consumeNextWith(trade -> tradeAssert(trade, targetValue.getCurrentPrice(), TradeStatus.ENTRY_FOUND))
-                .consumeNextWith(trade -> tradeAssert(trade, greaterValue.getCurrentPrice(), TradeStatus.ENTRY_SEARCHING))
-                .thenCancel()
-                .verify();
+        assertThat(scanner.isTradeWithinRangeOfTarget(lesserValue), is(true));
+        assertThat(scanner.isTradeWithinRangeOfTarget(targetValue), is(true));
+        assertThat(scanner.isTradeWithinRangeOfTarget(greaterValue), is(false));
     }
-
 
     @Test
-    void shouldReturnTradeFeedWithShortTradesThatAreInTargetRange() {
-        Trade lesserValue = Mocks.trade(TradeStatus.SELECTED, BigDecimal.ZERO, BigDecimal.ONE).setType(StrategyType.SHORT);
-        Trade targetValue = Mocks.trade(TradeStatus.SELECTED, BigDecimal.ONE, BigDecimal.ONE).setType(StrategyType.SHORT);
-        Trade greaterValue = Mocks.trade(TradeStatus.SELECTED, BigDecimal.TEN, BigDecimal.ONE).setType(StrategyType.SHORT);
-        Flux<Trade> tradeFeedIn = Flux.just(lesserValue, targetValue, greaterValue);
+    void shouldSpecifyIfShortTradesAreWithinRangeOfTarget() {
+        Trade lesserValue =
+                Mocks.trade(TradeStatus.ENTRY_SEARCHING, BigDecimal.ZERO, BigDecimal.ONE).setType(StrategyType.SHORT);
+        Trade targetValue =
+                Mocks.trade(TradeStatus.ENTRY_SEARCHING, BigDecimal.ONE, BigDecimal.ONE).setType(StrategyType.SHORT);
+        Trade greaterValue =
+                Mocks.trade(TradeStatus.ENTRY_SEARCHING, BigDecimal.TEN, BigDecimal.ONE).setType(StrategyType.SHORT);
 
-        StepVerifier.create(scanner.findEntry(userService, mockUser).apply(tradeFeedIn))
-                .expectSubscription()
-                .consumeNextWith(trade -> tradeAssert(trade, lesserValue.getCurrentPrice(), TradeStatus.ENTRY_SEARCHING))
-                .consumeNextWith(trade -> tradeAssert(trade, targetValue.getCurrentPrice(), TradeStatus.ENTRY_FOUND))
-                .consumeNextWith(trade -> tradeAssert(trade, greaterValue.getCurrentPrice(), TradeStatus.ENTRY_FOUND))
-                .thenCancel()
-                .verify();
+        assertThat(scanner.isTradeWithinRangeOfTarget(lesserValue), is(false));
+        assertThat(scanner.isTradeWithinRangeOfTarget(targetValue), is(true));
+        assertThat(scanner.isTradeWithinRangeOfTarget(greaterValue), is(true));
     }
-
-    private void tradeAssert(Trade trade, BigDecimal expectedPrice, TradeStatus expectedStatus) {
-        assertThat(trade.getCurrentPrice(), is(expectedPrice));
-        assertThat(trade.getStatus(), is(expectedStatus));
-    }
-
 }

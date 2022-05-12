@@ -1,5 +1,6 @@
 package com.sadoon.cbotback.security;
 
+import com.sadoon.cbotback.AppProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,10 +24,12 @@ import java.util.List;
 public class SecurityConfig extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
 
     private final RequestFilter filter;
+    private AppProperties props;
 
-    public SecurityConfig(RequestFilter filter) {
+    public SecurityConfig(RequestFilter filter, AppProperties props) {
         super();
         this.filter = filter;
+        this.props = props;
     }
 
     @Bean
@@ -50,6 +53,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements WebM
     public AuthenticationManager authenticationManagerBean() throws Exception {
         return super.authenticationManagerBean();
     }
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable().cors().and()
@@ -58,7 +62,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements WebM
                         (request, response, ex) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
                                 ex.getMessage()))
                 .and().authorizeRequests()
-                .antMatchers("/login", "/sign-up").permitAll()
+                .antMatchers(props.getEndpointExclusions()).permitAll()
                 .anyRequest().authenticated()
                 .and().sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);

@@ -14,26 +14,17 @@ public class EntryScanner {
     public UnaryOperator<Flux<Trade>> findEntry(UserService userService, User user) {
         return tradeFeedIn -> tradeFeedIn
                 .map(trade -> trade.setLabel(
-                        String.join("",
-                                trade.getExchange().name(),
-                                trade.getCurrentPrice().toString(),
-                                trade.getPair(),
-                                trade.getTargetPrice().toString(),
-                                trade.getType().name()
-                        )))
-                .map(trade -> {
-                    if (isTradeWithinRangeOfTarget(trade)) {
-                        trade = trade.setStatus(TradeStatus.ENTRY_FOUND);
-                    } else {
-                        trade = trade.setStatus(TradeStatus.ENTRY_SEARCHING);
-                    }
-                    return trade;
-                })
+                                String.join("",
+                                        trade.getExchange().name(),
+                                        trade.getCurrentPrice().toString(),
+                                        trade.getPair(),
+                                        trade.getTargetPrice().toString(),
+                                        trade.getType().name()))
+                        .setStatus(TradeStatus.ENTRY_SEARCHING))
                 .doOnNext(trade -> userService.updateTrade(user, trade));
     }
 
-
-    private boolean isTradeWithinRangeOfTarget(Trade trade) {
+    public boolean isTradeWithinRangeOfTarget(Trade trade) {
         if (trade.getType().equals(StrategyType.LONG)) {
             return trade.getCurrentPrice().compareTo(trade.getTargetPrice()) <= 0;
         } else {

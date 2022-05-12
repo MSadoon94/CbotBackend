@@ -4,6 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "app")
 public class AppProperties {
+    private String[] endpointExclusions;
     private String corsExclusion;
 
     private String jwtSecret;
@@ -78,5 +79,13 @@ public class AppProperties {
 
     public void setKeystorePassword(String keystorePassword) {
         this.keystorePassword = keystorePassword;
+    }
+
+    public String[] getEndpointExclusions() {
+        return endpointExclusions;
+    }
+
+    public void setEndpointExclusions(String[] endpointExclusions) {
+        this.endpointExclusions = endpointExclusions;
     }
 }

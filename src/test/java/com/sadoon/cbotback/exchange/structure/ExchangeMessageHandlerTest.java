@@ -18,7 +18,7 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
-class ExchangeUtilMessageHandlerTest {
+class ExchangeMessageHandlerTest {
 
     @Mock
     private WebSocketSession session;

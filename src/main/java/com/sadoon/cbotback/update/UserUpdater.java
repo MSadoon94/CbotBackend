@@ -1,10 +1,10 @@
 package com.sadoon.cbotback.update;
 
-import com.sadoon.cbotback.exchange.model.Balances;
 import com.sadoon.cbotback.exchange.meta.ExchangeName;
+import com.sadoon.cbotback.exchange.model.Balances;
 import com.sadoon.cbotback.exchange.model.Exchange;
-import com.sadoon.cbotback.exchange.structure.ExchangeUtil;
 import com.sadoon.cbotback.exchange.structure.ExchangeSupplier;
+import com.sadoon.cbotback.exchange.structure.ExchangeUtil;
 import com.sadoon.cbotback.user.UserService;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -38,7 +38,7 @@ public class UserUpdater {
                 .subscribe(sendBalancesUpdate(exchangeName), sendRejectedMessage(exchangeName));
     }
 
-    private void sendInitialBalance(ExchangeUtil exchangeUtil, ExchangeName exchangeName, Principal principal){
+    private void sendInitialBalance(ExchangeUtil exchangeUtil, ExchangeName exchangeName, Principal principal) {
         getBalances(exchangeUtil, exchangeName, principal)
                 .subscribe(sendBalancesUpdate(exchangeName), sendRejectedMessage(exchangeName));
     }
@@ -58,7 +58,8 @@ public class UserUpdater {
                         "/topic/balance",
                         new Exchange(exchangeName.name(), balances));
     }
-    private Consumer<Throwable> sendRejectedMessage(ExchangeName exchangeName){
+
+    private Consumer<Throwable> sendRejectedMessage(ExchangeName exchangeName) {
         return error -> messagingTemplate.convertAndSend(
                 "/topic/rejected-credentials",
                 Map.of(

@@ -9,7 +9,6 @@ import com.sadoon.cbotback.security.credentials.CredentialsService;
 public class ExchangeUtil {
     private ExchangeName exchangeName;
     private CredentialsService credentialsService;
-    private ExchangeWebSocket webSocket;
     private ExchangeMessageFactory messageFactory;
     private ExchangeWebClient webClient;
     private PriceCalculator priceCalculator;
@@ -43,15 +42,6 @@ public class ExchangeUtil {
 
     public ExchangeUtil setCredentialsService(CredentialsService credentialsService) {
         this.credentialsService = credentialsService;
-        return this;
-    }
-
-    public ExchangeWebSocket getWebSocket() {
-        return webSocket;
-    }
-
-    public ExchangeUtil setWebSocket(ExchangeWebSocket webSocket) {
-        this.webSocket = webSocket;
         return this;
     }
 
