@@ -19,6 +19,7 @@ public class Strategy {
     private String movingStopLoss;
     private String maxLoss;
     private String entry;
+    private String targetPrice;
     private String timeFrame;
     private String timeUnit;
 
@@ -146,5 +147,13 @@ public class Strategy {
 
     public void setTimeUnit(String timeUnit) {
         this.timeUnit = timeUnit;
+    }
+
+    public String getTargetPrice() {
+        return targetPrice;
+    }
+
+    public void setTargetPrice(String targetPrice) {
+        this.targetPrice = targetPrice;
     }
 }

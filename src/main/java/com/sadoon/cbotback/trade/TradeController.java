@@ -74,8 +74,14 @@ public class TradeController {
                 .setExchange(exchangeName)
                 .setStatus(TradeStatus.CREATION)
                 .setPair(strategy.getPair())
-                .setType(StrategyType.valueOf(strategy.getType().toUpperCase()))
-                .setEntryPercentage(new BigDecimal(strategy.getEntry()).movePointLeft(2));
+                .setType(StrategyType.valueOf(strategy.getType().toUpperCase()));
+
+        if(strategy.getEntry().isBlank()){
+           trade = trade.setTargetPrice(new BigDecimal(strategy.getTargetPrice()));
+        } else {
+           trade = trade.setEntryPercentage(new BigDecimal(strategy.getEntry()).movePointLeft(2));
+        }
+
 
         tradeListener.start(user, exchangeSupplier.getExchange(exchangeName))
                 .subscribe();

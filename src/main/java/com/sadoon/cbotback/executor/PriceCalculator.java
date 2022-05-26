@@ -1,8 +1,8 @@
 package com.sadoon.cbotback.executor;
 
 import com.sadoon.cbotback.exceptions.outofbounds.OutOfBoundsException;
-import com.sadoon.cbotback.trade.Trade;
 import com.sadoon.cbotback.strategy.StrategyType;
+import com.sadoon.cbotback.trade.Trade;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -19,6 +19,14 @@ public class PriceCalculator {
                             .subscribeOn(Schedulers.boundedElastic()));
 
     private Trade addTargetPrice(Trade trade) throws OutOfBoundsException {
+        if (trade.getTargetPrice().equals(BigDecimal.ZERO)) {
+            trade = calculateTargetPrice(trade);
+        }
+
+        return trade;
+    }
+
+    private Trade calculateTargetPrice(Trade trade) throws OutOfBoundsException {
         BigDecimal target = BigDecimal.ZERO;
 
         if (trade.getType().equals(StrategyType.LONG)) {
@@ -43,6 +51,7 @@ public class PriceCalculator {
                                     .add(new BigDecimal(trade.getFees().getFee())));
         }
         return trade.setTargetPrice(target);
+
     }
 
     private BigDecimal checkEntryBounds(BigDecimal entry) throws OutOfBoundsException {
