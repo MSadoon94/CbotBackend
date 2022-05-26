@@ -47,6 +47,7 @@ public class AssetTracker {
 
     private void subscribeTradeToPriceChanges(Trade trade, User user) {
         tickerMessageFeed(getUpdateParams(trade))
+                .takeWhile(message -> userService.doesUserExist(user))
                 .subscribe(price -> userService.updateTrade(user, trade.setCurrentPrice(new BigDecimal(price))));
     }
 

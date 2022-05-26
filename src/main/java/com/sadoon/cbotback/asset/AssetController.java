@@ -1,8 +1,9 @@
 package com.sadoon.cbotback.asset;
 
+import com.sadoon.cbotback.exceptions.exchange.ExchangeRequestException;
 import com.sadoon.cbotback.exchange.meta.ExchangeName;
-import com.sadoon.cbotback.exchange.structure.ExchangeUtil;
 import com.sadoon.cbotback.exchange.structure.ExchangeSupplier;
+import com.sadoon.cbotback.exchange.structure.ExchangeUtil;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Controller;
@@ -22,16 +23,17 @@ public class AssetController {
     }
 
     @MessageMapping("/asset-pairs")
-    public AssetPairs assetPairs(@Payload AssetPairMessage message) {
+    public AssetPairs assetPairs(@Payload AssetPairMessage message) throws ExchangeRequestException {
         ExchangeUtil exchangeUtil = exchangeSupplier.getExchange(
                 ExchangeName.valueOf(message.getExchange().toUpperCase()));
-        if(pairs.size() >= 250){
+        if (pairs.size() >= 250) {
             pairs = new ArrayList<>();
         }
         if ((pairCache == null) || (hasNotBeenValidated(message.getAssets()))) {
             pairs.add(message.getAssets());
             pairCache = exchangeUtil.getWebClient()
                     .assetPairs(String.join(",", pairs))
+                    .doOnError(error -> pairs.remove(message.getAssets()))
                     .block();
         }
         return pairCache;

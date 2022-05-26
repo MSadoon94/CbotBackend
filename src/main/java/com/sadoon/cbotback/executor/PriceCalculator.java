@@ -19,7 +19,7 @@ public class PriceCalculator {
                             .subscribeOn(Schedulers.boundedElastic()));
 
     private Trade addTargetPrice(Trade trade) throws OutOfBoundsException {
-        if (trade.getTargetPrice().equals(BigDecimal.ZERO)) {
+        if (trade.getTargetPrice() == null ||trade.getTargetPrice().equals(BigDecimal.ZERO)) {
             trade = calculateTargetPrice(trade);
         }
 

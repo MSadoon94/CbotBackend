@@ -90,6 +90,10 @@ public class UserService {
         tradeFeed.tryEmitNext(trade);
     }
 
+    public boolean doesUserExist(User user) {
+        return repo.existsById(user.getId());
+    }
+
     public void updateTrade(User user, Trade trade) {
         user.addTrade(trade);
         replace(user);

@@ -21,6 +21,7 @@ public class EntryScanner {
                                         trade.getTargetPrice().toString(),
                                         trade.getType().name()))
                         .setStatus(TradeStatus.ENTRY_SEARCHING))
+                .takeWhile(trade -> userService.doesUserExist(user))
                 .doOnNext(trade -> userService.updateTrade(user, trade));
     }
 
