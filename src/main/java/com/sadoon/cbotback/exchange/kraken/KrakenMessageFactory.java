@@ -26,6 +26,7 @@ public class KrakenMessageFactory implements ExchangeMessageFactory {
                             KrakenTickerMessage message =
                                     mapper.convertValue(messageNode.get(1), KrakenTickerMessage.class);
                             message.setPair(messageNode.get(3).asText());
+                            message.setTimestamp();
                             return message;
                         }
                 )

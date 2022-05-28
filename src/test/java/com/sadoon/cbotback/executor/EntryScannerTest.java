@@ -21,6 +21,9 @@ import java.math.BigDecimal;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+
 
 @ExtendWith(MockitoExtension.class)
 class EntryScannerTest {
@@ -42,6 +45,7 @@ class EntryScannerTest {
 
     @Test
     void shouldCreateTradeLabel() {
+        given(userService.doesUserExist(any())).willReturn(Boolean.TRUE);
         Trade targetValue = Mocks.trade(TradeStatus.SELECTED, BigDecimal.ONE, BigDecimal.ONE);
         Flux<Trade> tradeFeedIn = Flux.just(targetValue);
 

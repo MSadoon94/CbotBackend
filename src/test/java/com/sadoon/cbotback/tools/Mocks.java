@@ -8,10 +8,7 @@ import com.sadoon.cbotback.asset.AssetPairs;
 import com.sadoon.cbotback.exchange.kraken.KrakenTickerMessage;
 import com.sadoon.cbotback.exchange.meta.ExchangeName;
 import com.sadoon.cbotback.exchange.meta.TradeStatus;
-import com.sadoon.cbotback.exchange.model.Balances;
-import com.sadoon.cbotback.exchange.model.Exchange;
-import com.sadoon.cbotback.exchange.model.Fees;
-import com.sadoon.cbotback.exchange.model.TradeVolume;
+import com.sadoon.cbotback.exchange.model.*;
 import com.sadoon.cbotback.refresh.models.RefreshResponse;
 import com.sadoon.cbotback.refresh.models.RefreshToken;
 import com.sadoon.cbotback.status.CbotStatus;
@@ -195,6 +192,7 @@ public class Mocks {
 
     public static KrakenTickerMessage krakenTickerMessage(String[] mockValues) {
         KrakenTickerMessage message = new KrakenTickerMessage();
+        message.setTimestamp();
         message.setPair("BTC/USD");
         message.setAsk(mockValues);
         message.setBid(mockValues);
@@ -238,5 +236,9 @@ public class Mocks {
                 .setTargetPrice(targetPrice)
                 .addPairNames(List.of(Mocks.assetPair().getAltName(), Mocks.assetPair().getWsName()))
                 .setEntryPercentage(new BigDecimal(strategy().getEntry()));
+    }
+
+    public static Candle candle(){
+        return new Candle(1l, "5", "10", "1", "9");
     }
 }

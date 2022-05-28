@@ -41,6 +41,10 @@ public class ExchangeMessageProcessor {
         });
     }
 
+    public void broadcastMessage(String destination, Object payload) {
+        messagingTemplate.convertAndSend(destination, payload);
+    }
+
     public <T> Flux<T> convertMessages(Function<Flux<String>, Flux<T>> transformation) {
         return messageHandler.getMessageFeed()
                 .transform(transformation);

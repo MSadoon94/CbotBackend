@@ -12,6 +12,8 @@ public interface TickerMessage {
         }
     }
 
+    long getTimestamp();
+
     String getPair();
 
     String getAsk();

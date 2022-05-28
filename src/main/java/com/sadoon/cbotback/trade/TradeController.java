@@ -74,7 +74,9 @@ public class TradeController {
                 .setExchange(exchangeName)
                 .setStatus(TradeStatus.CREATION)
                 .setPair(strategy.getPair())
-                .setType(StrategyType.valueOf(strategy.getType().toUpperCase()));
+                .setType(StrategyType.valueOf(strategy.getType().toUpperCase()))
+                .setTimeFrame(strategy.getTimeFrame())
+                .setTimeUnits(strategy.getTimeUnit());
 
         if(strategy.getEntry().isBlank()){
            trade = trade.setTargetPrice(new BigDecimal(strategy.getTargetPrice()));

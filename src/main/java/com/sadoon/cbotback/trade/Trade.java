@@ -23,6 +23,8 @@ public class Trade {
     private BigDecimal entryPercentage;
     private Fees fees;
     private StrategyType type;
+    private String timeFrame;
+    private String timeUnits;
 
     public UUID getId() {
         return id;
@@ -135,6 +137,24 @@ public class Trade {
 
     public Trade setEntryPercentage(BigDecimal entryPercentage) {
         this.entryPercentage = entryPercentage;
+        return this;
+    }
+
+    public String getTimeFrame() {
+        return timeFrame;
+    }
+
+    public Trade setTimeFrame(String timeFrame) {
+        this.timeFrame = timeFrame;
+        return this;
+    }
+
+    public String getTimeUnits() {
+        return timeUnits;
+    }
+
+    public Trade setTimeUnits(String timeUnits) {
+        this.timeUnits = timeUnits;
         return this;
     }
 }

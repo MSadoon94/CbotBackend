@@ -6,6 +6,7 @@ import com.sadoon.cbotback.exchange.kraken.KrakenMessageFactory;
 import com.sadoon.cbotback.exchange.kraken.KrakenResponseHandler;
 import com.sadoon.cbotback.exchange.kraken.KrakenWebClient;
 import com.sadoon.cbotback.exchange.meta.ExchangeName;
+import com.sadoon.cbotback.executor.CandleProcessor;
 import com.sadoon.cbotback.executor.EntryScanner;
 import com.sadoon.cbotback.executor.PriceCalculator;
 import com.sadoon.cbotback.security.credentials.CredentialsService;
@@ -67,7 +68,7 @@ public class ExchangeSupplier {
                 .setCredentialsService(credentialsService)
                 .setMessageFactory(messageFactory)
                 .setMessageProcessor(messageProcessor)
-                .setTracker(new AssetTracker(userService, messageFactory, messageProcessor))
+                .setTracker(new AssetTracker(userService, messageFactory, messageProcessor, new CandleProcessor()))
                 .setWebClient(webClient)
                 .setResponseHandler(responseHandler)
                 .setEntryScanner(new EntryScanner())

@@ -5,10 +5,14 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.sadoon.cbotback.exchange.model.TickerMessage;
 
+import java.sql.Timestamp;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class KrakenTickerMessage implements TickerMessage {
     @JsonIgnore
     private String pair;
+    @JsonIgnore
+    private long timestamp;
     private String[] ask;
     private String[] bid;
     private String[] open;
@@ -17,6 +21,11 @@ public class KrakenTickerMessage implements TickerMessage {
     private String[] low;
     private String[] volume;
 
+
+    @Override
+    public long getTimestamp() {
+        return timestamp;
+    }
 
     @Override
     public String getPair() {
@@ -60,6 +69,10 @@ public class KrakenTickerMessage implements TickerMessage {
 
     public void setPair(String pair) {
         this.pair = pair;
+    }
+
+    public void setTimestamp(){
+        timestamp = new Timestamp(System.currentTimeMillis()).getTime();
     }
 
     @JsonSetter("a")

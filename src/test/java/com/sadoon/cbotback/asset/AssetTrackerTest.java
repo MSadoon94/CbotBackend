@@ -4,6 +4,7 @@ import com.sadoon.cbotback.exchange.meta.ExchangeName;
 import com.sadoon.cbotback.exchange.model.TickerMessage;
 import com.sadoon.cbotback.exchange.structure.ExchangeMessageFactory;
 import com.sadoon.cbotback.exchange.structure.ExchangeMessageProcessor;
+import com.sadoon.cbotback.executor.CandleProcessor;
 import com.sadoon.cbotback.strategy.StrategyType;
 import com.sadoon.cbotback.tools.Mocks;
 import com.sadoon.cbotback.trade.Trade;
@@ -36,6 +37,8 @@ class AssetTrackerTest {
     private ExchangeMessageProcessor mockMessageHandler;
     @Mock
     private UserService userService;
+    @Mock
+    private CandleProcessor candleProcessor;
 
     private User mockUser;
     private Authentication auth;
@@ -49,7 +52,7 @@ class AssetTrackerTest {
     public void setup() {
         mockUser = Mocks.user();
         auth = Mocks.auth(mockUser);
-        tracker = new AssetTracker(userService, mockMessageFactory, mockMessageHandler);
+        tracker = new AssetTracker(userService, mockMessageFactory, mockMessageHandler, candleProcessor);
         setUpMocks();
     }
 
@@ -69,11 +72,16 @@ class AssetTrackerTest {
                         .setExchange(ExchangeName.KRAKEN)
                         .setPair("BTC/USD")
                         .setType(StrategyType.LONG)
+                        .setStrategyName("MockName")
+                        .setTimeFrame("1")
+                        .setTimeUnits("Seconds")
         );
         tickerMessage = Mocks.krakenTickerMessage(new String[]{"10"});
 
         given(mockMessageHandler.sendMessage(any())).willReturn(Mono.empty());
         given(mockMessageFactory.tickerSubscribe(any())).willReturn(Mono.just("MockTickerSubscribeMessage"));
+        given(candleProcessor.toCandles(any(), any()))
+                .willReturn(tickerMessageFlux -> Flux.just(Mocks.candle()));
         given(mockMessageHandler.convertAndSendUpdates(any(), any()))
                 .willReturn(Flux.just(tickerMessage.getPrice(StrategyType.LONG)));
     }
