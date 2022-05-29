@@ -82,7 +82,7 @@ class AssetTrackerTest {
         given(mockMessageFactory.tickerSubscribe(any())).willReturn(Mono.just("MockTickerSubscribeMessage"));
         given(candleProcessor.toCandles(any(), any()))
                 .willReturn(tickerMessageFlux -> Flux.just(Mocks.candle()));
-        given(mockMessageHandler.convertAndSendUpdates(any(), any()))
-                .willReturn(Flux.just(tickerMessage.getPrice(StrategyType.LONG)));
+        given(mockMessageHandler.convertMessages(any()))
+                .willReturn(Flux.just(tickerMessage));
     }
 }

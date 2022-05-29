@@ -16,7 +16,6 @@ import reactor.core.publisher.Flux;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
@@ -42,20 +41,39 @@ public class AssetTracker {
 
     public Function<Flux<Trade>, Flux<Trade>> addCurrentPrice(User user) {
         return tradeFeedIn -> tradeFeedIn
-                .doOnNext(trade -> {
-                    addPairs(trade);
-                    subscribeTradeToPriceChanges(trade, user);
+                .doOnNext(this::addPairs)
+                .flatMap(trade -> {
+                    Flux<TickerMessage> tickerFeed = tickerMessageFeed();
+                    subscribeTradeToPriceChanges(tickerFeed, user, trade);
+                    subscribeTradeToCandleBroadcasts(tickerFeed, trade);
+                    return tickerFeed
+                            .transform(toPricePayload(trade.getType()));
                 })
-                .flatMap(this::tickerMessageFeed)
                 .zipWith(tradeFeedIn)
                 .map(tuple -> tuple.getT2()
                         .setCurrentPrice(new BigDecimal(tuple.getT1())));
     }
 
-    private void subscribeTradeToPriceChanges(Trade trade, User user) {
-        tickerMessageFeed(trade)
+    private void subscribeTradeToPriceChanges(Flux<TickerMessage> tickerFeed, User user, Trade trade) {
+        String priceDestination =
+                String.format("/topic/price/%1s/%2s",
+                        trade.getExchange().name().toLowerCase(),
+                        trade.getPair().toLowerCase().replace("/", ""));
+
+        tickerFeed
                 .takeWhile(message -> userService.doesUserExist(user))
+                .transform(toPricePayload(trade.getType()))
+                .doOnNext(payload -> messageProcessor.broadcastMessage(priceDestination, payload))
                 .subscribe(price -> userService.updateTrade(user, trade.setCurrentPrice(new BigDecimal(price))));
+    }
+
+    private void subscribeTradeToCandleBroadcasts(Flux<TickerMessage> tickerFeed, Trade trade) {
+        tickerFeed.transform(candleProcessor.toCandles(trade.getType(), Duration.of(
+                        Long.parseLong(trade.getTimeFrame()),
+                        ChronoUnit.valueOf(trade.getTimeUnits().toUpperCase()))))
+                .subscribe(candle -> messageProcessor.broadcastMessage(
+                        String.format("/topic/metrics/candle/%s",
+                                trade.getStrategyName()), candle));
     }
 
     private void addPairs(Trade trade) {
@@ -64,27 +82,13 @@ public class AssetTracker {
         }
     }
 
-    private Flux<String> tickerMessageFeed(Trade trade) {
-        String priceDestination =
-                String.format("/topic/price/%1s/%2s",
-                        trade.getExchange().name().toLowerCase(),
-                        trade.getPair().toLowerCase().replace("/", ""));
-
+    private Flux<TickerMessage> tickerMessageFeed() {
         return messageProcessor.sendMessage(messageFactory.tickerSubscribe(pairs))
-                .thenMany(
-                        messageProcessor.convertAndSendUpdates(
-                                toTickerMessage.andThen(
-                                        candleProcessor.toCandles(trade.getType(),
-                                        Duration.of(
-                                                Long.parseLong(trade.getTimeFrame()),
-                                                ChronoUnit.valueOf(trade.getTimeUnits().toUpperCase())))),
-                                String.format("/topic/metrics/candle/%s", trade.getStrategyName())))
-                .thenMany(
-                        messageProcessor.convertAndSendUpdates(toPricePayload(trade.getType()), priceDestination));
+                .thenMany(messageProcessor.convertMessages(toTickerMessage));
     }
 
-    private Function<Flux<String>, Flux<String>> toPricePayload(StrategyType type) {
-        return toTickerMessage.andThen(messageFeed -> messageFeed.map(message -> message.getPrice(type)));
+    private Function<Flux<TickerMessage>, Flux<String>> toPricePayload(StrategyType type) {
+        return messageFeed -> messageFeed.map(message -> message.getPrice(type));
     }
 
     private Function<Flux<String>, Flux<TickerMessage>> toTickerMessage = messageFeed ->

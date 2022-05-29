@@ -2,17 +2,17 @@ package com.sadoon.cbotback.exchange.kraken;
 
 import com.sadoon.cbotback.asset.AssetPair;
 import com.sadoon.cbotback.asset.AssetPairs;
-import com.sadoon.cbotback.exchange.model.Balances;
-import com.sadoon.cbotback.security.util.NonceCreator;
-import com.sadoon.cbotback.security.util.SignatureCreator;
 import com.sadoon.cbotback.exceptions.exchange.ExchangeRequestException;
 import com.sadoon.cbotback.exchange.meta.ExchangeName;
+import com.sadoon.cbotback.exchange.model.Balances;
 import com.sadoon.cbotback.exchange.model.Fees;
-import com.sadoon.cbotback.trade.Trade;
 import com.sadoon.cbotback.exchange.model.TradeVolume;
 import com.sadoon.cbotback.exchange.structure.ExchangeResponseHandler;
 import com.sadoon.cbotback.exchange.structure.ExchangeWebClient;
 import com.sadoon.cbotback.security.credentials.SecurityCredential;
+import com.sadoon.cbotback.security.util.NonceCreator;
+import com.sadoon.cbotback.security.util.SignatureCreator;
+import com.sadoon.cbotback.trade.Trade;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -77,7 +77,6 @@ public class KrakenWebClient implements ExchangeWebClient {
 
     private Flux<Map<String, Fees>> getFees(Mono<TradeVolume> tradeVolumeMono) {
         return tradeVolumeMono
-                .log()
                 .flux()
                 .flatMap(tradeVolume -> Mono.fromCallable(() ->
                                 responseHandler
